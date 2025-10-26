@@ -113,7 +113,7 @@ public static class OutList
     /// </summary>
     public static List<OutAction> Load(Slice slice)
     {
-        List<OutAction> actions = new();
+        List<OutAction> actions = [];
 
         while (slice.RemainingRefs > 0)
         {

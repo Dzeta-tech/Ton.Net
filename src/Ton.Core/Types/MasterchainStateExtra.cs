@@ -14,31 +14,25 @@ namespace Ton.Core.Types;
 ///     extra_ref: flags, validator_info, prev_blocks, etc.
 ///     global_balance:CurrencyCollection
 /// </summary>
-public record MasterchainStateExtra
+public record MasterchainStateExtra(
+    BigInteger ConfigAddress,
+    TonDict.Dictionary<TonDict.DictKeyInt, Cell> Config,
+    CurrencyCollection GlobalBalance)
 {
-    public MasterchainStateExtra(
-        BigInteger configAddress, TonDict.Dictionary<TonDict.DictKeyInt, Cell> config,
-        CurrencyCollection globalBalance)
-    {
-        ConfigAddress = configAddress;
-        Config = config;
-        GlobalBalance = globalBalance;
-    }
-
     /// <summary>
     ///     Configuration address (256 bits).
     /// </summary>
-    public BigInteger ConfigAddress { get; init; }
+    public BigInteger ConfigAddress { get; init; } = ConfigAddress;
 
     /// <summary>
     ///     Configuration parameters (Hashmap 32 ^Cell).
     /// </summary>
-    public TonDict.Dictionary<TonDict.DictKeyInt, Cell> Config { get; init; }
+    public TonDict.Dictionary<TonDict.DictKeyInt, Cell> Config { get; init; } = Config;
 
     /// <summary>
     ///     Global balance (total TON in circulation).
     /// </summary>
-    public CurrencyCollection GlobalBalance { get; init; }
+    public CurrencyCollection GlobalBalance { get; init; } = GlobalBalance;
 
     /// <summary>
     ///     Loads MasterchainStateExtra from slice.

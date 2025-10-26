@@ -49,7 +49,7 @@ public record CurrencyCollection
         );
 
         // JS SDK treats empty dictionary as undefined
-        if (other != null && other.Size == 0) other = null;
+        if (other is { Size: 0 }) other = null;
 
         return new CurrencyCollection(coins, other);
     }

@@ -628,8 +628,8 @@ public class DictionaryTests
     public void Test_Dictionary_BOC_BitStringKeys()
     {
         // Test non-byte-aligned BitString keys (9 bits)
-        BitString key = new(new byte[] { 0x54, 0x65, 0x73, 0x74 }, 0, 9); // "Test" but only 9 bits
-        BitString value = new(new byte[] { 0x42, 0x69, 0x74, 0x53, 0x74, 0x72, 0x69, 0x6E, 0x67 }, 0,
+        BitString key = new([0x54, 0x65, 0x73, 0x74], 0, 9); // "Test" but only 9 bits
+        BitString value = new([0x42, 0x69, 0x74, 0x53, 0x74, 0x72, 0x69, 0x6E, 0x67], 0,
             72); // "BitString"
 
         TonDict.Dictionary<TonDict.DictKeyBitString, BitString> dict =

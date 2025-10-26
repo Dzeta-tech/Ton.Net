@@ -55,7 +55,7 @@ public class Dictionary<TK, TV> : IEnumerable<KeyValuePair<TK, TV>> where TK : I
     public static Dictionary<TK, TV> Load(IDictionaryKey<TK> key, IDictionaryValue<TV> value, Slice slice)
     {
         Cell? cell = slice.LoadMaybeRef();
-        if (cell != null && !cell.IsExotic) return LoadDirect(key, value, cell.BeginParse());
+        if (cell is { IsExotic: false }) return LoadDirect(key, value, cell.BeginParse());
 
         return Empty(key, value);
     }
@@ -70,7 +70,7 @@ public class Dictionary<TK, TV> : IEnumerable<KeyValuePair<TK, TV>> where TK : I
 
         Slice slice = cell.BeginParse();
         Cell? dictCell = slice.LoadMaybeRef();
-        if (dictCell != null && !dictCell.IsExotic) return LoadDirect(key, value, dictCell.BeginParse());
+        if (dictCell is { IsExotic: false }) return LoadDirect(key, value, dictCell.BeginParse());
 
         return Empty(key, value);
     }

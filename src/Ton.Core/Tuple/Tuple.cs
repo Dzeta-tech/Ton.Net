@@ -66,9 +66,7 @@ public static class Tuple
                 for (int i = 0; i < tupleItem.Items.Length; i++)
                 {
                     // Swap
-                    Cell? s = head;
-                    head = tail;
-                    tail = s;
+                    (head, tail) = (tail, head);
 
                     if (i > 1)
                         head = Builder.BeginCell()

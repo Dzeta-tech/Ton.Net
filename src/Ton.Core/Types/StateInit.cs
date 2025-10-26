@@ -82,7 +82,7 @@ public record StateInit
         );
 
         // JS SDK treats empty dictionary as undefined
-        if (libraries != null && libraries.Size == 0) libraries = null;
+        if (libraries is { Size: 0 }) libraries = null;
 
         return new StateInit(code, data, splitDepth, special, libraries);
     }

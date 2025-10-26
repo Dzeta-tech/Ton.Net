@@ -33,12 +33,12 @@ public class RelaxedTypesTests
         CommonMessageInfoRelaxed loaded = CommonMessageInfoRelaxed.Load(cell.BeginParse());
 
         Assert.That(loaded, Is.InstanceOf<CommonMessageInfoRelaxed.Internal>());
-        CommonMessageInfoRelaxed.Internal internal_ = (CommonMessageInfoRelaxed.Internal)loaded;
+        CommonMessageInfoRelaxed.Internal @internal = (CommonMessageInfoRelaxed.Internal)loaded;
         Assert.Multiple(() =>
         {
-            Assert.That(internal_.Src, Is.Null);
-            Assert.That(internal_.Dest.Equals(destAddr), Is.True);
-            Assert.That(internal_.Value.Coins, Is.EqualTo((BigInteger)1000000000));
+            Assert.That(@internal.Src, Is.Null);
+            Assert.That(@internal.Dest.Equals(destAddr), Is.True);
+            Assert.That(@internal.Value.Coins, Is.EqualTo((BigInteger)1000000000));
         });
     }
 
@@ -69,12 +69,12 @@ public class RelaxedTypesTests
         CommonMessageInfoRelaxed loaded = CommonMessageInfoRelaxed.Load(cell.BeginParse());
 
         Assert.That(loaded, Is.InstanceOf<CommonMessageInfoRelaxed.Internal>());
-        CommonMessageInfoRelaxed.Internal internal_ = (CommonMessageInfoRelaxed.Internal)loaded;
+        CommonMessageInfoRelaxed.Internal @internal = (CommonMessageInfoRelaxed.Internal)loaded;
         Assert.Multiple(() =>
         {
-            Assert.That(internal_.Src, Is.Not.Null);
-            Assert.That(internal_.Src!.Equals(srcAddr), Is.True);
-            Assert.That(internal_.CreatedLt, Is.EqualTo((BigInteger)99999));
+            Assert.That(@internal.Src, Is.Not.Null);
+            Assert.That(@internal.Src!.Equals(srcAddr), Is.True);
+            Assert.That(@internal.CreatedLt, Is.EqualTo((BigInteger)99999));
         });
     }
 

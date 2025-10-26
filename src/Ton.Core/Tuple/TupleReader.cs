@@ -9,7 +9,7 @@ namespace Ton.Core.Tuple;
 /// </summary>
 public class TupleReader(TupleItem[] items)
 {
-    readonly List<TupleItem> items = new(items);
+    readonly List<TupleItem> items = [..items];
 
     /// <summary>
     ///     Gets the number of remaining items.
@@ -197,7 +197,7 @@ public class TupleReader(TupleItem[] items)
     /// </summary>
     public TupleItem[] ReadLispListDirect()
     {
-        if (items.Count == 1 && items[0] is TupleItemNull)
+        if (items is [TupleItemNull])
             return [];
 
         return ReadLispListInternal(this);
