@@ -9,7 +9,7 @@
 
         <!-- NuGet Package Metadata -->
         <PackageId>Ton.Client</PackageId>
-        <Version>0.0.11</Version>
+        <Version>0.0.12</Version>
         <Authors>Dzeta.Tech Team</Authors>
         <Company>Dzeta.Tech</Company>
         <Description>TON blockchain client library for .NET - HTTP API clients, wallet contracts (V1-V5), jettons, multisig, and fee computation. 1:1 API compatibility with @ton/ton JavaScript library.</Description>

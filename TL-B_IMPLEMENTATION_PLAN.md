@@ -28,30 +28,31 @@
 
 **Why second:** Needed to read account data, check balances, get contract state.
 
-### 1.3 Currency (Week 1, Day 5)
-- [ ] `ExtraCurrency.ts` - Non-TON currencies (jettons)
+### 1.3 Currency (Week 1, Day 5) ✅ COMPLETE
+- [x] `ExtraCurrency.ts` - Non-TON currencies (jettons)
 
 **Why third:** Handle TON coins + jettons in transactions.
 
 ---
 
-## Priority 2: Transaction Types (Essential for Block Explorers)
+## Priority 2: Transaction Types (Essential for Block Explorers) ✅ COMPLETE
 
-### 2.1 Core Transaction (Week 2, Days 1-2)
-- [ ] `Transaction.ts` - Main transaction structure
-- [ ] `TransactionDescription.ts` - Transaction details (7 variants)
-- [ ] `HashUpdate.ts` - State hash updates
-- [ ] `AccountStatusChange.ts` - Status transitions
+### 2.1 Core Transaction (Week 2, Days 1-2) ✅ COMPLETE
+- [x] `Transaction.ts` - Main transaction structure
+- [x] `TransactionDescription.ts` - Transaction details (7 variants)
+- [x] `HashUpdate.ts` - State hash updates
+- [x] `AccountStatusChange.ts` - Status transitions
+- [x] `SplitMergeInfo.ts` - Split/merge for sharding
 
 **Why fourth:** Parse transaction history, analyze blockchain data.
 
-### 2.2 Transaction Phases (Week 2, Day 3)
-- [ ] `TransactionStoragePhase.ts` - Storage fees
-- [ ] `TransactionCreditPhase.ts` - Credit phase
-- [ ] `TransactionComputePhase.ts` - Compute/gas phase
-- [ ] `TransactionActionPhase.ts` - Action phase
-- [ ] `TransactionBouncePhase.ts` - Bounce handling
-- [ ] `ComputeSkipReason.ts` - Why compute skipped (enum)
+### 2.2 Transaction Phases (Week 2, Day 3) ✅ COMPLETE
+- [x] `TransactionStoragePhase.ts` - Storage fees
+- [x] `TransactionCreditPhase.ts` - Credit phase
+- [x] `TransactionComputePhase.ts` - Compute/gas phase
+- [x] `TransactionActionPhase.ts` - Action phase
+- [x] `TransactionBouncePhase.ts` - Bounce handling
+- [x] `ComputeSkipReason.ts` - Why compute skipped (enum)
 
 **Why fifth:** Detailed transaction analysis, gas calculation, error debugging.
 
