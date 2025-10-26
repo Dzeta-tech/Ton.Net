@@ -449,4 +449,233 @@ public class DictionaryTests
             Assert.That(items.Any(kv => kv.Key == 239 && kv.Value == 57121), Is.True);
         });
     }
+
+    [Test]
+    public void Test_Dictionary_BOC_Serialization_Simple()
+    {
+        // Create dictionary with uint keys/values
+        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict = TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(
+            TonDict.DictionaryKeys.Uint(8),
+            TonDict.DictionaryValues.Uint(32)
+        );
+
+        dict.Set(1, 11);
+        dict.Set(2, 22);
+        dict.Set(3, 33);
+
+        // Serialize to BOC
+        Cell cell = Builder.BeginCell()
+            .StoreDictDirect(dict)
+            .EndCell();
+
+        byte[] boc = cell.ToBoc(hasIdx: false, hasCrc32C: false);
+
+        // Deserialize and verify
+        Cell[] restored = Cell.FromBoc(boc);
+        TonDict.Dictionary<TonDict.DictKeyUint, ulong> restoredDict = restored[0].BeginParse()
+            .LoadDictDirect(TonDict.DictionaryKeys.Uint(8), TonDict.DictionaryValues.Uint(32));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(restoredDict.Get(1), Is.EqualTo(11UL));
+            Assert.That(restoredDict.Get(2), Is.EqualTo(22UL));
+            Assert.That(restoredDict.Get(3), Is.EqualTo(33UL));
+            Assert.That(restoredDict.Keys().Count(), Is.EqualTo(3));
+        });
+    }
+
+    [Test]
+    public void Test_Dictionary_BOC_RoundTrip_Documentation_Example()
+    {
+        // This matches the JS SDK test "should parse and serialize dict from example"
+        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict = TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(
+            TonDict.DictionaryKeys.Uint(16),
+            TonDict.DictionaryValues.Uint(16)
+        );
+
+        dict.Set(13, 169);
+        dict.Set(17, 289);
+        dict.Set(239, 57121);
+
+        // Serialize
+        Cell packed = Builder.BeginCell()
+            .StoreDictDirect(dict)
+            .EndCell();
+
+        byte[] boc = packed.ToBoc(hasIdx: false, hasCrc32C: false);
+
+        // Deserialize
+        Cell[] restored = Cell.FromBoc(boc);
+        TonDict.Dictionary<TonDict.DictKeyUint, ulong> restoredDict = restored[0].BeginParse()
+            .LoadDictDirect(TonDict.DictionaryKeys.Uint(16), TonDict.DictionaryValues.Uint(16));
+
+        // Verify all values
+        Assert.Multiple(() =>
+        {
+            Assert.That(restoredDict.Get(13), Is.EqualTo(169UL));
+            Assert.That(restoredDict.Get(17), Is.EqualTo(289UL));
+            Assert.That(restoredDict.Get(239), Is.EqualTo(57121UL));
+            Assert.That(restoredDict.Keys().Count(), Is.EqualTo(3));
+        });
+
+        // Verify structure matches original
+        Assert.That(restored[0].Hash().SequenceEqual(packed.Hash()), Is.True);
+    }
+
+    [Test]
+    public void Test_Dictionary_BOC_WithAddress()
+    {
+        Address addr1 = new(0, new byte[32]);
+        Address addr2 = new(-1, new byte[32]);
+
+        TonDict.Dictionary<TonDict.DictKeyUint, Address> dict = TonDict.Dictionary<TonDict.DictKeyUint, Address>.Empty(
+            TonDict.DictionaryKeys.Uint(16),
+            TonDict.DictionaryValues.Address()
+        );
+
+        dict.Set(1, addr1);
+        dict.Set(2, addr2);
+
+        // Serialize to BOC
+        Cell cell = Builder.BeginCell()
+            .StoreDictDirect(dict)
+            .EndCell();
+
+        byte[] boc = cell.ToBoc(hasIdx: false, hasCrc32C: false);
+
+        // Deserialize and verify
+        Cell[] restored = Cell.FromBoc(boc);
+        TonDict.Dictionary<TonDict.DictKeyUint, Address> restoredDict = restored[0].BeginParse()
+            .LoadDictDirect(TonDict.DictionaryKeys.Uint(16), TonDict.DictionaryValues.Address());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(restoredDict.Get(1)?.ToString(), Is.EqualTo(addr1.ToString()));
+            Assert.That(restoredDict.Get(2)?.ToString(), Is.EqualTo(addr2.ToString()));
+        });
+    }
+
+    [Test]
+    public void Test_Dictionary_BOC_WithCell()
+    {
+        Cell value1 = Builder.BeginCell().StoreUint(111, 32).EndCell();
+        Cell value2 = Builder.BeginCell().StoreUint(222, 32).EndCell();
+
+        TonDict.Dictionary<TonDict.DictKeyUint, Cell> dict = TonDict.Dictionary<TonDict.DictKeyUint, Cell>.Empty(
+            TonDict.DictionaryKeys.Uint(8),
+            TonDict.DictionaryValues.Cell()
+        );
+
+        dict.Set(1, value1);
+        dict.Set(2, value2);
+
+        // Serialize to BOC
+        Cell cell = Builder.BeginCell()
+            .StoreDictDirect(dict)
+            .EndCell();
+
+        byte[] boc = cell.ToBoc(hasIdx: false, hasCrc32C: false);
+
+        // Deserialize and verify
+        Cell[] restored = Cell.FromBoc(boc);
+        TonDict.Dictionary<TonDict.DictKeyUint, Cell> restoredDict = restored[0].BeginParse()
+            .LoadDictDirect(TonDict.DictionaryKeys.Uint(8), TonDict.DictionaryValues.Cell());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(restoredDict.Get(1)?.Hash().SequenceEqual(value1.Hash()), Is.True);
+            Assert.That(restoredDict.Get(2)?.Hash().SequenceEqual(value2.Hash()), Is.True);
+        });
+    }
+
+    [Test]
+    public void Test_Dictionary_BOC_EmptyValue()
+    {
+        // Test dictionary with BitString(0) values (empty values)
+        TonDict.Dictionary<TonDict.DictKeyBigInt, BitString> dict =
+            TonDict.Dictionary<TonDict.DictKeyBigInt, BitString>.Empty(
+                TonDict.DictionaryKeys.BigUint(256),
+                TonDict.DictionaryValues.BitString(0)
+            );
+
+        dict.Set(BigInteger.Parse("123"), BitString.Empty);
+
+        Cell cell = Builder.BeginCell()
+            .StoreDictDirect(dict)
+            .EndCell();
+
+        byte[] boc = cell.ToBoc(hasIdx: false, hasCrc32C: false);
+
+        // Deserialize and verify
+        Cell[] restored = Cell.FromBoc(boc);
+        TonDict.Dictionary<TonDict.DictKeyBigInt, BitString> restoredDict = restored[0].BeginParse()
+            .LoadDictDirect(TonDict.DictionaryKeys.BigUint(256), TonDict.DictionaryValues.BitString(0));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(restoredDict.Keys().First().Value, Is.EqualTo(BigInteger.Parse("123")));
+            Assert.That(restoredDict.Get(BigInteger.Parse("123"))?.Length, Is.EqualTo(0));
+        });
+    }
+
+    [Test]
+    public void Test_Dictionary_BOC_BitStringKeys()
+    {
+        // Test non-byte-aligned BitString keys (9 bits)
+        BitString key = new(new byte[] { 0x54, 0x65, 0x73, 0x74 }, 0, 9); // "Test" but only 9 bits
+        BitString value = new(new byte[] { 0x42, 0x69, 0x74, 0x53, 0x74, 0x72, 0x69, 0x6E, 0x67 }, 0, 72); // "BitString"
+
+        TonDict.Dictionary<TonDict.DictKeyBitString, BitString> dict =
+            TonDict.Dictionary<TonDict.DictKeyBitString, BitString>.Empty(
+                TonDict.DictionaryKeys.BitString(9),
+                TonDict.DictionaryValues.BitString(72)
+            );
+
+        dict.Set(key, value);
+
+        // Serialize
+        Cell cell = Builder.BeginCell()
+            .StoreDictDirect(dict)
+            .EndCell();
+
+        byte[] boc = cell.ToBoc(hasIdx: false, hasCrc32C: false);
+
+        // Deserialize and verify
+        Cell[] restored = Cell.FromBoc(boc);
+        TonDict.Dictionary<TonDict.DictKeyBitString, BitString> restoredDict = restored[0].BeginParse()
+            .LoadDictDirect(TonDict.DictionaryKeys.BitString(9), TonDict.DictionaryValues.BitString(72));
+
+        BitString? retrievedValue = restoredDict.Get(key);
+        Assert.That(retrievedValue, Is.Not.Null);
+        Assert.That(retrievedValue!.ToString(), Is.EqualTo(value.ToString()));
+    }
+
+    [Test]
+    public void Test_Dictionary_BOC_LargeDictionary()
+    {
+        // Test with more entries
+        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict = TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(
+            TonDict.DictionaryKeys.Uint(32),
+            TonDict.DictionaryValues.Uint(32)
+        );
+
+        for (uint i = 0; i < 20; i++)
+            dict.Set(i, i * 100);
+
+        // Serialize
+        Cell cell = Builder.BeginCell()
+            .StoreDictDirect(dict)
+            .EndCell();
+
+        byte[] boc = cell.ToBoc(hasIdx: false, hasCrc32C: false);
+
+        // Deserialize and verify all values
+        Cell[] restored = Cell.FromBoc(boc);
+        TonDict.Dictionary<TonDict.DictKeyUint, ulong> restoredDict = restored[0].BeginParse()
+            .LoadDictDirect(TonDict.DictionaryKeys.Uint(32), TonDict.DictionaryValues.Uint(32));
+
+        Assert.That(restoredDict.Keys().Count(), Is.EqualTo(20));
+        for (uint i = 0; i < 20; i++)
+            Assert.That(restoredDict.Get(i), Is.EqualTo(i * 100));
+    }
 }
