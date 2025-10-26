@@ -60,13 +60,13 @@
 
 ## Priority 3: Advanced Types (For Validators & Advanced Features)
 
-### 3.1 Block/Shard Structures (Week 2, Days 4-5)
-- [ ] `ShardAccount.ts` - Account in shard
-- [ ] `ShardAccounts.ts` - Multiple accounts
-- [ ] `ShardIdent.ts` - Shard identifier
-- [ ] `ShardStateUnsplit.ts` - Shard state
-- [ ] `SplitMergeInfo.ts` - Shard split/merge
-- [ ] `MasterchainStateExtra.ts` - Masterchain state
+### 3.1 Block/Shard Structures (Week 2, Days 4-5) ✅ COMPLETE
+- [x] `ShardAccount.ts` - Account in shard
+- [x] `ShardAccounts.ts` - Multiple accounts
+- [x] `ShardIdent.ts` - Shard identifier
+- [x] `ShardStateUnsplit.ts` - Shard state
+- [x] `SplitMergeInfo.ts` - Shard split/merge (implemented earlier)
+- [ ] `MasterchainStateExtra.ts` - Masterchain state (advanced, skipped for now)
 
 **Why later:** Only needed for validators, shard analysis, advanced indexing.
 
