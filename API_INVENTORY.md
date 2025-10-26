@@ -103,10 +103,10 @@ This document tracks the implementation status of all APIs from the JavaScript S
 ## Ton.Crypto (@ton/crypto)
 
 ### Primitives
-- [ ] `Sha256()` / `Sha256Sync()` - SHA-256 hashing
-- [ ] `Sha512()` / `Sha512Sync()` - SHA-512 hashing
-- [ ] `Pbkdf2Sha512()` - PBKDF2 with SHA-512
-- [ ] `HmacSha512()` - HMAC with SHA-512
+- [x] `Sha256.Hash()` - SHA-256 hashing ✅ v0.0.5
+- [x] `Sha512.Hash()` - SHA-512 hashing ✅ v0.0.5
+- [x] `Pbkdf2Sha512.DeriveKey()` - PBKDF2 with SHA-512 ✅ v0.0.5
+- [x] `HmacSha512.Hash()` - HMAC with SHA-512 ✅ v0.0.5
 - [ ] `GetSecureRandomBytes()` / `GetSecureRandomWords()` / `GetSecureRandomNumber()` - secure random generation
 
 ### NaCl (Ed25519)
