@@ -70,21 +70,22 @@
 
 **Why later:** Only needed for validators, shard analysis, advanced indexing.
 
-### 3.2 Libraries & References (Week 3, Day 1)
-- [ ] `SimpleLibrary.ts` - Contract libraries
-- [ ] `LibRef.ts` - Library references
+### 3.2 Libraries & References (Week 3, Day 1) ✅ COMPLETE
+- [x] `SimpleLibrary.ts` - Contract libraries (implemented earlier)
+- [x] `LibRef.ts` - Library references
 
 **Why later:** Rare use case, mostly for complex contracts.
 
-### 3.3 Special Contracts (Week 3, Day 2)
-- [ ] `TickTock.ts` - Special contract tick/tock
-- [ ] `ReserveMode.ts` - Reserve mode flags (enum)
-- [ ] `StorageExtraInfo.ts` - Extra storage metadata
+### 3.3 Special Contracts (Week 3, Day 2) ✅ COMPLETE
+- [x] `TickTock.ts` - Special contract tick/tock (implemented earlier)
+- [x] `ReserveMode.ts` - Reserve mode flags (enum)
+- [x] `StorageExtraInfo.ts` - Extra storage metadata (implemented earlier)
 
 **Why later:** Only for special system contracts.
 
-### 3.4 Output Messages (Week 3, Day 3)
-- [ ] `OutList.ts` - Transaction output messages
+### 3.4 Output Messages (Week 3, Day 3) ✅ COMPLETE
+- [x] `SendMode.ts` - Send mode flags (enum)
+- [x] `OutList.ts` - Transaction output messages (4 action types)
 
 **Why later:** Advanced transaction analysis.
 

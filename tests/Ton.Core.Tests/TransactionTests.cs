@@ -32,8 +32,12 @@ public class TransactionTests
         Cell cell = Cell.FromBoc(Convert.FromBase64String(boc))[0];
         Transaction tx = Transaction.Load(cell.BeginParse(), cell);
 
-        Assert.That(Convert.ToHexString(tx.Hash()).ToLower(), Is.EqualTo(Convert.ToHexString(cell.Hash()).ToLower()));
-        Assert.That(tx.Raw.Equals(cell), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(Convert.ToHexString(tx.Hash()).ToLower(),
+                Is.EqualTo(Convert.ToHexString(cell.Hash()).ToLower()));
+            Assert.That(tx.Raw.Equals(cell), Is.True);
+        });
     }
 
     [Test]
@@ -50,10 +54,13 @@ public class TransactionTests
         tx.Store(builder);
         Cell cell2 = builder.EndCell();
 
-        Assert.That(cell.Equals(cell2), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(cell.Equals(cell2), Is.True);
 
-        // Verify it's a tick-tock transaction
-        Assert.That(tx.Description, Is.InstanceOf<TransactionDescription.TickTock>());
+            // Verify it's a tick-tock transaction
+            Assert.That(tx.Description, Is.InstanceOf<TransactionDescription.TickTock>());
+        });
     }
 
     [Test]
@@ -69,10 +76,13 @@ public class TransactionTests
         tx.Store(builder);
         Cell cell2 = builder.EndCell();
 
-        Assert.That(cell.Equals(cell2), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(cell.Equals(cell2), Is.True);
 
-        // Verify it has state init in message
-        Assert.That(tx.InMessage, Is.Not.Null);
+            // Verify it has state init in message
+            Assert.That(tx.InMessage, Is.Not.Null);
+        });
         Assert.That(tx.InMessage!.Init, Is.Not.Null);
     }
 

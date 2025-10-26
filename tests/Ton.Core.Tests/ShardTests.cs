@@ -22,9 +22,12 @@ public class ShardTests
 
         ShardIdent loaded = ShardIdent.Load(cell.BeginParse());
 
-        Assert.That(loaded.ShardPrefixBits, Is.EqualTo(shardIdent.ShardPrefixBits));
-        Assert.That(loaded.WorkchainId, Is.EqualTo(shardIdent.WorkchainId));
-        Assert.That(loaded.ShardPrefix, Is.EqualTo(shardIdent.ShardPrefix));
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.ShardPrefixBits, Is.EqualTo(shardIdent.ShardPrefixBits));
+            Assert.That(loaded.WorkchainId, Is.EqualTo(shardIdent.WorkchainId));
+            Assert.That(loaded.ShardPrefix, Is.EqualTo(shardIdent.ShardPrefix));
+        });
     }
 
     [Test]
@@ -57,9 +60,12 @@ public class ShardTests
 
         ShardAccount loaded = ShardAccount.Load(cell.BeginParse());
 
-        Assert.That(loaded.Account, Is.Not.Null);
-        Assert.That(loaded.LastTransactionHash, Is.EqualTo(shardAccount.LastTransactionHash));
-        Assert.That(loaded.LastTransactionLt, Is.EqualTo(shardAccount.LastTransactionLt));
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.Account, Is.Not.Null);
+            Assert.That(loaded.LastTransactionHash, Is.EqualTo(shardAccount.LastTransactionHash));
+            Assert.That(loaded.LastTransactionLt, Is.EqualTo(shardAccount.LastTransactionLt));
+        });
     }
 
     [Test]
@@ -77,9 +83,12 @@ public class ShardTests
 
         ShardAccount loaded = ShardAccount.Load(cell.BeginParse());
 
-        Assert.That(loaded.Account, Is.Null);
-        Assert.That(loaded.LastTransactionHash, Is.EqualTo(shardAccount.LastTransactionHash));
-        Assert.That(loaded.LastTransactionLt, Is.EqualTo(shardAccount.LastTransactionLt));
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.Account, Is.Null);
+            Assert.That(loaded.LastTransactionHash, Is.EqualTo(shardAccount.LastTransactionHash));
+            Assert.That(loaded.LastTransactionLt, Is.EqualTo(shardAccount.LastTransactionLt));
+        });
     }
 
     [Test]
@@ -99,8 +108,11 @@ public class ShardTests
         Cell shardAccountCell = testBuilder.EndCell();
         ShardAccount parsedShardAccount = ShardAccount.Load(shardAccountCell.BeginParse());
 
-        Assert.That(parsedShardAccount.Account, Is.Not.Null);
-        Assert.That(parsedShardAccount.LastTransactionHash, Is.EqualTo(BigInteger.One));
-        Assert.That(parsedShardAccount.LastTransactionLt, Is.EqualTo(2UL));
+        Assert.Multiple(() =>
+        {
+            Assert.That(parsedShardAccount.Account, Is.Not.Null);
+            Assert.That(parsedShardAccount.LastTransactionHash, Is.EqualTo(BigInteger.One));
+            Assert.That(parsedShardAccount.LastTransactionLt, Is.EqualTo(2UL));
+        });
     }
 }

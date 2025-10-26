@@ -65,11 +65,14 @@ public class MessageTests
         message2.Store(builder2);
         Cell cell2 = builder2.EndCell();
 
-        // Should be equal
-        Assert.That(cell.Equals(cell2), Is.True);
-        Assert.That(message2.Info, Is.InstanceOf<CommonMessageInfo.Internal>());
-        Assert.That(message2.Init, Is.Null);
-        Assert.That(message2.Body.Bits.Length, Is.EqualTo(32));
+        Assert.Multiple(() =>
+        {
+            // Should be equal
+            Assert.That(cell.Equals(cell2), Is.True);
+            Assert.That(message2.Info, Is.InstanceOf<CommonMessageInfo.Internal>());
+            Assert.That(message2.Init, Is.Null);
+            Assert.That(message2.Body.Bits.Length, Is.EqualTo(32));
+        });
     }
 
     [Test]
@@ -106,12 +109,18 @@ public class MessageTests
         message2.Store(builder2);
         Cell cell2 = builder2.EndCell();
 
-        // Should be equal
-        Assert.That(cell.Equals(cell2), Is.True);
-        Assert.That(message2.Info, Is.InstanceOf<CommonMessageInfo.ExternalIn>());
-        Assert.That(message2.Init, Is.Not.Null);
-        Assert.That(message2.Init!.Code, Is.Not.Null);
-        Assert.That(message2.Init!.Data, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            // Should be equal
+            Assert.That(cell.Equals(cell2), Is.True);
+            Assert.That(message2.Info, Is.InstanceOf<CommonMessageInfo.ExternalIn>());
+            Assert.That(message2.Init, Is.Not.Null);
+        });
+        Assert.Multiple(() =>
+        {
+            Assert.That(message2.Init!.Code, Is.Not.Null);
+            Assert.That(message2.Init!.Data, Is.Not.Null);
+        });
     }
 
     [Test]
@@ -151,9 +160,12 @@ public class MessageTests
         message2.Store(builder2);
         Cell cell2 = builder2.EndCell();
 
-        // Should be equal
-        Assert.That(cell.Equals(cell2), Is.True);
-        Assert.That(message2.Body.Bits.Length, Is.EqualTo(0));
+        Assert.Multiple(() =>
+        {
+            // Should be equal
+            Assert.That(cell.Equals(cell2), Is.True);
+            Assert.That(message2.Body.Bits.Length, Is.EqualTo(0));
+        });
     }
 
     [Test]
@@ -195,7 +207,10 @@ public class MessageTests
 
         // Should still deserialize correctly
         Message message2 = Message.Load(cell.BeginParse());
-        Assert.That(message2.Init, Is.Not.Null);
-        Assert.That(message2.Body.Bits.Length, Is.EqualTo(32));
+        Assert.Multiple(() =>
+        {
+            Assert.That(message2.Init, Is.Not.Null);
+            Assert.That(message2.Body.Bits.Length, Is.EqualTo(32));
+        });
     }
 }
