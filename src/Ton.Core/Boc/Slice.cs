@@ -500,6 +500,45 @@ public class Slice
     }
 
     /// <summary>
+    ///     Load string tail (string that can span multiple cells via refs).
+    /// </summary>
+    public string LoadStringTail()
+    {
+        return System.Text.Encoding.UTF8.GetString(LoadBufferTail());
+    }
+
+    /// <summary>
+    ///     Load buffer tail (buffer that can span multiple cells via refs).
+    /// </summary>
+    byte[] LoadBufferTail()
+    {
+        // Check consistency
+        if (RemainingBits % 8 != 0)
+            throw new ArgumentException($"Invalid string length: {RemainingBits}");
+        if (RemainingRefs != 0 && RemainingRefs != 1)
+            throw new ArgumentException($"Invalid number of refs: {RemainingRefs}");
+
+        // Read buffer
+        byte[] res;
+        if (RemainingBits == 0)
+            res = [];
+        else
+            res = LoadBuffer(RemainingBits / 8);
+
+        // Read tail
+        if (RemainingRefs == 1)
+        {
+            var tail = LoadRef().BeginParse().LoadBufferTail();
+            var combined = new byte[res.Length + tail.Length];
+            res.CopyTo(combined, 0);
+            tail.CopyTo(combined, res.Length);
+            res = combined;
+        }
+
+        return res;
+    }
+
+    /// <summary>
     ///     Print slice as string.
     /// </summary>
     /// <returns>String representation.</returns>

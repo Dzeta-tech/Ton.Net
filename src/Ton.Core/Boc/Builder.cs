@@ -610,6 +610,39 @@ public class Builder
     }
 
     /// <summary>
+    ///     Store string tail (string that can span multiple cells via refs).
+    /// </summary>
+    public Builder StoreStringTail(string src)
+    {
+        StoreBufferTail(System.Text.Encoding.UTF8.GetBytes(src));
+        return this;
+    }
+
+    /// <summary>
+    ///     Store buffer tail (buffer that can span multiple cells via refs).
+    /// </summary>
+    void StoreBufferTail(byte[] src)
+    {
+        if (src.Length > 0)
+        {
+            var bytes = AvailableBits / 8;
+            if (src.Length > bytes)
+            {
+                var a = src[..bytes];
+                var t = src[bytes..];
+                StoreBuffer(a);
+                var bb = BeginCell();
+                bb.StoreBufferTail(t);
+                StoreRef(bb.EndCell());
+            }
+            else
+            {
+                StoreBuffer(src);
+            }
+        }
+    }
+
+    /// <summary>
     ///     Convert to slice.
     /// </summary>
     /// <returns>Slice.</returns>
