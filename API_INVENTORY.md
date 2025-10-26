@@ -11,9 +11,9 @@ This document tracks the implementation status of all APIs from the JavaScript S
 - [ ] `ContractAddress()` function
 
 ### BOC (Bag of Cells) Module
-- [ ] `BitString` class - immutable bit string
-- [ ] `BitReader` class - sequential bit reading
-- [ ] `BitBuilder` class - sequential bit writing
+- [x] `BitString` class - immutable bit string ✅ v0.0.3
+- [x] `BitReader` class - sequential bit reading ✅ v0.0.3
+- [x] `BitBuilder` class - sequential bit writing ✅ v0.0.3
 - [ ] `Builder` class - cell builder with `BeginCell()`
 - [ ] `Slice` class - cell reader
 - [ ] `Cell` class - fundamental data structure
@@ -186,10 +186,10 @@ This document tracks the implementation status of all APIs from the JavaScript S
 
 ## Implementation Priority
 
-1. **Phase 1: Ton.Core Foundations**
-   - Address, BitString, BitReader, BitBuilder
+1. **Phase 1: Ton.Core Foundations** ✅ In Progress
+   - ✅ Address, BitString, BitReader, BitBuilder
    - Cell, Builder, Slice
-   - Basic utilities (ToNano, FromNano, CRC)
+   - ✅ Basic utilities (ToNano, FromNano, CRC)
 
 2. **Phase 2: Ton.Crypto**
    - Primitives (SHA, HMAC, PBKDF2)
