@@ -321,4 +321,25 @@ public class Cell
 
         return buffer;
     }
+
+    /// <summary>
+    ///     Serialize this cell to BOC format.
+    /// </summary>
+    /// <param name="hasIdx">Whether to include cell index.</param>
+    /// <param name="hasCrc32C">Whether to include CRC32-C checksum.</param>
+    /// <returns>Serialized BOC bytes.</returns>
+    public byte[] ToBoc(bool hasIdx = true, bool hasCrc32C = true)
+    {
+        return BocSerialization.SerializeBoc(this, hasIdx, hasCrc32C);
+    }
+
+    /// <summary>
+    ///     Deserialize cells from BOC format.
+    /// </summary>
+    /// <param name="data">BOC bytes.</param>
+    /// <returns>Array of root cells.</returns>
+    public static Cell[] FromBoc(byte[] data)
+    {
+        return BocSerialization.DeserializeBoc(data);
+    }
 }

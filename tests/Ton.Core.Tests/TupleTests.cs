@@ -9,7 +9,6 @@ namespace Ton.Core.Tests;
 [TestFixture]
 public class TupleTests
 {
-    // TODO: Add BOC serialization tests when ToBoc/FromBoc are implemented
     [Test]
     public void Test_SerializeTuple_WithNumbers()
     {
@@ -26,9 +25,14 @@ public class TupleTests
 
         Cell serialized = TonTuple.SerializeTuple(items);
 
-        // Verify it creates a cell without throwing
-        Assert.That(serialized, Is.Not.Null);
-        Assert.That(serialized.Type, Is.EqualTo(CellType.Ordinary));
+        // Verify BOC output matches JS SDK
+        string bocBase64 = Convert.ToBase64String(serialized.ToBoc(hasIdx: false, hasCrc32C: false));
+        Assert.Multiple(() =>
+        {
+            Assert.That(serialized, Is.Not.Null);
+            Assert.That(serialized.Type, Is.EqualTo(CellType.Ordinary));
+            Assert.That(bocBase64, Is.EqualTo("te6ccgEBCAEAWQABGAAABwEAAAAABfXhAAEBEgEAAAAAAAAJxAIBEgEAAAAABfXhAAMBEgEAAAAABfXhAAQBEgEAAAALmE+yAAUBEgH//////////wYBEgH//////////wcAAA=="));
+        });
     }
 
     [Test]
@@ -41,10 +45,14 @@ public class TupleTests
 
         Cell serialized = TonTuple.SerializeTuple(items);
 
+        // Verify BOC output matches JS SDK
+        string bocBase64 = Convert.ToBase64String(serialized.ToBoc(hasIdx: false, hasCrc32C: false));
+
         // Verify it creates a cell and can be parsed back
         TupleItem[] parsed = TonTuple.ParseTuple(serialized);
         Assert.Multiple(() =>
         {
+            Assert.That(bocBase64, Is.EqualTo("te6ccgEBAgEAKgABSgAAAQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqt4e0IsLXV0BAAA="));
             Assert.That(parsed.Length, Is.EqualTo(1));
             Assert.That((parsed[0] as TupleItemInt)?.Value, Is.EqualTo(BigInteger.Parse("12312312312312323421")));
         });
@@ -53,7 +61,8 @@ public class TupleTests
     [Test]
     public void Test_SerializeTuple_Address()
     {
-        Address addr = new(-1, new byte[32]); // Simple test address (masterchain)
+        // Use the same address as JS SDK test
+        Address addr = Address.Parse("kf_JuhGlmBjeEKBjLssAuQxeUc6N-CH6bKaN5fjrfhqFpqVQ");
         TupleItem[] items =
         [
             new TupleItemSlice(
@@ -64,13 +73,79 @@ public class TupleTests
         ];
 
         Cell serialized = TonTuple.SerializeTuple(items);
+        
+        // Verify BOC output matches JS SDK
+        string bocBase64 = Convert.ToBase64String(serialized.ToBoc(hasIdx: false, hasCrc32C: false));
+        
         TupleItem[] parsed = TonTuple.ParseTuple(serialized);
 
-        Assert.That(parsed.Length, Is.EqualTo(1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(bocBase64, Is.EqualTo("te6ccgEBAwEAMgACDwAAAQQAELAgAQIAAABDn/k3QjSzAxvCFAxl2WAXIYvKOdG/BD9NlNG8vx1vw1C00A=="));
+            Assert.That(parsed.Length, Is.EqualTo(1));
+        });
+        
         TupleItemSlice? sliceItem = parsed[0] as TupleItemSlice;
         Assert.That(sliceItem, Is.Not.Null);
         Address? readAddr = sliceItem!.Cell.BeginParse().LoadAddress();
         Assert.That(readAddr?.ToString(), Is.EqualTo(addr.ToString()));
+    }
+
+    [Test]
+    public void Test_SerializeTuple_Slices()
+    {
+        Cell cell = Builder.BeginCell().StoreCoins(BigInteger.Parse("123123123123123234211234123123123")).EndCell();
+        TupleItem[] items = [new TupleItemSlice(cell)];
+
+        Cell serialized = TonTuple.SerializeTuple(items);
+
+        // Verify BOC output matches JS SDK
+        string bocBase64 = Convert.ToBase64String(serialized.ToBoc(hasIdx: false, hasCrc32C: false));
+        Assert.That(bocBase64, Is.EqualTo("te6ccgEBAwEAHwACDwAAAQQAB0AgAQIAAAAd4GEghEZ4iF1r9AWzyJs4"));
+
+        TupleItem[] deserialized = TonTuple.ParseTuple(serialized);
+
+        Assert.That(deserialized.Length, Is.EqualTo(1));
+        Assert.That(deserialized[0], Is.InstanceOf<TupleItemSlice>());
+    }
+
+    [Test]
+    public void Test_SerializeTuple_BigInt()
+    {
+        // Test with very large 257-bit integer from JS SDK
+        TupleItem[] items =
+        [
+            new TupleItemInt(BigInteger.Parse("91243637913382117273357363328745502088904016167292989471764554225637796775334"))
+        ];
+
+        Cell serialized = TonTuple.SerializeTuple(items);
+
+        // Verify BOC output matches JS SDK
+        string bocBase64 = Convert.ToBase64String(serialized.ToBoc(hasIdx: false, hasCrc32C: false));
+        Assert.That(bocBase64, Is.EqualTo("te6ccgEBAgEAKgABSgAAAQIAyboRpZgY3hCgYy7LALkMXlHOjfgh+mymjeX4634ahaYBAAA="));
+
+        TupleItem[] deserialized = TonTuple.ParseTuple(serialized);
+        Assert.Multiple(() =>
+        {
+            Assert.That(deserialized.Length, Is.EqualTo(1));
+            Assert.That(((TupleItemInt)deserialized[0]).Value, Is.EqualTo(BigInteger.Parse("91243637913382117273357363328745502088904016167292989471764554225637796775334")));
+        });
+    }
+
+    [Test]
+    public void Test_ParseTuple_ComplexFromBoc()
+    {
+        // Test parsing complex tuple from JS SDK
+        string golden = "te6ccgEBEAEAjgADDAAABwcABAEIDQESAf//////////AgESAQAAAAAAAAADAwESAQAAAAAAAAACBAESAQAAAAAAAAABBQECAAYBEgEAAAAAAAAAAQcAAAIACQwCAAoLABIBAAAAAAAAAHsAEgEAAAAAAAHimQECAw8BBgcAAQ4BCQQAB0AgDwAd4GEghEZ4iF1r9AWzyJs4";
+        Cell cell = Cell.FromBoc(Convert.FromBase64String(golden))[0];
+        
+        TupleItem[] parsed = TonTuple.ParseTuple(cell);
+        
+        // Re-serialize and verify it matches
+        Cell reserialized = TonTuple.SerializeTuple(parsed);
+        string bocBase64 = Convert.ToBase64String(reserialized.ToBoc(hasIdx: false, hasCrc32C: false));
+        
+        Assert.That(bocBase64, Is.EqualTo(golden));
     }
 
     [Test]

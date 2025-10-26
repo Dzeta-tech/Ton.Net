@@ -12,14 +12,18 @@ This document tracks the implementation status of all APIs from the JavaScript S
 
 ### BOC (Bag of Cells) Module
 - [x] `BitString` class - immutable bit string ✅ v0.0.3
-- [x] `BitReader` class - sequential bit reading ✅ v0.0.3
+- [x] `BitReader` class - sequential bit reading (inc. `LoadPaddedBits`) ✅ v0.0.8
 - [x] `BitBuilder` class - sequential bit writing ✅ v0.0.3
 - [x] `Builder` class - cell builder with `BeginCell()` ✅ v0.0.4
 - [x] `Slice` class - cell reader ✅ v0.0.4
 - [x] `Cell` class - fundamental data structure ✅ v0.0.4
 - [x] `CellType` enum ✅ v0.0.4
 - [x] `LevelMask` class ✅ v0.0.4
-- [ ] `Writable` interface
+- [x] `Cell.ToBoc()` / `Cell.FromBoc()` - BOC serialization/deserialization ✅ v0.0.8
+- [x] `SerializeBoc()` / `DeserializeBoc()` - BOC format support ✅ v0.0.8
+- [x] TopologicalSort - Cell ordering for serialization ✅ v0.0.8
+- [x] 15 comprehensive BOC serialization tests ✅ v0.0.8
+- [ ] `Writable` interface (planned)
 
 ### Dictionary Module
 - [x] `Dictionary<TKey, TValue>` class ✅ v0.0.7

@@ -435,4 +435,32 @@ public class BitReader
         foreach (int checkpoint in checkpoints.Reverse()) clone.checkpoints.Push(checkpoint);
         return clone;
     }
+
+    /// <summary>
+    ///     Load padded bits (removes trailing padding bit and zeros).
+    /// </summary>
+    public BitString LoadPaddedBits(int bits)
+    {
+        if (Remaining < bits)
+            throw new ArgumentException($"Not enough bits: expected {bits}, got {Remaining}");
+
+        BitString result = this.bits.Substring(Offset, bits);
+        Offset += bits;
+
+        // Remove padding (find last 1 bit and remove it + trailing zeros)
+        int paddingBits = 0;
+        for (int i = result.Length - 1; i >= 0; i--)
+        {
+            if (result.At(i))
+            {
+                paddingBits = result.Length - i;
+                break;
+            }
+        }
+
+        if (paddingBits > 0)
+            result = result.Substring(0, result.Length - paddingBits);
+
+        return result;
+    }
 }
