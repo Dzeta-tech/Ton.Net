@@ -100,7 +100,10 @@ This document tracks the implementation status of all APIs from the JavaScript S
 ### Crypto Module (minimal in core)
 - [ ] `SafeSign()` / `SafeSignVerify()` - safe signature functions
 
-## Ton.Crypto (@ton/crypto) ✅
+## Ton.Crypto (@ton/crypto)
+
+**Status**: In progress  
+**Completion**: ~60% (Primitives, Ed25519, Mnemonic complete; HD Wallet and Passwords remaining)
 
 ### Primitives
 - [x] `Sha256.Hash()` - SHA-256 hashing ✅ v0.0.5
