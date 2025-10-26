@@ -31,22 +31,75 @@ public class Cell
         // Resolve refs
         Refs = refs != null ? [.. refs] : [];
 
-        // For now, only support ordinary cells
-        if (exotic) throw new NotImplementedException("Exotic cells are not yet supported");
+        // Determine cell type from first byte if exotic
+        if (exotic)
+        {
+            if (Bits.Length < 8)
+                throw new ArgumentException("Exotic cell must have at least 8 bits for type byte");
 
-        // Validate ordinary cell constraints
-        if (Refs.Length > 4) throw new ArgumentException("Invalid number of references: maximum 4 references allowed");
-        if (Bits.Length > 1023) throw new ArgumentException($"Bits overflow: {Bits.Length} > 1023");
+            var reader = new BitReader(Bits);
+            var typeValue = (int)reader.LoadUint(8);
+            Type = typeValue switch
+            {
+                1 => CellType.PrunedBranch,
+                3 => CellType.MerkleProof,
+                4 => CellType.MerkleUpdate,
+                _ => throw new ArgumentException($"Unknown exotic cell type: {typeValue}")
+            };
 
-        // Calculate mask for ordinary cell
+            // Validate constraints based on type
+            ValidateExoticCell();
+        }
+        else
+        {
+            Type = CellType.Ordinary;
+
+            // Validate ordinary cell constraints
+            if (Refs.Length > 4)
+                throw new ArgumentException("Invalid number of references: maximum 4 references allowed");
+            if (Bits.Length > 1023) throw new ArgumentException($"Bits overflow: {Bits.Length} > 1023");
+        }
+
+        // Calculate mask
         int mask = 0;
         foreach (Cell r in Refs) mask |= r.Mask.Value;
         Mask = new LevelMask(mask);
 
         // Calculate hashes and depths
         (hashes, depths) = CalculateHashesAndDepths();
+    }
 
-        Type = CellType.Ordinary;
+    void ValidateExoticCell()
+    {
+        switch (Type)
+        {
+            case CellType.PrunedBranch:
+                // Two formats:
+                // 1. Special case (config proof): type(8) + hash(256) + depth(16) = 280 bits (no mask, level=1)
+                // 2. Standard: type(8) + mask(8) + level * (hash(256) + depth(16)) = 8 + 8 + level*272
+                if (Bits.Length != 280 && Bits.Length != 288) // For now, only support level 1
+                    throw new ArgumentException(
+                        $"PrunedBranch cell must have exactly 280 or 288 bits, got {Bits.Length}");
+                if (Refs.Length != 0)
+                    throw new ArgumentException($"PrunedBranch cell must have 0 refs, got {Refs.Length}");
+                break;
+
+            case CellType.MerkleProof:
+                // type(8) + hash(256) + depth(16) = 280 bits
+                if (Bits.Length != 280)
+                    throw new ArgumentException($"MerkleProof cell must have exactly 280 bits, got {Bits.Length}");
+                if (Refs.Length != 1)
+                    throw new ArgumentException($"MerkleProof cell must have exactly 1 ref, got {Refs.Length}");
+                break;
+
+            case CellType.MerkleUpdate:
+                // type(8) + 2 * (hash(256) + depth(16)) = 552 bits
+                if (Bits.Length != 552)
+                    throw new ArgumentException($"MerkleUpdate cell must have exactly 552 bits, got {Bits.Length}");
+                if (Refs.Length != 2)
+                    throw new ArgumentException($"MerkleUpdate cell must have exactly 2 refs, got {Refs.Length}");
+                break;
+        }
     }
 
     /// <summary>

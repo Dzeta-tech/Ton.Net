@@ -22,17 +22,21 @@ This document tracks the implementation status of all APIs from the JavaScript S
 - [ ] `Writable` interface
 
 ### Dictionary Module
-- [ ] `Dictionary<TKey, TValue>` class
-- [ ] `DictionaryKey<T>` interface
-- [ ] `DictionaryValue<T>` interface
-- [ ] Built-in key types (Int, Uint, Address, Buffer, BigInt)
+- [x] `Dictionary<TKey, TValue>` class ✅ v0.0.7
+- [x] `DictionaryKey<T>` interface ✅ v0.0.7
+- [x] `DictionaryValue<T>` interface ✅ v0.0.7
+- [x] Built-in key types (Uint, Int, BigInt, BigUint, Address, Buffer, BitString) ✅ v0.0.7
+- [x] Built-in value types (Uint, Int, BigInt, Bool, Address, Cell, Buffer, VarUint, BitString, nested Dict) ✅ v0.0.7
+- [x] Get/Set/Delete/Has/Keys/Values/Clear/Enumeration ✅ v0.0.7
+- [x] StoreDictDirect/LoadDictDirect extensions ✅ v0.0.7
+- [x] StoreDict/LoadDict (with ref) extensions ✅ v0.0.7
+- [x] 16 comprehensive tests covering all functionality ✅ v0.0.7
 
-### Exotic Cells
-- [ ] `ExoticMerkleProof` - Merkle proof cells
-- [ ] `ExoticMerkleUpdate` - Merkle update cells
-- [ ] `ExoticPruned` - Pruned branch cells
-- [ ] `GenerateMerkleProof()` function
-- [ ] `GenerateMerkleUpdate()` function
+### Exotic Cells (Merkle functionality planned for future)
+- [x] CellType enum with exotic types (PrunedBranch, MerkleProof, MerkleUpdate) ✅ v0.0.7
+- [ ] `GenerateMerkleProof()` - Merkle proof generation (planned)
+- [ ] `GenerateMerkleUpdate()` - Merkle update generation (planned)
+- [ ] Full exotic cell parsing/validation (planned)
 
 ### Tuple Module
 - [ ] `Tuple` type
