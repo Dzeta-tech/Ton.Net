@@ -1,0 +1,66 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOTNET_VERSION: '9.0.x'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+    
+    - name: Test
+      run: dotnet test --no-build --configuration Release --verbosity normal
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Build and Pack Ton.Core
+      run: |
+        dotnet restore src/Ton.Core/Ton.Core.csproj
+        dotnet build src/Ton.Core/Ton.Core.csproj --no-restore --configuration Release
+        dotnet pack src/Ton.Core/Ton.Core.csproj --no-build --configuration Release --output ./artifacts
+    
+    - name: Build and Pack Ton.Crypto
+      run: |
+        dotnet restore src/Ton.Crypto/Ton.Crypto.csproj
+        dotnet build src/Ton.Crypto/Ton.Crypto.csproj --no-restore --configuration Release
+        dotnet pack src/Ton.Crypto/Ton.Crypto.csproj --no-build --configuration Release --output ./artifacts
+    
+    - name: Build and Pack Ton.Client
+      run: |
+        dotnet restore src/Ton.Client/Ton.Client.csproj
+        dotnet build src/Ton.Client/Ton.Client.csproj --no-restore --configuration Release
+        dotnet pack src/Ton.Client/Ton.Client.csproj --no-build --configuration Release --output ./artifacts
+    
+    - name: Publish to NuGet
+      run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+

@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{17B4C3F7-AC02-43F6-8556-4A945D3359D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ton.Core", "src\Ton.Core\Ton.Core.csproj", "{E89ABA32-285F-44AB-B5A1-131420F68828}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ton.Crypto", "src\Ton.Crypto\Ton.Crypto.csproj", "{E6162DE6-5CA9-4FF8-9843-FD85B9A02BB1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ton.Client", "src\Ton.Client\Ton.Client.csproj", "{E7883DFD-28EA-4CB5-948F-2F32327926A5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{7854DABD-8422-4DCA-A96B-426F9C4E7517}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ton.Core.Tests", "tests\Ton.Core.Tests\Ton.Core.Tests.csproj", "{B77B1BFC-1048-46CE-9A04-40023F71A4AE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E89ABA32-285F-44AB-B5A1-131420F68828}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E89ABA32-285F-44AB-B5A1-131420F68828}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E89ABA32-285F-44AB-B5A1-131420F68828}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E89ABA32-285F-44AB-B5A1-131420F68828}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6162DE6-5CA9-4FF8-9843-FD85B9A02BB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6162DE6-5CA9-4FF8-9843-FD85B9A02BB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6162DE6-5CA9-4FF8-9843-FD85B9A02BB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6162DE6-5CA9-4FF8-9843-FD85B9A02BB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7883DFD-28EA-4CB5-948F-2F32327926A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7883DFD-28EA-4CB5-948F-2F32327926A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7883DFD-28EA-4CB5-948F-2F32327926A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7883DFD-28EA-4CB5-948F-2F32327926A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B77B1BFC-1048-46CE-9A04-40023F71A4AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B77B1BFC-1048-46CE-9A04-40023F71A4AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B77B1BFC-1048-46CE-9A04-40023F71A4AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B77B1BFC-1048-46CE-9A04-40023F71A4AE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E89ABA32-285F-44AB-B5A1-131420F68828} = {17B4C3F7-AC02-43F6-8556-4A945D3359D2}
+		{E6162DE6-5CA9-4FF8-9843-FD85B9A02BB1} = {17B4C3F7-AC02-43F6-8556-4A945D3359D2}
+		{E7883DFD-28EA-4CB5-948F-2F32327926A5} = {17B4C3F7-AC02-43F6-8556-4A945D3359D2}
+		{B77B1BFC-1048-46CE-9A04-40023F71A4AE} = {7854DABD-8422-4DCA-A96B-426F9C4E7517}
+	EndGlobalSection
+EndGlobal

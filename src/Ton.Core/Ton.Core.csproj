@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    
+    <!-- NuGet Package Metadata -->
+    <PackageId>Ton.Core</PackageId>
+    <Version>0.0.1</Version>
+    <Authors>Dzeta.Tech Team</Authors>
+    <Company>Dzeta.Tech</Company>
+    <Description>Core TON blockchain library for .NET - Addresses, Cells, BOC, and fundamental data structures. 1:1 API compatibility with @ton/core JavaScript library.</Description>
+    <PackageTags>ton;blockchain;crypto;web3;toncoin</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Dzeta-tech/Ton.Net</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/Dzeta-tech/Ton.Net</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
