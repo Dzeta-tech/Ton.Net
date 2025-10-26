@@ -5,7 +5,7 @@ This document tracks the implementation status of all APIs from the JavaScript S
 ## Ton.Core (@ton/core)
 
 ### Address Module
-- [ ] `Address` class with `Parse()`, `ToString()`, `Equals()`
+- [x] `Address` class with `Parse()`, `ToString()`, `Equals()` ✅ v0.0.1
 - [ ] `ExternalAddress` class
 - [ ] `ADNLAddress` class
 - [ ] `ContractAddress()` function
@@ -90,11 +90,11 @@ This document tracks the implementation status of all APIs from the JavaScript S
 - [ ] `ContractABI` types (Error, TypeRef, Field, Argument, Getter, Type, ReceiverMessage, Receiver)
 
 ### Utility Functions
-- [ ] `ToNano()` / `FromNano()` - coin conversion
-- [ ] `Crc16()` - CRC16 checksum
-- [ ] `Crc32c()` - CRC32C checksum
-- [ ] `Base32Encode()` / `Base32Decode()` - base32 encoding
-- [ ] `GetMethodId()` - compute method ID from name
+- [x] `ToNano()` / `FromNano()` - coin conversion ✅ v0.0.2
+- [x] `Crc16()` - CRC16 checksum ✅ v0.0.1
+- [x] `Crc32c()` - CRC32C checksum ✅ v0.0.2
+- [x] `Base32Encode()` / `Base32Decode()` - base32 encoding ✅ v0.0.2
+- [x] `GetMethodId()` - compute method ID from name ✅ v0.0.2
 
 ### Crypto Module (minimal in core)
 - [ ] `SafeSign()` / `SafeSignVerify()` - safe signature functions
