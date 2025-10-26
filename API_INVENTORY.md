@@ -13,10 +13,11 @@
 | **Dictionary** | Full hashmap implementation, all key/value types                      | v0.0.7  | ✅ 16 tests  |
 | **Tuple**      | TupleReader, TupleBuilder, all item types                             | v0.0.7  | ✅ 25 tests  |
 | **TL-B Types** | All 37 types (Messages, Accounts, Transactions, Shards)               | v0.1.0  | ✅ 267 tests |
+| **Contracts**  | IContract, Provider, State, Sender, OpenedContract, ABI               | v0.1.0  | ✅ 24 tests  |
 | **Utils**      | ToNano, FromNano, CRC16, CRC32C, Base32, GetMethodId                  | v0.0.2  | ✅           |
 | **Crypto**     | SHA256, SHA512, PBKDF2, HMAC, Ed25519, Mnemonic                       | v0.0.7  | ✅ 47 tests  |
 
-**Total:** 314 tests passing | 100% JS SDK parity for implemented features
+**Total:** 338 tests passing | 100% JS SDK parity for implemented features
 
 ---
 
@@ -24,17 +25,17 @@
 
 ### @ton/core - Missing Features
 
-| Feature                              | Priority  | Status      | Notes                                    |
-| ------------------------------------ | --------- | ----------- | ---------------------------------------- |
-| **Contract Module**                  | 🔴 High   | Not started | Base interfaces for contract interaction |
-| └─ `Contract` interface              | High      | ❌          | Define contract interface                |
-| └─ `ContractProvider`                | High      | ❌          | Provider for contract calls              |
-| └─ `ContractState`                   | High      | ❌          | Contract state representation            |
-| └─ `Sender` interface                | High      | ❌          | Message sender abstraction               |
-| └─ `OpenContract<T>()`               | High      | ❌          | Open contract helper                     |
-| └─ `ComputeError`                    | Medium    | ❌          | Compute phase errors                     |
-| └─ `ContractABI` types               | Low       | ❌          | ABI type definitions                     |
-| **Address Utils**                    | 🟡 Medium | Partial     | Additional address utilities             |
+| Feature                              | Priority  | Status   | Notes                                    |
+| ------------------------------------ | --------- | -------- | ---------------------------------------- |
+| **Contract Module**                  | 🔴 High   | ✅ Done  | Base interfaces for contract interaction |
+| └─ `IContract` interface             | High      | ✅       | Define contract interface                |
+| └─ `IContractProvider`               | High      | ✅       | Provider for contract calls              |
+| └─ `ContractState`                   | High      | ✅       | Contract state representation            |
+| └─ `ISender` interface               | High      | ✅       | Message sender abstraction               |
+| └─ `OpenedContract<T>`               | High      | ✅       | Open contract helper                     |
+| └─ `ComputeError`                    | Medium    | ✅       | Compute phase errors                     |
+| └─ `ContractABI` types               | Low       | ✅       | ABI type definitions                     |
+| **Address Utils**                    | 🟡 Medium | Partial  | Additional address utilities             |
 | └─ `ADNLAddress`                     | Medium    | ❌          | ADNL address type                        |
 | └─ `ContractAddress()`               | Medium    | ❌          | Generate contract address                |
 | **Exotic Cells**                     | 🟡 Medium | Not started | Merkle proofs/updates                    |
@@ -91,11 +92,11 @@
 
 ## 🎯 Recommended Implementation Order
 
-### Phase 1: Contract Foundation (1-2 weeks)
+### Phase 1: Contract Foundation ✅ COMPLETE
 
 **Goal:** Enable basic contract interactions
 
-- [ ] Implement Contract module interfaces
+- [x] Implement Contract module interfaces
 - [ ] Add ContractAddress utility
 - [ ] Add ADNLAddress support
 
@@ -137,14 +138,14 @@
 
 ## 📊 Progress Summary
 
-| Category                      | Completed   | Remaining     | Progress |
-| ----------------------------- | ----------- | ------------- | -------- |
-| **@ton/core Foundation**      | 6/6 modules | 4 features    | 🟢 95%   |
-| **@ton/crypto**               | 3/5 modules | 2 features    | 🟢 85%   |
-| **@ton (Client & Contracts)** | 0/6 modules | All           | 🔴 0%    |
-| **Overall**                   | Core ready  | Client needed | 🟡 50%   |
+| Category                      | Completed   | Remaining   | Progress |
+| ----------------------------- | ----------- | ----------- | -------- |
+| **@ton/core Foundation**      | 7/7 modules | 3 features  | 🟢 98%   |
+| **@ton/crypto**               | 3/5 modules | 2 features  | 🟢 85%   |
+| **@ton (Client & Contracts)** | 0/6 modules | All         | 🔴 0%    |
+| **Overall**                   | Core ready  | Client next | 🟡 55%   |
 
-**Key Takeaway:** Foundation is rock-solid. Next priority: Contract interfaces → HTTP Client → Wallets
+**Key Takeaway:** Foundation complete with contracts! Next priority: HTTP Client → Wallets
 
 ---
 
@@ -156,13 +157,13 @@
 - Full BOC serialization/deserialization
 - Dictionary (hashmap) implementation
 - Tuple system for contract data
+- **Contract interfaces and abstractions** ✨ NEW
 - Cryptographic primitives (Ed25519, SHA, HMAC)
 - Mnemonic (BIP39) support
 - All utilities (CRC, Base32, conversions)
 
 ### ❌ We Need (To Build DApps)
 
-- Contract interfaces and abstractions
 - HTTP client to connect to TON
 - Wallet contracts to send transactions
 - Jetton contracts for tokens
@@ -177,12 +178,13 @@ Perfect for:
 - ✅ Parsing blockchain data
 - ✅ Analyzing transactions
 - ✅ Understanding TON internals
+- ✅ Contract abstraction layer ✨ NEW
 
-Not yet ready for:
+Ready with HTTP client:
 
-- ❌ Sending transactions
-- ❌ Creating wallets
-- ❌ Deploying contracts
-- ❌ Token operations
+- ⏳ Sending transactions (needs HTTP client)
+- ⏳ Creating wallets (needs HTTP client + wallet contracts)
+- ⏳ Deploying contracts (needs HTTP client)
+- ⏳ Token operations (needs HTTP client + jetton contracts)
 
-**Next milestone: Contract module + HTTP client = End-to-end DApp support**
+**Next milestone: HTTP Client = Unlock wallet & contract interactions!**
