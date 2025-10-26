@@ -17,7 +17,7 @@
 | **Utils**      | ToNano, FromNano, CRC16, CRC32C, Base32, GetMethodId                  | v0.0.2  | ✅           |
 | **Crypto**     | SHA256, SHA512, PBKDF2, HMAC, Ed25519, Mnemonic                       | v0.0.7  | ✅ 47 tests  |
 
-**Total:** 338 tests passing | 100% JS SDK parity for implemented features
+**Total:** 345 tests passing | 100% JS SDK parity for implemented features
 
 ---
 
@@ -36,8 +36,8 @@
 | └─ `ComputeError`                    | Medium    | ✅       | Compute phase errors                     |
 | └─ `ContractABI` types               | Low       | ✅       | ABI type definitions                     |
 | **Address Utils**                    | 🟡 Medium | Partial  | Additional address utilities             |
-| └─ `ADNLAddress`                     | Medium    | ❌          | ADNL address type                        |
-| └─ `ContractAddress()`               | Medium    | ❌          | Generate contract address                |
+| └─ `ADNLAddress`                     | Medium    | ❌       | ADNL address type                        |
+| └─ `ContractAddress()`               | Medium    | ✅       | Generate contract address                |
 | **Exotic Cells**                     | 🟡 Medium | Not started | Merkle proofs/updates                    |
 | └─ `GenerateMerkleProof()`           | Medium    | ❌          | Generate Merkle proofs                   |
 | └─ `GenerateMerkleUpdate()`          | Medium    | ❌          | Generate Merkle updates                  |
@@ -97,7 +97,7 @@
 **Goal:** Enable basic contract interactions
 
 - [x] Implement Contract module interfaces
-- [ ] Add ContractAddress utility
+- [x] Add ContractAddress utility
 - [ ] Add ADNLAddress support
 
 ### Phase 2: HTTP Client (1 week)
