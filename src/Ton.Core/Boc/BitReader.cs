@@ -351,5 +351,108 @@ public class BitReader
 
         throw new InvalidOperationException($"Unsupported address type: {type}");
     }
+
+    /// <summary>
+    /// Preload address (read without advancing offset).
+    /// </summary>
+    /// <returns>Address or null if no address.</returns>
+    public Address? PreloadAddress()
+    {
+        int savedOffset = _offset;
+        var address = LoadAddress();
+        _offset = savedOffset;
+        return address;
+    }
+
+    /// <summary>
+    /// Loads maybe address (with presence bit).
+    /// </summary>
+    /// <returns>Address or null.</returns>
+    public Address? LoadMaybeAddress()
+    {
+        if (LoadBit())
+        {
+            return LoadAddress();
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Preload varuint (read without advancing offset).
+    /// </summary>
+    /// <param name="bits">Number of bits for length encoding.</param>
+    /// <returns>Varuint value.</returns>
+    public long PreloadVarUint(int bits)
+    {
+        int savedOffset = _offset;
+        var value = LoadVarUint(bits);
+        _offset = savedOffset;
+        return value;
+    }
+
+    /// <summary>
+    /// Preload varuint big (read without advancing offset).
+    /// </summary>
+    /// <param name="bits">Number of bits for length encoding.</param>
+    /// <returns>Varuint value as BigInteger.</returns>
+    public BigInteger PreloadVarUintBig(int bits)
+    {
+        int savedOffset = _offset;
+        var value = LoadVarUintBig(bits);
+        _offset = savedOffset;
+        return value;
+    }
+
+    /// <summary>
+    /// Preload varint (read without advancing offset).
+    /// </summary>
+    /// <param name="bits">Number of bits for length encoding.</param>
+    /// <returns>Varint value.</returns>
+    public long PreloadVarInt(int bits)
+    {
+        int savedOffset = _offset;
+        var value = LoadVarInt(bits);
+        _offset = savedOffset;
+        return value;
+    }
+
+    /// <summary>
+    /// Preload varint big (read without advancing offset).
+    /// </summary>
+    /// <param name="bits">Number of bits for length encoding.</param>
+    /// <returns>Varint value as BigInteger.</returns>
+    public BigInteger PreloadVarIntBig(int bits)
+    {
+        int savedOffset = _offset;
+        var value = LoadVarIntBig(bits);
+        _offset = savedOffset;
+        return value;
+    }
+
+    /// <summary>
+    /// Preload coins (read without advancing offset).
+    /// </summary>
+    /// <returns>Coins value as BigInteger.</returns>
+    public BigInteger PreloadCoins()
+    {
+        int savedOffset = _offset;
+        var value = LoadCoins();
+        _offset = savedOffset;
+        return value;
+    }
+
+    /// <summary>
+    /// Clone this BitReader (creates a copy at the current offset).
+    /// </summary>
+    /// <returns>Cloned BitReader.</returns>
+    public BitReader Clone()
+    {
+        var clone = new BitReader(_bits, _offset);
+        foreach (var checkpoint in _checkpoints.Reverse())
+        {
+            clone._checkpoints.Push(checkpoint);
+        }
+        return clone;
+    }
 }
 

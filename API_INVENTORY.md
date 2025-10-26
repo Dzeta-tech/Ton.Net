@@ -14,10 +14,11 @@ This document tracks the implementation status of all APIs from the JavaScript S
 - [x] `BitString` class - immutable bit string ✅ v0.0.3
 - [x] `BitReader` class - sequential bit reading ✅ v0.0.3
 - [x] `BitBuilder` class - sequential bit writing ✅ v0.0.3
-- [ ] `Builder` class - cell builder with `BeginCell()`
-- [ ] `Slice` class - cell reader
-- [ ] `Cell` class - fundamental data structure
-- [ ] `CellType` enum
+- [x] `Builder` class - cell builder with `BeginCell()` ✅ v0.0.4
+- [x] `Slice` class - cell reader ✅ v0.0.4
+- [x] `Cell` class - fundamental data structure ✅ v0.0.4
+- [x] `CellType` enum ✅ v0.0.4
+- [x] `LevelMask` class ✅ v0.0.4
 - [ ] `Writable` interface
 
 ### Dictionary Module
@@ -186,9 +187,9 @@ This document tracks the implementation status of all APIs from the JavaScript S
 
 ## Implementation Priority
 
-1. **Phase 1: Ton.Core Foundations** ✅ In Progress
-   - ✅ Address, BitString, BitReader, BitBuilder
-   - Cell, Builder, Slice
+1. **Phase 1: Ton.Core Foundations** ✅ Completed
+   - ✅ Address (class), BitString, BitReader, BitBuilder
+   - ✅ Cell, Builder, Slice, CellType, LevelMask
    - ✅ Basic utilities (ToNano, FromNano, CRC)
 
 2. **Phase 2: Ton.Crypto**

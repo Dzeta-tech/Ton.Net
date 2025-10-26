@@ -301,7 +301,7 @@ public class BitBuilder
     /// <param name="address">Address to write, or null for empty address.</param>
     public void WriteAddress(Address? address)
     {
-        if (!address.HasValue)
+        if (address == null)
         {
             WriteUint(0, 2); // Empty address
             return;
@@ -310,8 +310,8 @@ public class BitBuilder
         // Internal address
         WriteUint(2, 2);        // Address type
         WriteUint(0, 1);        // No anycast
-        WriteInt(address.Value.WorkChain, 8);
-        WriteBuffer(address.Value.Hash);
+        WriteInt(address.WorkChain, 8);
+        WriteBuffer(address.Hash);
     }
 
     /// <summary>

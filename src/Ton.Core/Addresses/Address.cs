@@ -7,7 +7,7 @@ namespace Ton.Core.Addresses;
 /// Represents a TON blockchain address.
 /// Addresses are immutable and can be parsed from both friendly (base64-encoded) and raw (workchain:hash) formats.
 /// </summary>
-public readonly struct Address : IEquatable<Address>
+public class Address : IEquatable<Address>
 {
     const byte BounceableTag = 0x11;
     const byte NonBounceableTag = 0x51;
@@ -16,12 +16,12 @@ public readonly struct Address : IEquatable<Address>
     /// <summary>
     /// The workchain ID. Typically 0 for basechain or -1 for masterchain.
     /// </summary>
-    public readonly int WorkChain;
+    public int WorkChain { get; }
     
     /// <summary>
     /// The 32-byte address hash.
     /// </summary>
-    public readonly byte[] Hash;
+    public byte[] Hash { get; }
 
     /// <summary>
     /// Creates a new TON address with the specified workchain and hash.
@@ -313,8 +313,11 @@ public readonly struct Address : IEquatable<Address>
     /// </summary>
     /// <param name="other">The address to compare with.</param>
     /// <returns>True if the addresses are equal (same workchain and hash), false otherwise.</returns>
-    public bool Equals(Address other)
+    public bool Equals(Address? other)
     {
+        if (other == null)
+            return false;
+            
         if (WorkChain != other.WorkChain)
             return false;
 
@@ -331,14 +334,18 @@ public readonly struct Address : IEquatable<Address>
         return HashCode.Combine(WorkChain, Hash.Length > 0 ? Hash[0] : 0);
     }
 
-    public static bool operator ==(Address left, Address right)
+    public static bool operator ==(Address? left, Address? right)
     {
+        if (ReferenceEquals(left, right))
+            return true;
+        if (left is null || right is null)
+            return false;
         return left.Equals(right);
     }
 
-    public static bool operator !=(Address left, Address right)
+    public static bool operator !=(Address? left, Address? right)
     {
-        return !left.Equals(right);
+        return !(left == right);
     }
 }
 
