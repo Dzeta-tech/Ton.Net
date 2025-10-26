@@ -183,13 +183,11 @@ public class BitString : IEquatable<BitString>
             int lastNibble = lastByte & 0x0F;
             int paddingPos = 0;
             for (int i = 3; i >= 0; i--)
-            {
                 if ((lastNibble & (1 << i)) != 0)
                 {
                     paddingPos = i;
                     break;
                 }
-            }
 
             bitLength = (hex.Length - 1) * 4 + (3 - paddingPos);
         }

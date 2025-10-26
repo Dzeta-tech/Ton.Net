@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 using Ton.Core.Boc;
 
@@ -11,19 +12,17 @@ internal static class DictParser
     /// <summary>
     ///     Parse dictionary from slice.
     /// </summary>
-    public static System.Collections.Generic.Dictionary<BigInteger, V> ParseDict<V>(Slice? slice, int keySize, Func<Slice, V> extractor)
+    public static System.Collections.Generic.Dictionary<BigInteger, TV> ParseDict<TV>(Slice? slice, int keySize,
+        Func<Slice, TV> extractor)
     {
-        var result = new System.Collections.Generic.Dictionary<BigInteger, V>();
-        if (slice != null)
-        {
-            DoParse("", slice, keySize, result, extractor);
-        }
+        System.Collections.Generic.Dictionary<BigInteger, TV> result = new();
+        if (slice != null) DoParse("", slice, keySize, result, extractor);
 
         return result;
     }
 
-    static void DoParse<V>(string prefix, Slice slice, int n, System.Collections.Generic.Dictionary<BigInteger, V> res,
-        Func<Slice, V> extractor)
+    static void DoParse<TV>(string prefix, Slice slice, int n, System.Collections.Generic.Dictionary<BigInteger, TV> res,
+        Func<Slice, TV> extractor)
     {
         // Reading label
         int lb0 = slice.LoadBit() ? 1 : 0;
@@ -37,10 +36,7 @@ internal static class DictParser
             prefixLength = ReadUnaryLength(slice);
 
             // Read prefix bits
-            for (int i = 0; i < prefixLength; i++)
-            {
-                pp += slice.LoadBit() ? '1' : '0';
-            }
+            for (int i = 0; i < prefixLength; i++) pp += slice.LoadBit() ? '1' : '0';
         }
         else
         {
@@ -49,27 +45,21 @@ internal static class DictParser
             {
                 // hml_long$10 - Long label detected
                 prefixLength = (int)slice.LoadUint((int)Math.Ceiling(Math.Log2(n + 1)));
-                for (int i = 0; i < prefixLength; i++)
-                {
-                    pp += slice.LoadBit() ? '1' : '0';
-                }
+                for (int i = 0; i < prefixLength; i++) pp += slice.LoadBit() ? '1' : '0';
             }
             else
             {
                 // hml_same$11 - Same label detected (repeated bit)
                 string bit = slice.LoadBit() ? "1" : "0";
                 prefixLength = (int)slice.LoadUint((int)Math.Ceiling(Math.Log2(n + 1)));
-                for (int i = 0; i < prefixLength; i++)
-                {
-                    pp += bit;
-                }
+                for (int i = 0; i < prefixLength; i++) pp += bit;
             }
         }
 
         if (n - prefixLength == 0)
         {
             // Leaf node - extract value
-            res[BigInteger.Parse("0" + pp, System.Globalization.NumberStyles.AllowBinarySpecifier)] = extractor(slice);
+            res[BigInteger.Parse("0" + pp, NumberStyles.AllowBinarySpecifier)] = extractor(slice);
         }
         else
         {
@@ -78,27 +68,17 @@ internal static class DictParser
             Cell right = slice.LoadRef();
 
             // NOTE: Left and right branches implicitly contain prefixes '0' and '1'
-            if (!left.IsExotic)
-            {
-                DoParse(pp + "0", left.BeginParse(), n - prefixLength - 1, res, extractor);
-            }
+            if (!left.IsExotic) DoParse(pp + "0", left.BeginParse(), n - prefixLength - 1, res, extractor);
 
-            if (!right.IsExotic)
-            {
-                DoParse(pp + "1", right.BeginParse(), n - prefixLength - 1, res, extractor);
-            }
+            if (!right.IsExotic) DoParse(pp + "1", right.BeginParse(), n - prefixLength - 1, res, extractor);
         }
     }
 
     static int ReadUnaryLength(Slice slice)
     {
         int res = 0;
-        while (slice.LoadBit())
-        {
-            res++;
-        }
+        while (slice.LoadBit()) res++;
 
         return res;
     }
 }
-

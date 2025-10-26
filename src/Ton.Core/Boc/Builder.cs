@@ -1,5 +1,7 @@
 using System.Numerics;
+using System.Text;
 using Ton.Core.Addresses;
+using Ton.Core.Dict;
 
 namespace Ton.Core.Boc;
 
@@ -573,7 +575,7 @@ public class Builder
     /// </summary>
     /// <param name="dict">Dictionary to store.</param>
     /// <returns>This builder.</returns>
-    public Builder StoreDict<K, V>(Dict.Dictionary<K, V>? dict) where K : Dict.IDictionaryKeyType
+    public Builder StoreDict<TK, TV>(Dict.Dictionary<TK, TV>? dict) where TK : IDictionaryKeyType
     {
         dict?.Store(this);
         return this;
@@ -584,7 +586,7 @@ public class Builder
     /// </summary>
     /// <param name="dict">Dictionary to store.</param>
     /// <returns>This builder.</returns>
-    public Builder StoreDictDirect<K, V>(Dict.Dictionary<K, V>? dict) where K : Dict.IDictionaryKeyType
+    public Builder StoreDictDirect<TK, TV>(Dict.Dictionary<TK, TV>? dict) where TK : IDictionaryKeyType
     {
         dict?.StoreDirect(this);
         return this;
@@ -614,7 +616,7 @@ public class Builder
     /// </summary>
     public Builder StoreStringTail(string src)
     {
-        StoreBufferTail(System.Text.Encoding.UTF8.GetBytes(src));
+        StoreBufferTail(Encoding.UTF8.GetBytes(src));
         return this;
     }
 
@@ -625,13 +627,13 @@ public class Builder
     {
         if (src.Length > 0)
         {
-            var bytes = AvailableBits / 8;
+            int bytes = AvailableBits / 8;
             if (src.Length > bytes)
             {
-                var a = src[..bytes];
-                var t = src[bytes..];
+                byte[] a = src[..bytes];
+                byte[] t = src[bytes..];
                 StoreBuffer(a);
-                var bb = BeginCell();
+                Builder bb = BeginCell();
                 bb.StoreBufferTail(t);
                 StoreRef(bb.EndCell());
             }

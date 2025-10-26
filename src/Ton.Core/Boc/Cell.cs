@@ -37,8 +37,8 @@ public class Cell
             if (Bits.Length < 8)
                 throw new ArgumentException("Exotic cell must have at least 8 bits for type byte");
 
-            var reader = new BitReader(Bits);
-            var typeValue = (int)reader.LoadUint(8);
+            BitReader reader = new(Bits);
+            int typeValue = (int)reader.LoadUint(8);
             Type = typeValue switch
             {
                 1 => CellType.PrunedBranch,
@@ -68,6 +68,31 @@ public class Cell
         // Calculate hashes and depths
         (hashes, depths) = CalculateHashesAndDepths();
     }
+
+    /// <summary>
+    ///     Gets the cell type.
+    /// </summary>
+    public CellType Type { get; }
+
+    /// <summary>
+    ///     Gets the bit string data.
+    /// </summary>
+    public BitString Bits { get; }
+
+    /// <summary>
+    ///     Gets the cell references.
+    /// </summary>
+    public Cell[] Refs { get; }
+
+    /// <summary>
+    ///     Gets the level mask.
+    /// </summary>
+    public LevelMask Mask { get; }
+
+    /// <summary>
+    ///     Checks if cell is exotic.
+    /// </summary>
+    public bool IsExotic => Type != CellType.Ordinary;
 
     void ValidateExoticCell()
     {
@@ -101,31 +126,6 @@ public class Cell
                 break;
         }
     }
-
-    /// <summary>
-    ///     Gets the cell type.
-    /// </summary>
-    public CellType Type { get; }
-
-    /// <summary>
-    ///     Gets the bit string data.
-    /// </summary>
-    public BitString Bits { get; }
-
-    /// <summary>
-    ///     Gets the cell references.
-    /// </summary>
-    public Cell[] Refs { get; }
-
-    /// <summary>
-    ///     Gets the level mask.
-    /// </summary>
-    public LevelMask Mask { get; }
-
-    /// <summary>
-    ///     Checks if cell is exotic.
-    /// </summary>
-    public bool IsExotic => Type != CellType.Ordinary;
 
     /// <summary>
     ///     Begin parsing the cell.

@@ -162,4 +162,3 @@ public class TupleBuilder
         return tuple.ToArray();
     }
 }
-

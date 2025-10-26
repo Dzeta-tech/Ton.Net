@@ -12,158 +12,187 @@ public static class DictionaryValues
     /// <summary>
     ///     Create signed integer value serializer.
     /// </summary>
-    public static IDictionaryValue<long> Int(int bits) => new IntValue(bits);
+    public static IDictionaryValue<long> Int(int bits)
+    {
+        return new IntValue(bits);
+    }
 
     /// <summary>
     ///     Create signed BigInteger value serializer.
     /// </summary>
-    public static IDictionaryValue<BigInteger> BigInt(int bits) => new BigIntValue(bits);
+    public static IDictionaryValue<BigInteger> BigInt(int bits)
+    {
+        return new BigIntValue(bits);
+    }
 
     /// <summary>
     ///     Create var-length signed BigInteger value serializer.
     /// </summary>
-    public static IDictionaryValue<BigInteger> BigVarInt(int headerBits) => new BigVarIntValue(headerBits);
+    public static IDictionaryValue<BigInteger> BigVarInt(int headerBits)
+    {
+        return new BigVarIntValue(headerBits);
+    }
 
     /// <summary>
     ///     Create unsigned integer value serializer.
     /// </summary>
-    public static IDictionaryValue<ulong> Uint(int bits) => new UintValue(bits);
+    public static IDictionaryValue<ulong> Uint(int bits)
+    {
+        return new UintValue(bits);
+    }
 
     /// <summary>
     ///     Create unsigned BigInteger value serializer.
     /// </summary>
-    public static IDictionaryValue<BigInteger> BigUint(int bits) => new BigUintValue(bits);
+    public static IDictionaryValue<BigInteger> BigUint(int bits)
+    {
+        return new BigUintValue(bits);
+    }
 
     /// <summary>
     ///     Create var-length unsigned BigInteger value serializer.
     /// </summary>
-    public static IDictionaryValue<BigInteger> BigVarUint(int headerBits) => new BigVarUintValue(headerBits);
+    public static IDictionaryValue<BigInteger> BigVarUint(int headerBits)
+    {
+        return new BigVarUintValue(headerBits);
+    }
 
     /// <summary>
     ///     Create boolean value serializer.
     /// </summary>
-    public static IDictionaryValue<bool> Bool() => new BoolValue();
+    public static IDictionaryValue<bool> Bool()
+    {
+        return new BoolValue();
+    }
 
     /// <summary>
     ///     Create Address value serializer.
     /// </summary>
-    public static IDictionaryValue<Address?> Address() => new AddressValue();
+    public static IDictionaryValue<Address?> Address()
+    {
+        return new AddressValue();
+    }
 
     /// <summary>
     ///     Create Cell value serializer.
     /// </summary>
-    public static IDictionaryValue<Cell> Cell() => new CellValue();
+    public static IDictionaryValue<Cell> Cell()
+    {
+        return new CellValue();
+    }
 
     /// <summary>
     ///     Create Buffer value serializer.
     /// </summary>
-    public static IDictionaryValue<byte[]> Buffer(int bytes) => new BufferValue(bytes);
+    public static IDictionaryValue<byte[]> Buffer(int bytes)
+    {
+        return new BufferValue(bytes);
+    }
 
     /// <summary>
     ///     Create BitString value serializer.
     /// </summary>
-    public static IDictionaryValue<BitString> BitString(int bits) => new BitStringValue(bits);
+    public static IDictionaryValue<BitString> BitString(int bits)
+    {
+        return new BitStringValue(bits);
+    }
 
     /// <summary>
     ///     Create nested Dictionary value serializer.
     /// </summary>
-    public static IDictionaryValue<Dictionary<K, V>> Dictionary<K, V>(IDictionaryKey<K> key, IDictionaryValue<V> value)
-        where K : IDictionaryKeyType
-        => new DictionaryValue<K, V>(key, value);
+    public static IDictionaryValue<Dictionary<TK, TV>> Dictionary<TK, TV>(IDictionaryKey<TK> key, IDictionaryValue<TV> value)
+        where TK : IDictionaryKeyType
+    {
+        return new DictionaryValue<TK, TV>(key, value);
+    }
 
     #region Value Implementations
 
-    class IntValue : IDictionaryValue<long>
+    class IntValue(int bits) : IDictionaryValue<long>
     {
-        readonly int _bits;
-
-        public IntValue(int bits) => _bits = bits;
-
-        public void Serialize(long value, Builder builder) => builder.StoreInt(value, _bits);
+        public void Serialize(long value, Builder builder)
+        {
+            builder.StoreInt(value, bits);
+        }
 
         public long Parse(Slice slice)
         {
-            var value = slice.LoadInt(_bits);
+            long value = slice.LoadInt(bits);
             slice.EndParse();
             return value;
         }
     }
 
-    class BigIntValue : IDictionaryValue<BigInteger>
+    class BigIntValue(int bits) : IDictionaryValue<BigInteger>
     {
-        readonly int _bits;
-
-        public BigIntValue(int bits) => _bits = bits;
-
-        public void Serialize(BigInteger value, Builder builder) => builder.StoreInt(value, _bits);
+        public void Serialize(BigInteger value, Builder builder)
+        {
+            builder.StoreInt(value, bits);
+        }
 
         public BigInteger Parse(Slice slice)
         {
-            var value = slice.LoadIntBig(_bits);
+            BigInteger value = slice.LoadIntBig(bits);
             slice.EndParse();
             return value;
         }
     }
 
-    class BigVarIntValue : IDictionaryValue<BigInteger>
+    class BigVarIntValue(int headerBits) : IDictionaryValue<BigInteger>
     {
-        readonly int _headerBits;
-
-        public BigVarIntValue(int headerBits) => _headerBits = headerBits;
-
-        public void Serialize(BigInteger value, Builder builder) => builder.StoreVarInt(value, _headerBits);
+        public void Serialize(BigInteger value, Builder builder)
+        {
+            builder.StoreVarInt(value, headerBits);
+        }
 
         public BigInteger Parse(Slice slice)
         {
-            var value = slice.LoadVarIntBig(_headerBits);
+            BigInteger value = slice.LoadVarIntBig(headerBits);
             slice.EndParse();
             return value;
         }
     }
 
-    class UintValue : IDictionaryValue<ulong>
+    class UintValue(int bits) : IDictionaryValue<ulong>
     {
-        readonly int _bits;
-
-        public UintValue(int bits) => _bits = bits;
-
-        public void Serialize(ulong value, Builder builder) => builder.StoreUint(value, _bits);
+        public void Serialize(ulong value, Builder builder)
+        {
+            builder.StoreUint(value, bits);
+        }
 
         public ulong Parse(Slice slice)
         {
-            var value = (ulong)slice.LoadUint(_bits);
+            ulong value = (ulong)slice.LoadUint(bits);
             slice.EndParse();
             return value;
         }
     }
 
-    class BigUintValue : IDictionaryValue<BigInteger>
+    class BigUintValue(int bits) : IDictionaryValue<BigInteger>
     {
-        readonly int _bits;
-
-        public BigUintValue(int bits) => _bits = bits;
-
-        public void Serialize(BigInteger value, Builder builder) => builder.StoreUint(value, _bits);
+        public void Serialize(BigInteger value, Builder builder)
+        {
+            builder.StoreUint(value, bits);
+        }
 
         public BigInteger Parse(Slice slice)
         {
-            var value = slice.LoadUintBig(_bits);
+            BigInteger value = slice.LoadUintBig(bits);
             slice.EndParse();
             return value;
         }
     }
 
-    class BigVarUintValue : IDictionaryValue<BigInteger>
+    class BigVarUintValue(int headerBits) : IDictionaryValue<BigInteger>
     {
-        readonly int _headerBits;
-
-        public BigVarUintValue(int headerBits) => _headerBits = headerBits;
-
-        public void Serialize(BigInteger value, Builder builder) => builder.StoreVarUint(value, _headerBits);
+        public void Serialize(BigInteger value, Builder builder)
+        {
+            builder.StoreVarUint(value, headerBits);
+        }
 
         public BigInteger Parse(Slice slice)
         {
-            var value = slice.LoadVarUintBig(_headerBits);
+            BigInteger value = slice.LoadVarUintBig(headerBits);
             slice.EndParse();
             return value;
         }
@@ -171,11 +200,14 @@ public static class DictionaryValues
 
     class BoolValue : IDictionaryValue<bool>
     {
-        public void Serialize(bool value, Builder builder) => builder.StoreBit(value);
+        public void Serialize(bool value, Builder builder)
+        {
+            builder.StoreBit(value);
+        }
 
         public bool Parse(Slice slice)
         {
-            var value = slice.LoadBit();
+            bool value = slice.LoadBit();
             slice.EndParse();
             return value;
         }
@@ -183,11 +215,14 @@ public static class DictionaryValues
 
     class AddressValue : IDictionaryValue<Address?>
     {
-        public void Serialize(Address? value, Builder builder) => builder.StoreAddress(value);
+        public void Serialize(Address? value, Builder builder)
+        {
+            builder.StoreAddress(value);
+        }
 
         public Address? Parse(Slice slice)
         {
-            var addr = slice.LoadAddress();
+            Address? addr = slice.LoadAddress();
             slice.EndParse();
             return addr;
         }
@@ -195,64 +230,62 @@ public static class DictionaryValues
 
     class CellValue : IDictionaryValue<Cell>
     {
-        public void Serialize(Cell value, Builder builder) => builder.StoreRef(value);
+        public void Serialize(Cell value, Builder builder)
+        {
+            builder.StoreRef(value);
+        }
 
         public Cell Parse(Slice slice)
         {
-            var cell = slice.LoadRef();
+            Cell cell = slice.LoadRef();
             slice.EndParse();
             return cell;
         }
     }
 
-    class BufferValue : IDictionaryValue<byte[]>
+    class BufferValue(int bytes) : IDictionaryValue<byte[]>
     {
-        readonly int _bytes;
-
-        public BufferValue(int bytes) => _bytes = bytes;
-
-        public void Serialize(byte[] value, Builder builder) => builder.StoreBuffer(value);
+        public void Serialize(byte[] value, Builder builder)
+        {
+            builder.StoreBuffer(value);
+        }
 
         public byte[] Parse(Slice slice)
         {
-            var buffer = slice.LoadBuffer(_bytes);
+            byte[] buffer = slice.LoadBuffer(bytes);
             slice.EndParse();
             return buffer;
         }
     }
 
-    class BitStringValue : IDictionaryValue<BitString>
+    class BitStringValue(int bits) : IDictionaryValue<BitString>
     {
-        readonly int _bits;
-
-        public BitStringValue(int bits) => _bits = bits;
-
-        public void Serialize(BitString value, Builder builder) => builder.StoreBits(value);
+        public void Serialize(BitString value, Builder builder)
+        {
+            builder.StoreBits(value);
+        }
 
         public BitString Parse(Slice slice)
         {
-            var bitString = slice.LoadBits(_bits);
+            BitString bitString = slice.LoadBits(bits);
             slice.EndParse();
             return bitString;
         }
     }
 
-    class DictionaryValue<K, V> : IDictionaryValue<Dictionary<K, V>> where K : IDictionaryKeyType
+    class DictionaryValue<TK, TV>(IDictionaryKey<TK> key, IDictionaryValue<TV> value) : IDictionaryValue<Dictionary<TK, TV>>
+        where TK : IDictionaryKeyType
     {
-        readonly IDictionaryKey<K> _key;
-        readonly IDictionaryValue<V> _value;
-
-        public DictionaryValue(IDictionaryKey<K> key, IDictionaryValue<V> value)
+        public void Serialize(Dictionary<TK, TV> value, Builder builder)
         {
-            _key = key;
-            _value = value;
+            builder.StoreDict(value);
         }
 
-        public void Serialize(Dictionary<K, V> value, Builder builder) => builder.StoreDict(value);
-
-        public Dictionary<K, V> Parse(Slice slice) => slice.LoadDict(_key, _value);
+        public Dictionary<TK, TV> Parse(Slice slice)
+        {
+            return slice.LoadDict(key, value);
+        }
     }
 
     #endregion
 }
-

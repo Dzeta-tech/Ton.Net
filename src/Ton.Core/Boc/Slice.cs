@@ -1,5 +1,7 @@
 using System.Numerics;
+using System.Text;
 using Ton.Core.Addresses;
+using Ton.Core.Dict;
 
 namespace Ton.Core.Boc;
 
@@ -436,10 +438,10 @@ public class Slice
     /// <param name="key">Key serializer.</param>
     /// <param name="value">Value serializer.</param>
     /// <returns>Dictionary.</returns>
-    public Dict.Dictionary<K, V> LoadDict<K, V>(Dict.IDictionaryKey<K> key, Dict.IDictionaryValue<V> value)
-        where K : Dict.IDictionaryKeyType
+    public Dict.Dictionary<TK, TV> LoadDict<TK, TV>(IDictionaryKey<TK> key, IDictionaryValue<TV> value)
+        where TK : IDictionaryKeyType
     {
-        return Dict.Dictionary<K, V>.Load(key, value, this);
+        return Dict.Dictionary<TK, TV>.Load(key, value, this);
     }
 
     /// <summary>
@@ -448,10 +450,10 @@ public class Slice
     /// <param name="key">Key serializer.</param>
     /// <param name="value">Value serializer.</param>
     /// <returns>Dictionary.</returns>
-    public Dict.Dictionary<K, V> LoadDictDirect<K, V>(Dict.IDictionaryKey<K> key, Dict.IDictionaryValue<V> value)
-        where K : Dict.IDictionaryKeyType
+    public Dict.Dictionary<TK, TV> LoadDictDirect<TK, TV>(IDictionaryKey<TK> key, IDictionaryValue<TV> value)
+        where TK : IDictionaryKeyType
     {
-        return Dict.Dictionary<K, V>.LoadDirect(key, value, this);
+        return Dict.Dictionary<TK, TV>.LoadDirect(key, value, this);
     }
 
     /// <summary>
@@ -504,7 +506,7 @@ public class Slice
     /// </summary>
     public string LoadStringTail()
     {
-        return System.Text.Encoding.UTF8.GetString(LoadBufferTail());
+        return Encoding.UTF8.GetString(LoadBufferTail());
     }
 
     /// <summary>
@@ -528,8 +530,8 @@ public class Slice
         // Read tail
         if (RemainingRefs == 1)
         {
-            var tail = LoadRef().BeginParse().LoadBufferTail();
-            var combined = new byte[res.Length + tail.Length];
+            byte[] tail = LoadRef().BeginParse().LoadBufferTail();
+            byte[] combined = new byte[res.Length + tail.Length];
             res.CopyTo(combined, 0);
             tail.CopyTo(combined, res.Length);
             res = combined;

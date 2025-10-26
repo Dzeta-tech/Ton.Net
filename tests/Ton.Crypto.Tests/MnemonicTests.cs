@@ -1,4 +1,4 @@
-using Ton.Crypto.Mnemonic;
+using Ton.Crypto.Ed25519;
 using Ton.Crypto.Primitives;
 
 namespace Ton.Crypto.Tests;
@@ -100,9 +100,9 @@ public class MnemonicTests
     [TestCase(4)]
     public void Test_ShouldMatchVector(int vectorIndex)
     {
-        var vector = TestVectors[vectorIndex];
-        var key = Mnemonic.Mnemonic.ToPrivateKey(vector.Mnemonics);
-        var wk = Mnemonic.Mnemonic.ToWalletKey(vector.Mnemonics);
+        (string[] Mnemonics, string Key) vector = TestVectors[vectorIndex];
+        KeyPair key = Mnemonic.Mnemonic.ToPrivateKey(vector.Mnemonics);
+        KeyPair wk = Mnemonic.Mnemonic.ToWalletKey(vector.Mnemonics);
 
         Assert.Multiple(() =>
         {
@@ -117,8 +117,8 @@ public class MnemonicTests
         for (int i = 0; i < 10; i++)
         {
             string[] mnemonics = Mnemonic.Mnemonic.New();
-            var key = Mnemonic.Mnemonic.ToPrivateKey(mnemonics);
-            var wk = Mnemonic.Mnemonic.ToWalletKey(mnemonics);
+            KeyPair key = Mnemonic.Mnemonic.ToPrivateKey(mnemonics);
+            KeyPair wk = Mnemonic.Mnemonic.ToWalletKey(mnemonics);
 
             Assert.Multiple(() =>
             {

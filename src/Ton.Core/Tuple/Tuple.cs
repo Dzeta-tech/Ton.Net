@@ -63,10 +63,10 @@ public static class Tuple
                 Cell? head = null;
                 Cell? tail = null;
 
-                for (var i = 0; i < tupleItem.Items.Length; i++)
+                for (int i = 0; i < tupleItem.Items.Length; i++)
                 {
                     // Swap
-                    var s = head;
+                    Cell? s = head;
                     head = tail;
                     tail = s;
 
@@ -76,7 +76,7 @@ public static class Tuple
                             .StoreRef(head!)
                             .EndCell();
 
-                    var bc = Builder.BeginCell();
+                    Builder bc = Builder.BeginCell();
                     SerializeTupleItem(tupleItem.Items[i], bc);
                     tail = bc.EndCell();
                 }
@@ -99,7 +99,7 @@ public static class Tuple
     /// </summary>
     public static TupleItem ParseTupleItem(Slice cs)
     {
-        var kind = (int)cs.LoadUint(8);
+        int kind = (int)cs.LoadUint(8);
 
         switch (kind)
         {
@@ -122,25 +122,25 @@ public static class Tuple
 
             case 4:
             {
-                var startBits = (int)cs.LoadUint(10);
-                var endBits = (int)cs.LoadUint(10);
-                var startRefs = (int)cs.LoadUint(3);
-                var endRefs = (int)cs.LoadUint(3);
+                int startBits = (int)cs.LoadUint(10);
+                int endBits = (int)cs.LoadUint(10);
+                int startRefs = (int)cs.LoadUint(3);
+                int endRefs = (int)cs.LoadUint(3);
 
                 // Copy to new cell
-                var rs = cs.LoadRef().BeginParse();
+                Slice rs = cs.LoadRef().BeginParse();
                 rs.Skip(startBits);
-                var dt = rs.LoadBits(endBits - startBits);
+                BitString dt = rs.LoadBits(endBits - startBits);
 
-                var builder = Builder.BeginCell()
+                Builder builder = Builder.BeginCell()
                     .StoreBits(dt);
 
                 // Copy refs if exist
                 if (startRefs < endRefs)
                 {
-                    for (var i = 0; i < startRefs; i++)
+                    for (int i = 0; i < startRefs; i++)
                         rs.LoadRef();
-                    for (var i = 0; i < endRefs - startRefs; i++)
+                    for (int i = 0; i < endRefs - startRefs; i++)
                         builder.StoreRef(rs.LoadRef());
                 }
 
@@ -152,18 +152,18 @@ public static class Tuple
 
             case 7:
             {
-                var length = (int)cs.LoadUint(16);
-                var items = new List<TupleItem>();
+                int length = (int)cs.LoadUint(16);
+                List<TupleItem> items = [];
 
                 if (length > 1)
                 {
-                    var head = cs.LoadRef().BeginParse();
-                    var tail = cs.LoadRef().BeginParse();
+                    Slice head = cs.LoadRef().BeginParse();
+                    Slice tail = cs.LoadRef().BeginParse();
                     items.Insert(0, ParseTupleItem(tail));
 
-                    for (var i = 0; i < length - 2; i++)
+                    for (int i = 0; i < length - 2; i++)
                     {
-                        var ohead = head;
+                        Slice ohead = head;
                         head = ohead.LoadRef().BeginParse();
                         tail = ohead.LoadRef().BeginParse();
                         items.Insert(0, ParseTupleItem(tail));
@@ -189,9 +189,9 @@ public static class Tuple
     /// </summary>
     public static Cell SerializeTuple(TupleItem[] src)
     {
-        var builder = Builder.BeginCell();
+        Builder builder = Builder.BeginCell();
         builder.StoreUint(src.Length, 24);
-        var r = src.ToArray();
+        TupleItem[] r = src.ToArray();
         SerializeTupleTail(r, builder);
         return builder.EndCell();
     }
@@ -201,13 +201,13 @@ public static class Tuple
     /// </summary>
     public static TupleItem[] ParseTuple(Cell src)
     {
-        var res = new List<TupleItem>();
-        var cs = src.BeginParse();
-        var size = (int)cs.LoadUint(24);
+        List<TupleItem> res = [];
+        Slice cs = src.BeginParse();
+        int size = (int)cs.LoadUint(24);
 
-        for (var i = 0; i < size; i++)
+        for (int i = 0; i < size; i++)
         {
-            var next = cs.LoadRef();
+            Cell next = cs.LoadRef();
             res.Insert(0, ParseTupleItem(cs));
             cs = next.BeginParse();
         }
@@ -220,7 +220,7 @@ public static class Tuple
         if (src.Length > 0)
         {
             // rest:^(VmStackList n)
-            var tail = Builder.BeginCell();
+            Builder tail = Builder.BeginCell();
             SerializeTupleTail(src[..^1], tail);
             builder.StoreRef(tail.EndCell());
 
@@ -229,4 +229,3 @@ public static class Tuple
         }
     }
 }
-

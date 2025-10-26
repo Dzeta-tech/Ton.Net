@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 using Ton.Core.Boc;
 
@@ -11,13 +12,14 @@ internal static class DictSerializer
     /// <summary>
     ///     Serialize dictionary to Cell.
     /// </summary>
-    public static Cell? SerializeDict<V>(System.Collections.Generic.Dictionary<BigInteger, V> src, int keyLength, Action<V, Builder> serializer)
+    public static Cell? SerializeDict<TV>(System.Collections.Generic.Dictionary<BigInteger, TV> src, int keyLength,
+        Action<TV, Builder> serializer)
     {
         if (src.Count == 0)
             return null;
 
-        var tree = BuildTree(src, keyLength);
-        var builder = new Builder();
+        Edge<TV> tree = BuildTree(src, keyLength);
+        Builder builder = new();
         SerializeEdge(tree, keyLength, serializer, builder);
         return builder.EndCell();
     }
@@ -41,10 +43,10 @@ internal static class DictSerializer
     static Edge<T> BuildTree<T>(System.Collections.Generic.Dictionary<BigInteger, T> src, int keyLength)
     {
         // Convert map keys to binary strings
-        var converted = new System.Collections.Generic.Dictionary<string, T>();
-        foreach (var (key, value) in src)
+        System.Collections.Generic.Dictionary<string, T> converted = new();
+        foreach ((BigInteger key, T value) in src)
         {
-            var padded = PadBinary(key, keyLength);
+            string padded = PadBinary(key, keyLength);
             converted[padded] = value;
         }
 
@@ -56,7 +58,7 @@ internal static class DictSerializer
         if (src.Count == 0)
             throw new InvalidOperationException("Internal inconsistency");
 
-        var label = FindCommonPrefix(src.Keys.ToArray(), prefixLen);
+        string label = FindCommonPrefix(src.Keys.ToArray(), prefixLen);
         return new Edge<T>
         {
             Label = label,
@@ -70,15 +72,14 @@ internal static class DictSerializer
             throw new InvalidOperationException("Internal inconsistency");
 
         if (src.Count == 1)
-        {
             return new Node<T>
             {
                 IsLeaf = true,
                 Value = src.Values.First()
             };
-        }
 
-        var (left, right) = ForkMap(src, prefixLen);
+        (System.Collections.Generic.Dictionary<string, T> left,
+            System.Collections.Generic.Dictionary<string, T> right) = ForkMap(src, prefixLen);
         return new Node<T>
         {
             IsLeaf = false,
@@ -87,19 +88,18 @@ internal static class DictSerializer
         };
     }
 
-    static (System.Collections.Generic.Dictionary<string, T> left, System.Collections.Generic.Dictionary<string, T> right) ForkMap<T>(System.Collections.Generic.Dictionary<string, T> src,
-        int prefixLen)
+    static (System.Collections.Generic.Dictionary<string, T> left, System.Collections.Generic.Dictionary<string, T>
+        right) ForkMap<T>(System.Collections.Generic.Dictionary<string, T> src,
+            int prefixLen)
     {
-        var left = new System.Collections.Generic.Dictionary<string, T>();
-        var right = new System.Collections.Generic.Dictionary<string, T>();
+        System.Collections.Generic.Dictionary<string, T> left = new();
+        System.Collections.Generic.Dictionary<string, T> right = new();
 
-        foreach (var (key, value) in src)
-        {
+        foreach ((string key, T value) in src)
             if (key[prefixLen] == '0')
                 left[key] = value;
             else
                 right[key] = value;
-        }
 
         if (left.Count == 0)
             throw new InvalidOperationException("Internal inconsistency. Left empty.");
@@ -117,12 +117,12 @@ internal static class DictSerializer
         if (keys.Length == 1)
             return keys[0].Substring(prefixLen);
 
-        var prefix = "";
-        var first = keys[0];
+        string prefix = "";
+        string first = keys[0];
 
         for (int i = prefixLen; i < first.Length; i++)
         {
-            var bit = first[i];
+            char bit = first[i];
             bool allMatch = keys.All(k => i < k.Length && k[i] == bit);
             if (!allMatch)
                 break;
@@ -137,24 +137,24 @@ internal static class DictSerializer
 
     #region Serialization
 
-    static void SerializeEdge<V>(Edge<V> edge, int keyLength, Action<V, Builder> serializer, Builder builder)
+    static void SerializeEdge<TV>(Edge<TV> edge, int keyLength, Action<TV, Builder> serializer, Builder builder)
     {
         // Write label
         WriteLabel(edge.Label, keyLength, builder);
 
         // Write node (with adjusted keyLength after consuming label bits)
         int remainingKeyLength = keyLength - edge.Label.Length;
-        
+
         if (edge.Node.IsLeaf)
         {
             serializer(edge.Node.Value!, builder);
         }
         else
         {
-            var leftCell = new Builder();
+            Builder leftCell = new();
             SerializeEdge(edge.Node.Left!, remainingKeyLength - 1, serializer, leftCell);
 
-            var rightCell = new Builder();
+            Builder rightCell = new();
             SerializeEdge(edge.Node.Right!, remainingKeyLength - 1, serializer, rightCell);
 
             builder.StoreRef(leftCell.EndCell());
@@ -171,17 +171,11 @@ internal static class DictSerializer
 
         // Choose optimal encoding
         if (IsSameBits(label) && sameLength < shortLength && sameLength < longLength)
-        {
             WriteLabelSame(label, keyLength, builder);
-        }
         else if (shortLength <= longLength)
-        {
             WriteLabelShort(label, builder);
-        }
         else
-        {
             WriteLabelLong(label, keyLength, builder);
-        }
     }
 
     static void WriteLabelShort(string label, Builder builder)
@@ -196,7 +190,7 @@ internal static class DictSerializer
 
         // Value
         if (label.Length > 0)
-            builder.StoreUint(BigInteger.Parse("0" + label, System.Globalization.NumberStyles.AllowBinarySpecifier),
+            builder.StoreUint(BigInteger.Parse("0" + label, NumberStyles.AllowBinarySpecifier),
                 label.Length);
     }
 
@@ -212,7 +206,7 @@ internal static class DictSerializer
 
         // Value
         if (label.Length > 0)
-            builder.StoreUint(BigInteger.Parse("0" + label, System.Globalization.NumberStyles.AllowBinarySpecifier),
+            builder.StoreUint(BigInteger.Parse("0" + label, NumberStyles.AllowBinarySpecifier),
                 label.Length);
     }
 
@@ -256,14 +250,11 @@ internal static class DictSerializer
 
     static string PadBinary(BigInteger value, int length)
     {
-        var binary = "";
-        var temp = value;
+        string binary = "";
+        BigInteger temp = value;
 
         // Handle zero specially
-        if (value == 0)
-        {
-            return new string('0', length);
-        }
+        if (value == 0) return new string('0', length);
 
         // Convert to binary
         while (temp > 0)
@@ -273,14 +264,10 @@ internal static class DictSerializer
         }
 
         // Pad to length
-        while (binary.Length < length)
-        {
-            binary = '0' + binary;
-        }
+        while (binary.Length < length) binary = '0' + binary;
 
         return binary;
     }
 
     #endregion
 }
-

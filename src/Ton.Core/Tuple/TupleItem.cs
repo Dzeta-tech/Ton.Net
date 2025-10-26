@@ -19,13 +19,13 @@ public abstract class TupleItem
 /// </summary>
 public class TupleItemNull : TupleItem
 {
-    public override string Type => "null";
-
     public static readonly TupleItemNull Instance = new();
 
     TupleItemNull()
     {
     }
+
+    public override string Type => "null";
 }
 
 /// <summary>
@@ -46,13 +46,13 @@ public class TupleItemInt(BigInteger value) : TupleItem
 /// </summary>
 public class TupleItemNaN : TupleItem
 {
-    public override string Type => "nan";
-
     public static readonly TupleItemNaN Instance = new();
 
     TupleItemNaN()
     {
     }
+
+    public override string Type => "nan";
 }
 
 /// <summary>
@@ -106,4 +106,3 @@ public class TupleItemTuple(TupleItem[] items) : TupleItem
     /// </summary>
     public TupleItem[] Items { get; } = items;
 }
-

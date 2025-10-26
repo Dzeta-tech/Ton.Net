@@ -9,7 +9,7 @@ public static class Wordlist
     ///     Standard BIP39 English wordlist containing 2048 words.
     /// </summary>
     public static readonly string[] Words =
-    {
+    [
         "abandon",
         "ability",
         "able",
@@ -2058,5 +2058,5 @@ public static class Wordlist
         "zero",
         "zone",
         "zoo"
-    };
+    ];
 }

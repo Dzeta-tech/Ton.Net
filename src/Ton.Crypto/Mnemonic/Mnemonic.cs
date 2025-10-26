@@ -31,10 +31,8 @@ public static class Mnemonic
 
             // Check password conformance
             if (!string.IsNullOrEmpty(password))
-            {
                 if (!IsPasswordNeeded(mnemonicArray))
                     continue;
-            }
 
             // Check if basic seed correct
             if (!IsBasicSeed(ToEntropy(mnemonicArray, password)))
@@ -57,17 +55,13 @@ public static class Mnemonic
 
         // Validate mnemonic words
         foreach (string word in mnemonicArray)
-        {
             if (Array.IndexOf(Wordlist.Words, word) < 0)
                 return false;
-        }
 
         // Check password
         if (!string.IsNullOrEmpty(password))
-        {
             if (!IsPasswordNeeded(mnemonicArray))
                 return false;
-        }
 
         // Validate seed
         return IsBasicSeed(ToEntropy(mnemonicArray, password));
@@ -137,7 +131,7 @@ public static class Mnemonic
     /// <param name="mnemonicArray">Mnemonic words.</param>
     /// <param name="password">Optional password.</param>
     /// <returns>64-byte HD seed.</returns>
-    public static byte[] ToHDSeed(string[] mnemonicArray, string? password = null)
+    public static byte[] ToHdSeed(string[] mnemonicArray, string? password = null)
     {
         mnemonicArray = Normalize(mnemonicArray);
         return ToSeed(mnemonicArray, "TON HD Keys seed", password);
@@ -186,10 +180,7 @@ public static class Mnemonic
     {
         int[] indexes = BytesToMnemonicIndexes(src, wordsCount);
         string[] result = new string[indexes.Length];
-        for (int i = 0; i < indexes.Length; i++)
-        {
-            result[i] = Wordlist.Words[indexes[i]];
-        }
+        for (int i = 0; i < indexes.Length; i++) result[i] = Wordlist.Words[indexes[i]];
 
         return result;
     }
@@ -220,7 +211,7 @@ public static class Mnemonic
     /// <returns>Buffer.</returns>
     public static byte[] MnemonicIndexesToBytes(int[] indexes)
     {
-        StringBuilder res = new StringBuilder();
+        StringBuilder res = new();
         foreach (int index in indexes)
         {
             if (index < 0 || index >= 2048)
@@ -229,10 +220,7 @@ public static class Mnemonic
             res.Append(Convert.ToString(index, 2).PadLeft(11, '0'));
         }
 
-        while (res.Length % 8 != 0)
-        {
-            res.Append('0');
-        }
+        while (res.Length % 8 != 0) res.Append('0');
 
         return BitsToBytes(res.ToString());
     }
@@ -276,11 +264,8 @@ public static class Mnemonic
 
     static string BytesToBits(byte[] bytes)
     {
-        StringBuilder res = new StringBuilder();
-        foreach (byte b in bytes)
-        {
-            res.Append(Convert.ToString(b, 2).PadLeft(8, '0'));
-        }
+        StringBuilder res = new();
+        foreach (byte b in bytes) res.Append(Convert.ToString(b, 2).PadLeft(8, '0'));
 
         return res.ToString();
     }
@@ -290,7 +275,7 @@ public static class Mnemonic
         if (src.Length % 8 != 0)
             throw new ArgumentException("Uneven bits");
 
-        List<byte> result = new List<byte>();
+        List<byte> result = [];
         while (src.Length > 0)
         {
             result.Add(Convert.ToByte(src.Substring(0, 8), 2));
@@ -302,4 +287,3 @@ public static class Mnemonic
 
     #endregion
 }
-

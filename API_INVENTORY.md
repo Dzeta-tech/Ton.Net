@@ -39,11 +39,13 @@ This document tracks the implementation status of all APIs from the JavaScript S
 - [ ] Full exotic cell parsing/validation (planned)
 
 ### Tuple Module
-- [ ] `Tuple` type
-- [ ] `TupleItem` types (Null, Int, NaN, Cell, Slice, Builder)
-- [ ] `TupleReader` class
-- [ ] `TupleBuilder` class
-- [ ] `ParseTuple()` / `SerializeTuple()` functions
+- [x] `TupleItem` types (Null, Int, NaN, Cell, Slice, Builder, Tuple) ✅ v0.0.7
+- [x] `TupleReader` class with type-safe accessors ✅ v0.0.7
+- [x] `TupleBuilder` class for constructing tuples ✅ v0.0.7
+- [x] `ParseTuple()` / `SerializeTuple()` functions ✅ v0.0.7
+- [x] ReadLispList support for cons-style lists ✅ v0.0.7
+- [x] LoadStringTail/StoreStringTail for multi-cell strings ✅ v0.0.7
+- [x] 25 comprehensive tests covering all functionality ✅ v0.0.7
 
 ### Types Module (TL-B Schemas)
 - [ ] `Account` - account data structure

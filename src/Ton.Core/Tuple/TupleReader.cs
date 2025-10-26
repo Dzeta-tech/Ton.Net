@@ -1,5 +1,4 @@
 using System.Numerics;
-using System.Text;
 using Ton.Core.Addresses;
 using Ton.Core.Boc;
 
@@ -8,14 +7,9 @@ namespace Ton.Core.Tuple;
 /// <summary>
 ///     Reader for tuple items with type-safe accessors.
 /// </summary>
-public class TupleReader
+public class TupleReader(TupleItem[] items)
 {
-    readonly List<TupleItem> items;
-
-    public TupleReader(TupleItem[] items)
-    {
-        this.items = new List<TupleItem>(items);
-    }
+    readonly List<TupleItem> items = new(items);
 
     /// <summary>
     ///     Gets the number of remaining items.
@@ -39,7 +33,7 @@ public class TupleReader
     {
         if (items.Count == 0)
             throw new InvalidOperationException("EOF");
-        var res = items[0];
+        TupleItem res = items[0];
         items.RemoveAt(0);
         return res;
     }
@@ -49,7 +43,7 @@ public class TupleReader
     /// </summary>
     public TupleReader Skip(int num = 1)
     {
-        for (var i = 0; i < num; i++)
+        for (int i = 0; i < num; i++)
             Pop();
         return this;
     }
@@ -59,7 +53,7 @@ public class TupleReader
     /// </summary>
     public BigInteger ReadBigInteger()
     {
-        var popped = Pop();
+        TupleItem popped = Pop();
         if (popped is not TupleItemInt intItem)
             throw new InvalidOperationException("Not a number");
         return intItem.Value;
@@ -70,7 +64,7 @@ public class TupleReader
     /// </summary>
     public BigInteger? ReadBigIntegerOpt()
     {
-        var popped = Pop();
+        TupleItem popped = Pop();
         if (popped is TupleItemNull)
             return null;
         if (popped is not TupleItemInt intItem)
@@ -91,7 +85,7 @@ public class TupleReader
     /// </summary>
     public long? ReadNumberOpt()
     {
-        var r = ReadBigIntegerOpt();
+        BigInteger? r = ReadBigIntegerOpt();
         return r.HasValue ? (long)r.Value : null;
     }
 
@@ -100,7 +94,7 @@ public class TupleReader
     /// </summary>
     public bool ReadBoolean()
     {
-        var res = ReadNumber();
+        long res = ReadNumber();
         return res != 0;
     }
 
@@ -109,7 +103,7 @@ public class TupleReader
     /// </summary>
     public bool? ReadBooleanOpt()
     {
-        var res = ReadNumberOpt();
+        long? res = ReadNumberOpt();
         return res.HasValue ? res.Value != 0 : null;
     }
 
@@ -118,7 +112,7 @@ public class TupleReader
     /// </summary>
     public Address ReadAddress()
     {
-        var r = ReadCell().BeginParse().LoadAddress();
+        Address? r = ReadCell().BeginParse().LoadAddress();
         if (r == null)
             throw new InvalidOperationException("Not an address");
         return r;
@@ -129,7 +123,7 @@ public class TupleReader
     /// </summary>
     public Address? ReadAddressOpt()
     {
-        var r = ReadCellOpt();
+        Cell? r = ReadCellOpt();
         return r?.BeginParse().LoadMaybeAddress();
     }
 
@@ -138,7 +132,7 @@ public class TupleReader
     /// </summary>
     public Cell ReadCell()
     {
-        var popped = Pop();
+        TupleItem popped = Pop();
         return popped switch
         {
             TupleItemCell cellItem => cellItem.Cell,
@@ -153,7 +147,7 @@ public class TupleReader
     /// </summary>
     public Cell? ReadCellOpt()
     {
-        var popped = Pop();
+        TupleItem popped = Pop();
         if (popped is TupleItemNull)
             return null;
 
@@ -171,7 +165,7 @@ public class TupleReader
     /// </summary>
     public TupleReader ReadTuple()
     {
-        var popped = Pop();
+        TupleItem popped = Pop();
         if (popped is not TupleItemTuple tupleItem)
             throw new InvalidOperationException("Not a tuple");
         return new TupleReader(tupleItem.Items);
@@ -182,7 +176,7 @@ public class TupleReader
     /// </summary>
     public TupleReader? ReadTupleOpt()
     {
-        var popped = Pop();
+        TupleItem popped = Pop();
         if (popped is TupleItemNull)
             return null;
         if (popped is not TupleItemTuple tupleItem)
@@ -214,7 +208,7 @@ public class TupleReader
     /// </summary>
     public byte[] ReadBuffer()
     {
-        var s = ReadCell().BeginParse();
+        Slice s = ReadCell().BeginParse();
         if (s.RemainingRefs != 0)
             throw new InvalidOperationException("Not a buffer");
         if (s.RemainingBits % 8 != 0)
@@ -227,11 +221,11 @@ public class TupleReader
     /// </summary>
     public byte[]? ReadBufferOpt()
     {
-        var r = ReadCellOpt();
+        Cell? r = ReadCellOpt();
         if (r == null)
             return null;
 
-        var s = r.BeginParse();
+        Slice s = r.BeginParse();
         if (s.RemainingRefs != 0 || s.RemainingBits % 8 != 0)
             throw new InvalidOperationException("Not a buffer");
         return s.LoadBuffer(s.RemainingBits / 8);
@@ -242,7 +236,7 @@ public class TupleReader
     /// </summary>
     public string ReadString()
     {
-        var s = ReadCell().BeginParse();
+        Slice s = ReadCell().BeginParse();
         return s.LoadStringTail();
     }
 
@@ -251,21 +245,21 @@ public class TupleReader
     /// </summary>
     public string? ReadStringOpt()
     {
-        var r = ReadCellOpt();
+        Cell? r = ReadCellOpt();
         if (r == null)
             return null;
-        var s = r.BeginParse();
+        Slice s = r.BeginParse();
         return s.LoadStringTail();
     }
 
     static TupleItem[] ReadLispListInternal(TupleReader? reader)
     {
-        var result = new List<TupleItem>();
+        List<TupleItem> result = [];
 
-        var tail = reader;
+        TupleReader? tail = reader;
         while (tail != null)
         {
-            var head = tail.Pop();
+            TupleItem head = tail.Pop();
             if (tail.items.Count == 0 ||
                 (tail.items[0] is not TupleItemTuple && tail.items[0] is not TupleItemNull))
                 throw new InvalidOperationException(
@@ -278,4 +272,3 @@ public class TupleReader
         return result.ToArray();
     }
 }
-

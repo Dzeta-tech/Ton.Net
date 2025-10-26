@@ -5,17 +5,16 @@ namespace Ton.Core.Dict;
 /// <summary>
 ///     Dictionary value serializer interface.
 /// </summary>
-/// <typeparam name="V">Value type.</typeparam>
-public interface IDictionaryValue<V>
+/// <typeparam name="TV">Value type.</typeparam>
+public interface IDictionaryValue<TV>
 {
     /// <summary>
     ///     Serialize value to builder.
     /// </summary>
-    void Serialize(V value, Builder builder);
+    void Serialize(TV value, Builder builder);
 
     /// <summary>
     ///     Parse value from slice.
     /// </summary>
-    V Parse(Slice slice);
+    TV Parse(Slice slice);
 }
-

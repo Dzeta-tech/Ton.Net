@@ -26,8 +26,11 @@ public class BitReaderTests
                 Assert.That(reader.PreloadUint(48), Is.EqualTo(a));
                 Assert.That(reader.LoadUint(48), Is.EqualTo(a));
             });
-            Assert.That(reader.PreloadUint(48), Is.EqualTo(b));
-            Assert.That(reader.LoadUint(48), Is.EqualTo(b));
+            Assert.Multiple(() =>
+            {
+                Assert.That(reader.PreloadUint(48), Is.EqualTo(b));
+                Assert.That(reader.LoadUint(48), Is.EqualTo(b));
+            });
         }
     }
 
@@ -51,8 +54,11 @@ public class BitReaderTests
                 Assert.That(reader.PreloadInt(49), Is.EqualTo(a));
                 Assert.That(reader.LoadInt(49), Is.EqualTo(a));
             });
-            Assert.That(reader.PreloadInt(49), Is.EqualTo(b));
-            Assert.That(reader.LoadInt(49), Is.EqualTo(b));
+            Assert.Multiple(() =>
+            {
+                Assert.That(reader.PreloadInt(49), Is.EqualTo(b));
+                Assert.That(reader.LoadInt(49), Is.EqualTo(b));
+            });
         }
     }
 

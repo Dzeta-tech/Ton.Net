@@ -1,6 +1,4 @@
 using System.Numerics;
-using System.Text;
-using NUnit.Framework;
 using Ton.Core.Addresses;
 using Ton.Core.Boc;
 using Ton.Core.Tuple;
@@ -15,8 +13,8 @@ public class TupleTests
     [Test]
     public void Test_SerializeTuple_WithNumbers()
     {
-        var items = new TupleItem[]
-        {
+        TupleItem[] items =
+        [
             new TupleItemInt(-1),
             new TupleItemInt(-1),
             new TupleItemInt(49800000000),
@@ -24,10 +22,10 @@ public class TupleTests
             new TupleItemInt(100000000),
             new TupleItemInt(2500),
             new TupleItemInt(100000000)
-        };
+        ];
 
-        var serialized = TonTuple.SerializeTuple(items);
-        
+        Cell serialized = TonTuple.SerializeTuple(items);
+
         // Verify it creates a cell without throwing
         Assert.That(serialized, Is.Not.Null);
         Assert.That(serialized.Type, Is.EqualTo(CellType.Ordinary));
@@ -36,47 +34,50 @@ public class TupleTests
     [Test]
     public void Test_SerializeTuple_LongNumbers()
     {
-        var items = new TupleItem[]
-        {
+        TupleItem[] items =
+        [
             new TupleItemInt(BigInteger.Parse("12312312312312323421"))
-        };
+        ];
 
-        var serialized = TonTuple.SerializeTuple(items);
-        
+        Cell serialized = TonTuple.SerializeTuple(items);
+
         // Verify it creates a cell and can be parsed back
-        var parsed = TonTuple.ParseTuple(serialized);
-        Assert.That(parsed.Length, Is.EqualTo(1));
-        Assert.That((parsed[0] as TupleItemInt)?.Value, Is.EqualTo(BigInteger.Parse("12312312312312323421")));
+        TupleItem[] parsed = TonTuple.ParseTuple(serialized);
+        Assert.Multiple(() =>
+        {
+            Assert.That(parsed.Length, Is.EqualTo(1));
+            Assert.That((parsed[0] as TupleItemInt)?.Value, Is.EqualTo(BigInteger.Parse("12312312312312323421")));
+        });
     }
 
     [Test]
     public void Test_SerializeTuple_Address()
     {
-        var addr = new Address(-1, new byte[32]); // Simple test address (masterchain)
-        var items = new TupleItem[]
-        {
+        Address addr = new(-1, new byte[32]); // Simple test address (masterchain)
+        TupleItem[] items =
+        [
             new TupleItemSlice(
                 Builder.BeginCell()
                     .StoreAddress(addr)
                     .EndCell()
             )
-        };
+        ];
 
-        var serialized = TonTuple.SerializeTuple(items);
-        var parsed = TonTuple.ParseTuple(serialized);
-        
+        Cell serialized = TonTuple.SerializeTuple(items);
+        TupleItem[] parsed = TonTuple.ParseTuple(serialized);
+
         Assert.That(parsed.Length, Is.EqualTo(1));
-        var sliceItem = parsed[0] as TupleItemSlice;
+        TupleItemSlice? sliceItem = parsed[0] as TupleItemSlice;
         Assert.That(sliceItem, Is.Not.Null);
-        var readAddr = sliceItem!.Cell.BeginParse().LoadAddress();
+        Address? readAddr = sliceItem!.Cell.BeginParse().LoadAddress();
         Assert.That(readAddr?.ToString(), Is.EqualTo(addr.ToString()));
     }
 
     [Test]
     public void Test_SerializeAndParse_Tuples_RoundTrip()
     {
-        var originalItems = new TupleItem[]
-        {
+        TupleItem[] originalItems =
+        [
             new TupleItemInt(1),
             new TupleItemInt(2),
             new TupleItemInt(3),
@@ -84,131 +85,135 @@ public class TupleTests
             new TupleItemInt(-1),
             new TupleItemInt(123),
             new TupleItemInt(456)
-        };
+        ];
 
-        var serialized = TonTuple.SerializeTuple(originalItems);
-        var parsed = TonTuple.ParseTuple(serialized);
+        Cell serialized = TonTuple.SerializeTuple(originalItems);
+        TupleItem[] parsed = TonTuple.ParseTuple(serialized);
 
         Assert.That(parsed.Length, Is.EqualTo(originalItems.Length));
-        
+
         for (int i = 0; i < originalItems.Length; i++)
-        {
             if (originalItems[i] is TupleItemInt origInt && parsed[i] is TupleItemInt parsedInt)
-            {
                 Assert.That(parsedInt.Value, Is.EqualTo(origInt.Value));
-            }
             else if (originalItems[i] is TupleItemNull && parsed[i] is TupleItemNull)
-            {
                 // Both are null, OK
                 Assert.Pass();
-            }
             else
-            {
                 Assert.Fail($"Mismatch at index {i}");
-            }
-        }
     }
 
     [Test]
     public void Test_TupleReader_ReadBigInteger()
     {
-        var items = new TupleItem[]
-        {
+        TupleItem[] items =
+        [
             new TupleItemInt(123),
             new TupleItemInt(-456),
             TupleItemNull.Instance
-        };
+        ];
 
-        var reader = new TupleReader(items);
+        TupleReader reader = new(items);
         Assert.That(reader.ReadBigInteger(), Is.EqualTo(new BigInteger(123)));
-        Assert.That(reader.ReadBigInteger(), Is.EqualTo(new BigInteger(-456)));
-        Assert.That(reader.ReadBigIntegerOpt(), Is.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(reader.ReadBigInteger(), Is.EqualTo(new BigInteger(-456)));
+            Assert.That(reader.ReadBigIntegerOpt(), Is.Null);
+        });
     }
 
     [Test]
     public void Test_TupleReader_ReadNumber()
     {
-        var items = new TupleItem[]
-        {
+        TupleItem[] items =
+        [
             new TupleItemInt(42),
             TupleItemNull.Instance
-        };
+        ];
 
-        var reader = new TupleReader(items);
-        Assert.That(reader.ReadNumber(), Is.EqualTo(42L));
-        Assert.That(reader.ReadNumberOpt(), Is.Null);
+        TupleReader reader = new(items);
+        Assert.Multiple(() =>
+        {
+            Assert.That(reader.ReadNumber(), Is.EqualTo(42L));
+            Assert.That(reader.ReadNumberOpt(), Is.Null);
+        });
     }
 
     [Test]
     public void Test_TupleReader_ReadBoolean()
     {
-        var items = new TupleItem[]
-        {
+        TupleItem[] items =
+        [
             new TupleItemInt(-1), // true
             new TupleItemInt(0), // false
             new TupleItemInt(5), // true (non-zero)
             TupleItemNull.Instance
-        };
+        ];
 
-        var reader = new TupleReader(items);
+        TupleReader reader = new(items);
         Assert.That(reader.ReadBoolean(), Is.True);
         Assert.That(reader.ReadBoolean(), Is.False);
-        Assert.That(reader.ReadBoolean(), Is.True);
-        Assert.That(reader.ReadBooleanOpt(), Is.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(reader.ReadBoolean(), Is.True);
+            Assert.That(reader.ReadBooleanOpt(), Is.Null);
+        });
     }
 
     [Test]
     public void Test_TupleReader_ReadAddress()
     {
-        var addr = new Address(0, new byte[32]); // Simple test address
-        var items = new TupleItem[]
-        {
+        Address addr = new(0, new byte[32]); // Simple test address
+        TupleItem[] items =
+        [
             new TupleItemSlice(Builder.BeginCell().StoreAddress(addr).EndCell()),
             TupleItemNull.Instance
-        };
+        ];
 
-        var reader = new TupleReader(items);
-        var read1 = reader.ReadAddress();
+        TupleReader reader = new(items);
+        Address read1 = reader.ReadAddress();
         Assert.That(read1.ToString(), Is.EqualTo(addr.ToString()));
 
-        var read2 = reader.ReadAddressOpt();
+        Address? read2 = reader.ReadAddressOpt();
         Assert.That(read2, Is.Null);
     }
 
     [Test]
     public void Test_TupleReader_ReadCell()
     {
-        var cell = Builder.BeginCell().StoreUint(123, 32).EndCell();
-        var items = new TupleItem[]
-        {
+        Cell cell = Builder.BeginCell().StoreUint(123, 32).EndCell();
+        TupleItem[] items =
+        [
             new TupleItemCell(cell),
             new TupleItemSlice(cell),
             new TupleItemBuilder(cell),
             TupleItemNull.Instance
-        };
+        ];
 
-        var reader = new TupleReader(items);
+        TupleReader reader = new(items);
         Assert.That(reader.ReadCell().Hash().SequenceEqual(cell.Hash()), Is.True);
         Assert.That(reader.ReadCell().Hash().SequenceEqual(cell.Hash()), Is.True);
-        Assert.That(reader.ReadCell().Hash().SequenceEqual(cell.Hash()), Is.True);
-        Assert.That(reader.ReadCellOpt(), Is.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(reader.ReadCell().Hash().SequenceEqual(cell.Hash()), Is.True);
+            Assert.That(reader.ReadCellOpt(), Is.Null);
+        });
     }
 
     [Test]
     public void Test_TupleReader_ReadTuple()
     {
-        var nested = new TupleItem[] { new TupleItemInt(99) };
-        var items = new TupleItem[]
-        {
+        TupleItem[] nested = [new TupleItemInt(99)];
+        TupleItem[] items =
+        [
             new TupleItemTuple(nested),
             TupleItemNull.Instance
-        };
+        ];
 
-        var reader = new TupleReader(items);
-        var nestedReader = reader.ReadTuple();
+        TupleReader reader = new(items);
+        TupleReader nestedReader = reader.ReadTuple();
         Assert.That(nestedReader.ReadNumber(), Is.EqualTo(99L));
 
-        var nullReader = reader.ReadTupleOpt();
+        TupleReader? nullReader = reader.ReadTupleOpt();
         Assert.That(nullReader, Is.Null);
     }
 
@@ -216,8 +221,8 @@ public class TupleTests
     public void Test_TupleReader_ReadLispList()
     {
         // Cons list: (1, (2, (3, null)))
-        var cons = new TupleItem[]
-        {
+        TupleItem[] cons =
+        [
             new TupleItemTuple(
             [
                 new TupleItemInt(1),
@@ -231,40 +236,43 @@ public class TupleTests
                     ])
                 ])
             ])
-        };
+        ];
 
-        var reader = new TupleReader(cons);
-        var list = reader.ReadLispList();
+        TupleReader reader = new(cons);
+        TupleItem[] list = reader.ReadLispList();
 
-        Assert.That(list.Length, Is.EqualTo(3));
-        Assert.That((list[0] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(1)));
-        Assert.That((list[1] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(2)));
-        Assert.That((list[2] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(3)));
+        Assert.Multiple(() =>
+        {
+            Assert.That(list.Length, Is.EqualTo(3));
+            Assert.That((list[0] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(1)));
+            Assert.That((list[1] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(2)));
+            Assert.That((list[2] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(3)));
+        });
     }
 
     [Test]
     public void Test_TupleReader_ReadLispListDirect_Empty()
     {
-        var cons = new TupleItem[] { TupleItemNull.Instance };
-        var reader = new TupleReader(cons);
-        var list = reader.ReadLispListDirect();
+        TupleItem[] cons = [TupleItemNull.Instance];
+        TupleReader reader = new(cons);
+        TupleItem[] list = reader.ReadLispListDirect();
         Assert.That(list.Length, Is.EqualTo(0));
     }
 
     [Test]
     public void Test_TupleReader_ReadLispList_Empty()
     {
-        var cons = new TupleItem[] { TupleItemNull.Instance };
-        var reader = new TupleReader(cons);
-        var list = reader.ReadLispList();
+        TupleItem[] cons = [TupleItemNull.Instance];
+        TupleReader reader = new(cons);
+        TupleItem[] list = reader.ReadLispList();
         Assert.That(list.Length, Is.EqualTo(0));
     }
 
     [Test]
     public void Test_TupleReader_ReadLispList_InvalidThrows()
     {
-        var cons = new TupleItem[] { new TupleItemInt(1) };
-        var reader = new TupleReader(cons);
+        TupleItem[] cons = [new TupleItemInt(1)];
+        TupleReader reader = new(cons);
 
         Assert.Throws<InvalidOperationException>(() => reader.ReadLispListDirect());
     }
@@ -272,177 +280,206 @@ public class TupleTests
     [Test]
     public void Test_TupleReader_ReadBuffer()
     {
-        var buffer = new byte[] { 1, 2, 3, 4, 5 };
-        var items = new TupleItem[]
-        {
+        byte[] buffer = [1, 2, 3, 4, 5];
+        TupleItem[] items =
+        [
             new TupleItemSlice(Builder.BeginCell().StoreBuffer(buffer).EndCell()),
             TupleItemNull.Instance
-        };
+        ];
 
-        var reader = new TupleReader(items);
-        var read1 = reader.ReadBuffer();
+        TupleReader reader = new(items);
+        byte[] read1 = reader.ReadBuffer();
         Assert.That(read1.SequenceEqual(buffer), Is.True);
 
-        var read2 = reader.ReadBufferOpt();
+        byte[]? read2 = reader.ReadBufferOpt();
         Assert.That(read2, Is.Null);
     }
 
     [Test]
     public void Test_TupleReader_ReadString()
     {
-        var str = "Hello, TON!";
-        var items = new TupleItem[]
-        {
+        string str = "Hello, TON!";
+        TupleItem[] items =
+        [
             new TupleItemSlice(Builder.BeginCell().StoreStringTail(str).EndCell()),
             TupleItemNull.Instance
-        };
+        ];
 
-        var reader = new TupleReader(items);
-        var read1 = reader.ReadString();
+        TupleReader reader = new(items);
+        string read1 = reader.ReadString();
         Assert.That(read1, Is.EqualTo(str));
 
-        var read2 = reader.ReadStringOpt();
+        string? read2 = reader.ReadStringOpt();
         Assert.That(read2, Is.Null);
     }
 
     [Test]
     public void Test_TupleReader_Skip()
     {
-        var items = new TupleItem[]
-        {
+        TupleItem[] items =
+        [
             new TupleItemInt(1),
             new TupleItemInt(2),
             new TupleItemInt(3)
-        };
+        ];
 
-        var reader = new TupleReader(items);
+        TupleReader reader = new(items);
         reader.Skip(2);
-        Assert.That(reader.ReadNumber(), Is.EqualTo(3L));
-        Assert.That(reader.Remaining, Is.EqualTo(0));
+        Assert.Multiple(() =>
+        {
+            Assert.That(reader.ReadNumber(), Is.EqualTo(3L));
+            Assert.That(reader.Remaining, Is.EqualTo(0));
+        });
     }
 
     [Test]
     public void Test_TupleReader_Peek()
     {
-        var items = new TupleItem[] { new TupleItemInt(42) };
-        var reader = new TupleReader(items);
+        TupleItem[] items = [new TupleItemInt(42)];
+        TupleReader reader = new(items);
 
-        var peeked = reader.Peek();
-        Assert.That((peeked as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(42)));
-        Assert.That(reader.Remaining, Is.EqualTo(1)); // Not consumed
+        TupleItem peeked = reader.Peek();
+        Assert.Multiple(() =>
+        {
+            Assert.That((peeked as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(42)));
+            Assert.That(reader.Remaining, Is.EqualTo(1)); // Not consumed
+        });
 
-        var popped = reader.Pop();
-        Assert.That((popped as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(42)));
-        Assert.That(reader.Remaining, Is.EqualTo(0)); // Consumed
+        TupleItem popped = reader.Pop();
+        Assert.Multiple(() =>
+        {
+            Assert.That((popped as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(42)));
+            Assert.That(reader.Remaining, Is.EqualTo(0)); // Consumed
+        });
     }
 
     [Test]
     public void Test_TupleBuilder_WriteNumber()
     {
-        var builder = new TupleBuilder();
+        TupleBuilder builder = new();
         builder.WriteNumber(123L);
         builder.WriteNumber(456L);
-        builder.WriteNumber((long?)null);
+        builder.WriteNumber(null);
 
-        var items = builder.Build();
-        Assert.That(items.Length, Is.EqualTo(3));
-        Assert.That((items[0] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(123)));
-        Assert.That((items[1] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(456)));
-        Assert.That(items[2], Is.InstanceOf<TupleItemNull>());
+        TupleItem[] items = builder.Build();
+        Assert.Multiple(() =>
+        {
+            Assert.That(items.Length, Is.EqualTo(3));
+            Assert.That((items[0] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(123)));
+            Assert.That((items[1] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(456)));
+            Assert.That(items[2], Is.InstanceOf<TupleItemNull>());
+        });
     }
 
     [Test]
     public void Test_TupleBuilder_WriteBoolean()
     {
-        var builder = new TupleBuilder();
+        TupleBuilder builder = new();
         builder.WriteBoolean(true);
         builder.WriteBoolean(false);
         builder.WriteBoolean(null);
 
-        var items = builder.Build();
-        Assert.That((items[0] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(-1)));
-        Assert.That((items[1] as TupleItemInt)?.Value, Is.EqualTo(BigInteger.Zero));
-        Assert.That(items[2], Is.InstanceOf<TupleItemNull>());
+        TupleItem[] items = builder.Build();
+        Assert.Multiple(() =>
+        {
+            Assert.That((items[0] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(-1)));
+            Assert.That((items[1] as TupleItemInt)?.Value, Is.EqualTo(BigInteger.Zero));
+            Assert.That(items[2], Is.InstanceOf<TupleItemNull>());
+        });
     }
 
     [Test]
     public void Test_TupleBuilder_WriteAddress()
     {
-        var addr = new Address(0, new byte[32]); // Simple test address
-        var builder = new TupleBuilder();
+        Address addr = new(0, new byte[32]); // Simple test address
+        TupleBuilder builder = new();
         builder.WriteAddress(addr);
         builder.WriteAddress(null);
 
-        var items = builder.Build();
+        TupleItem[] items = builder.Build();
         Assert.That(items.Length, Is.EqualTo(2));
-        Assert.That(items[0], Is.InstanceOf<TupleItemSlice>());
-        Assert.That(items[1], Is.InstanceOf<TupleItemNull>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(items[0], Is.InstanceOf<TupleItemSlice>());
+            Assert.That(items[1], Is.InstanceOf<TupleItemNull>());
+        });
 
-        var reader = new TupleReader(items);
-        var readAddr = reader.ReadAddress();
+        TupleReader reader = new(items);
+        Address readAddr = reader.ReadAddress();
         Assert.That(readAddr.ToString(), Is.EqualTo(addr.ToString()));
     }
 
     [Test]
     public void Test_TupleBuilder_WriteCell()
     {
-        var cell = Builder.BeginCell().StoreUint(789, 32).EndCell();
-        var builder = new TupleBuilder();
+        Cell cell = Builder.BeginCell().StoreUint(789, 32).EndCell();
+        TupleBuilder builder = new();
         builder.WriteCell(cell);
         builder.WriteCell((Cell?)null);
 
-        var items = builder.Build();
+        TupleItem[] items = builder.Build();
         Assert.That(items.Length, Is.EqualTo(2));
-        Assert.That(items[0], Is.InstanceOf<TupleItemCell>());
-        Assert.That(items[1], Is.InstanceOf<TupleItemNull>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(items[0], Is.InstanceOf<TupleItemCell>());
+            Assert.That(items[1], Is.InstanceOf<TupleItemNull>());
+        });
     }
 
     [Test]
     public void Test_TupleBuilder_WriteString()
     {
-        var builder = new TupleBuilder();
+        TupleBuilder builder = new();
         builder.WriteString("test");
         builder.WriteString(null);
 
-        var items = builder.Build();
+        TupleItem[] items = builder.Build();
         Assert.That(items.Length, Is.EqualTo(2));
-        Assert.That(items[0], Is.InstanceOf<TupleItemSlice>());
-        Assert.That(items[1], Is.InstanceOf<TupleItemNull>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(items[0], Is.InstanceOf<TupleItemSlice>());
+            Assert.That(items[1], Is.InstanceOf<TupleItemNull>());
+        });
 
-        var reader = new TupleReader(items);
+        TupleReader reader = new(items);
         Assert.That(reader.ReadString(), Is.EqualTo("test"));
     }
 
     [Test]
     public void Test_TupleBuilder_WriteBuffer()
     {
-        var buffer = new byte[] { 10, 20, 30 };
-        var builder = new TupleBuilder();
+        byte[] buffer = [10, 20, 30];
+        TupleBuilder builder = new();
         builder.WriteBuffer(buffer);
         builder.WriteBuffer(null);
 
-        var items = builder.Build();
+        TupleItem[] items = builder.Build();
         Assert.That(items.Length, Is.EqualTo(2));
-        Assert.That(items[0], Is.InstanceOf<TupleItemSlice>());
-        Assert.That(items[1], Is.InstanceOf<TupleItemNull>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(items[0], Is.InstanceOf<TupleItemSlice>());
+            Assert.That(items[1], Is.InstanceOf<TupleItemNull>());
+        });
 
-        var reader = new TupleReader(items);
-        var read = reader.ReadBuffer();
+        TupleReader reader = new(items);
+        byte[] read = reader.ReadBuffer();
         Assert.That(read.SequenceEqual(buffer), Is.True);
     }
 
     [Test]
     public void Test_TupleBuilder_WriteTuple()
     {
-        var nested = new TupleItem[] { new TupleItemInt(999) };
-        var builder = new TupleBuilder();
+        TupleItem[] nested = [new TupleItemInt(999)];
+        TupleBuilder builder = new();
         builder.WriteTuple(nested);
         builder.WriteTuple(null);
 
-        var items = builder.Build();
+        TupleItem[] items = builder.Build();
         Assert.That(items.Length, Is.EqualTo(2));
-        Assert.That(items[0], Is.InstanceOf<TupleItemTuple>());
-        Assert.That(items[1], Is.InstanceOf<TupleItemNull>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(items[0], Is.InstanceOf<TupleItemTuple>());
+            Assert.That(items[1], Is.InstanceOf<TupleItemNull>());
+        });
     }
 }
-
