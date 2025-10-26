@@ -100,6 +100,13 @@ public static class BocSerialization
         {
             CellData cll = ReadCell(reader, boc.Size);
             cells.Add(cll);
+            
+            // Debug: Check if any reference index is out of bounds
+            foreach (int refIdx in cll.Refs)
+            {
+                if (refIdx < 0 || refIdx >= boc.Cells)
+                    throw new InvalidOperationException($"Cell {i} has invalid reference index {refIdx} (total cells: {boc.Cells}, sizeBytes: {boc.Size})");
+            }
         }
 
         // Build cells (bottom-up)
@@ -111,8 +118,10 @@ public static class BocSerialization
             List<Cell> refs = [];
             foreach (int r in cells[i].Refs)
             {
+                if (r < 0 || r >= cells.Count)
+                    throw new InvalidOperationException($"Invalid BOC file: cell {i} references non-existent cell {r} (total cells: {cells.Count})");
                 if (cells[r].Result == null)
-                    throw new InvalidOperationException("Invalid BOC file");
+                    throw new InvalidOperationException($"Invalid BOC file: cell {i} references cell {r} which hasn't been built yet");
                 refs.Add(cells[r].Result!);
             }
 
@@ -128,79 +137,87 @@ public static class BocSerialization
     }
 
     /// <summary>
-    ///     Topological sort of cells for serialization.
+    ///     Topological sort of cells for serialization (matching JS SDK algorithm).
     /// </summary>
     static List<CellRef> TopologicalSort(Cell root)
     {
-        Dictionary<string, int> hashes = [];
-        List<CellRef> allCells = [];
+        // Phase 1: Collect all cells with BFS
         List<Cell> pending = [root];
+        Dictionary<string, CellWithRefs> allCells = [];
+        HashSet<string> notPermCells = [];
 
         while (pending.Count > 0)
         {
-            Cell cell = pending[^1];
-            pending.RemoveAt(pending.Count - 1);
+            List<Cell> cells = [.. pending];
+            pending.Clear();
 
-            string hash = Convert.ToBase64String(cell.Hash());
-            if (hashes.ContainsKey(hash))
-                continue;
-
-            bool allRefsFound = true;
-            foreach (Cell r in cell.Refs)
+            foreach (Cell cell in cells)
             {
-                string refHash = Convert.ToBase64String(r.Hash());
-                if (!hashes.ContainsKey(refHash))
-                {
-                    allRefsFound = false;
-                    break;
-                }
-            }
+                string hash = Convert.ToHexString(cell.Hash()).ToLowerInvariant();
+                if (allCells.ContainsKey(hash))
+                    continue;
 
-            if (!allRefsFound)
-            {
-                pending.Add(cell);
-                for (int i = cell.Refs.Length - 1; i >= 0; i--)
-                    pending.Add(cell.Refs[i]);
-                continue;
-            }
+                notPermCells.Add(hash);
+                List<string> refHashes = [];
+                foreach (Cell r in cell.Refs)
+                    refHashes.Add(Convert.ToHexString(r.Hash()).ToLowerInvariant());
 
-            List<int> refs = [];
-            foreach (Cell r in cell.Refs)
-            {
-                string refHash = Convert.ToBase64String(r.Hash());
-                refs.Add(hashes[refHash]);
-            }
+                allCells[hash] = new CellWithRefs(cell, refHashes.ToArray());
 
-            hashes[hash] = allCells.Count;
-            allCells.Add(new CellRef(cell, refs.ToArray()));
+                foreach (Cell r in cell.Refs)
+                    pending.Add(r);
+            }
         }
 
-        // Reverse to match JS behavior: parents before children
-        allCells.Reverse();
+        // Phase 2: DFS topological sort
+        List<string> sorted = [];
+        HashSet<string> tempMark = [];
 
-        // Rebuild ref indices for reversed order
-        Dictionary<string, int> newIndices = [];
-        for (int i = 0; i < allCells.Count; i++)
+        void Visit(string hash)
         {
-            string hash = Convert.ToBase64String(allCells[i].Cell.Hash());
-            newIndices[hash] = i;
+            if (!notPermCells.Contains(hash))
+                return;
+
+            if (tempMark.Contains(hash))
+                throw new InvalidOperationException("Not a DAG");
+
+            tempMark.Add(hash);
+            string[] refs = allCells[hash].RefHashes;
+            for (int ci = refs.Length - 1; ci >= 0; ci--)
+                Visit(refs[ci]);
+
+            sorted.Add(hash);
+            tempMark.Remove(hash);
+            notPermCells.Remove(hash);
         }
+
+        while (notPermCells.Count > 0)
+        {
+            string id = notPermCells.First();
+            Visit(id);
+        }
+
+        // Phase 3: Build result with indices
+        Dictionary<string, int> indexes = [];
+        for (int i = 0; i < sorted.Count; i++)
+            indexes[sorted[sorted.Count - 1 - i]] = i;
 
         List<CellRef> result = [];
-        foreach (CellRef cellRef in allCells)
+        for (int i = sorted.Count - 1; i >= 0; i--)
         {
-            List<int> newRefs = [];
-            foreach (Cell r in cellRef.Cell.Refs)
-            {
-                string refHash = Convert.ToBase64String(r.Hash());
-                newRefs.Add(newIndices[refHash]);
-            }
+            string hash = sorted[i];
+            CellWithRefs cellData = allCells[hash];
+            List<int> refIndices = [];
+            foreach (string refHash in cellData.RefHashes)
+                refIndices.Add(indexes[refHash]);
 
-            result.Add(new CellRef(cellRef.Cell, newRefs.ToArray()));
+            result.Add(new CellRef(cellData.Cell, refIndices.ToArray()));
         }
 
         return result;
     }
+
+    record CellWithRefs(Cell Cell, string[] RefHashes);
 
     static int BitsForNumber(int n)
     {
@@ -236,8 +253,7 @@ public static class BocSerialization
     static int GetBitsDescriptor(BitString bits)
     {
         int len = bits.Length;
-        int d2 = (int)Math.Ceiling(len / 8.0) * 2 + (len % 8 != 0 ? 1 : 0);
-        return d2;
+        return (int)Math.Ceiling(len / 8.0) + (int)Math.Floor(len / 8.0);
     }
 
     static byte[] BitsToPaddedBuffer(BitString bits)
@@ -342,7 +358,7 @@ public static class BocSerialization
 
         // D2
         int d2 = (int)reader.LoadUint(8);
-        int dataBytesize = d2 / 2; // Ceiling is implicit: d2 = ceil(bits/8) * 2 + padding_flag
+        int dataBytesize = (int)Math.Ceiling(d2 / 2.0);
         bool paddingAdded = (d2 % 2) != 0;
 
         // In standard BOC format without cache bits, cells don't include hashes/depths
