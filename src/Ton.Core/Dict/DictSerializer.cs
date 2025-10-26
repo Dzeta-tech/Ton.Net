@@ -142,7 +142,9 @@ internal static class DictSerializer
         // Write label
         WriteLabel(edge.Label, keyLength, builder);
 
-        // Write node
+        // Write node (with adjusted keyLength after consuming label bits)
+        int remainingKeyLength = keyLength - edge.Label.Length;
+        
         if (edge.Node.IsLeaf)
         {
             serializer(edge.Node.Value!, builder);
@@ -150,10 +152,10 @@ internal static class DictSerializer
         else
         {
             var leftCell = new Builder();
-            SerializeEdge(edge.Node.Left!, keyLength, serializer, leftCell);
+            SerializeEdge(edge.Node.Left!, remainingKeyLength - 1, serializer, leftCell);
 
             var rightCell = new Builder();
-            SerializeEdge(edge.Node.Right!, keyLength, serializer, rightCell);
+            SerializeEdge(edge.Node.Right!, remainingKeyLength - 1, serializer, rightCell);
 
             builder.StoreRef(leftCell.EndCell());
             builder.StoreRef(rightCell.EndCell());
