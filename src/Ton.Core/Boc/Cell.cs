@@ -293,8 +293,9 @@ public class Cell
         // d1 = refs_cnt + 8*is_exotic + 32*level
         int d1 = Refs.Length + (IsExotic ? 8 : 0) + (Mask.Value << 5);
 
-        // d2 = bits_cnt (rounded up to 8) + bits_cnt % 8 (padding flag)
-        int d2 = (int)Math.Ceiling(Bits.Length / 8.0) * 2 + (Bits.Length % 8 != 0 ? 1 : 0);
+        // d2 = ceil(bits/8) + floor(bits/8)
+        // This encodes both the byte count and padding flag in one value
+        int d2 = (int)Math.Ceiling(Bits.Length / 8.0) + (int)Math.Floor(Bits.Length / 8.0);
 
         return [(byte)d1, (byte)d2];
     }
@@ -303,21 +304,18 @@ public class Cell
     {
         if (Bits.Length == 0) return [];
 
-        // Get the underlying buffer
-        byte[]? buffer = Bits.Subbuffer(0, Bits.Length);
-        if (buffer == null) return [];
+        // Always use BitsToPaddedBuffer to match JS SDK behavior
+        // This handles both byte-aligned and non-byte-aligned bits correctly
+        int bytes = (int)Math.Ceiling(Bits.Length / 8.0);
+        byte[] buffer = new byte[bytes];
 
-        // If bits are not byte-aligned, we need to add padding
+        for (int i = 0; i < Bits.Length; i++)
+            if (Bits.At(i))
+                buffer[i / 8] |= (byte)(1 << (7 - i % 8));
+
+        // Add padding bit if not byte-aligned
         if (Bits.Length % 8 != 0)
-        {
-            int paddingBits = 8 - Bits.Length % 8;
-            BitBuilder builder = new();
-            builder.WriteBits(Bits);
-            builder.WriteBit(true); // Padding bit
-            for (int i = 1; i < paddingBits; i++) builder.WriteBit(false);
-            BitString paddedBits = builder.Build();
-            return paddedBits.Subbuffer(0, paddedBits.Length) ?? [];
-        }
+            buffer[Bits.Length / 8] |= (byte)(1 << (7 - Bits.Length % 8));
 
         return buffer;
     }

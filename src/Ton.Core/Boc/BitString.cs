@@ -171,25 +171,52 @@ public class BitString : IEquatable<BitString>
         bool hasUnderscore = str.EndsWith("_");
         string hex = hasUnderscore ? str[..^1] : str;
 
+        // Handle odd-length hex strings by padding with '0' (matching JS SDK behavior)
+        if (hex.Length % 2 != 0)
+        {
+            hex += "0";
+        }
+
         // Convert hex to bytes
         byte[] bytes = Convert.FromHexString(hex);
-        int bitLength = hex.Length * 4;
-
-        // Adjust bit length if there's an underscore (means last nibble is incomplete)
-        if (hasUnderscore)
+        
+        // Calculate bit length
+        int bitLength;
+        if (hasUnderscore || (hex.Length > 0 && hex.Length % 2 != 0))
         {
-            // Find the position of the padding bit (first set bit from the right in the last nibble)
-            int lastByte = bytes[^1];
-            int lastNibble = lastByte & 0x0F;
-            int paddingPos = 0;
-            for (int i = 3; i >= 0; i--)
-                if ((lastNibble & (1 << i)) != 0)
+            // Find the padding bit and calculate actual bit length (matching JS paddedBufferToBits)
+            bitLength = 0;
+            for (int i = bytes.Length - 1; i >= 0; i--)
+            {
+                if (bytes[i] != 0)
                 {
-                    paddingPos = i;
+                    int testByte = bytes[i];
+                    // Find rightmost set bit (padding bit)
+                    int bitPos = testByte & -testByte;
+                    if ((bitPos & 1) == 0)
+                    {
+                        // It's a power of 2 (only one bit set)
+                        bitPos = (int)Math.Log2(bitPos) + 1;
+                    }
+                    else
+                    {
+                        bitPos = 0;
+                    }
+                    
+                    if (i > 0)
+                    {
+                        // Number of full bytes * 8
+                        bitLength = i * 8;
+                    }
+                    bitLength += 8 - bitPos;
                     break;
                 }
-
-            bitLength = (hex.Length - 1) * 4 + (3 - paddingPos);
+            }
+        }
+        else
+        {
+            // No padding, all bits are data
+            bitLength = hex.Length * 4;
         }
 
         return new BitString(bytes, 0, bitLength);
