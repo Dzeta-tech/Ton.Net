@@ -100,7 +100,7 @@ This document tracks the implementation status of all APIs from the JavaScript S
 ### Crypto Module (minimal in core)
 - [ ] `SafeSign()` / `SafeSignVerify()` - safe signature functions
 
-## Ton.Crypto (@ton/crypto)
+## Ton.Crypto (@ton/crypto) ✅
 
 ### Primitives
 - [x] `Sha256.Hash()` - SHA-256 hashing ✅ v0.0.5
@@ -117,13 +117,16 @@ This document tracks the implementation status of all APIs from the JavaScript S
 - [x] `SecretBox.Seal()` / `SecretBox.Open()` - authenticated encryption (XSalsa20-Poly1305) ✅ v0.0.6
 
 ### Mnemonic (BIP39)
-- [ ] `MnemonicNew()` - generate new mnemonic (12/15/18/21/24 words)
-- [ ] `MnemonicValidate()` - validate mnemonic
-- [ ] `MnemonicToPrivateKey()` - derive private key (TON specific)
-- [ ] `MnemonicToWalletKey()` - derive wallet key
-- [ ] `MnemonicToSeed()` - convert to BIP39 seed
-- [ ] `MnemonicToHDSeed()` - convert to HD wallet seed
-- [ ] `MnemonicWordList` - BIP39 word list
+- [x] `Mnemonic.New()` - generate new mnemonic (12/15/18/21/24 words) ✅ v0.0.7
+- [x] `Mnemonic.Validate()` - validate mnemonic ✅ v0.0.7
+- [x] `Mnemonic.ToPrivateKey()` - derive private key (TON specific) ✅ v0.0.7
+- [x] `Mnemonic.ToWalletKey()` - derive wallet key ✅ v0.0.7
+- [x] `Mnemonic.ToSeed()` - convert to BIP39 seed ✅ v0.0.7
+- [x] `Mnemonic.ToHDSeed()` - convert to HD wallet seed ✅ v0.0.7
+- [x] `Mnemonic.ToEntropy()` - convert to entropy ✅ v0.0.7
+- [x] `Mnemonic.FromRandomSeed()` - generate deterministic mnemonic from seed ✅ v0.0.7
+- [x] `Mnemonic.BytesToMnemonics()` / `Mnemonic.MnemonicIndexesToBytes()` - conversion utilities ✅ v0.0.7
+- [x] `Wordlist.Words` - BIP39 English wordlist (2048 words) ✅ v0.0.7
 
 ### Password Generation
 - [ ] `NewSecureWords()` - generate secure word passphrase
