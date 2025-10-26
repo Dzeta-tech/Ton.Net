@@ -184,7 +184,7 @@ public class Dictionary<TK, TV> : IEnumerable<KeyValuePair<TK, TV>> where TK : I
                 prepared[resolvedKey.Serialize(deserializedKey)] = v;
             }
 
-            Cell? dictCell = DictSerializer.SerializeDict(prepared, resolvedKey.Bits, resolvedValue.Serialize);
+            Cell? dictCell = DictSerializer.SerializeDictToCell(prepared, resolvedKey.Bits, resolvedValue.Serialize);
             builder.StoreMaybeRef(dictCell);
         }
     }
@@ -215,8 +215,7 @@ public class Dictionary<TK, TV> : IEnumerable<KeyValuePair<TK, TV>> where TK : I
                 prepared[resolvedKey.Serialize(deserializedKey)] = v;
             }
 
-            Cell? dictCell = DictSerializer.SerializeDict(prepared, resolvedKey.Bits, resolvedValue.Serialize);
-            if (dictCell != null) builder.StoreSlice(dictCell.BeginParse());
+            DictSerializer.SerializeDict(prepared, resolvedKey.Bits, resolvedValue.Serialize, builder);
         }
     }
 

@@ -10,17 +10,29 @@ namespace Ton.Core.Dict;
 internal static class DictSerializer
 {
     /// <summary>
-    ///     Serialize dictionary to Cell.
+    ///     Serialize dictionary directly to Builder (matching JS SDK).
     /// </summary>
-    public static Cell? SerializeDict<TV>(System.Collections.Generic.Dictionary<BigInteger, TV> src, int keyLength,
+    public static void SerializeDict<TV>(System.Collections.Generic.Dictionary<BigInteger, TV> src, int keyLength,
+        Action<TV, Builder> serializer, Builder builder)
+    {
+        if (src.Count == 0)
+            return;
+
+        Edge<TV> tree = BuildTree(src, keyLength);
+        SerializeEdge(tree, keyLength, serializer, builder);
+    }
+
+    /// <summary>
+    ///     Serialize dictionary to a Cell (for Store method that uses refs).
+    /// </summary>
+    public static Cell? SerializeDictToCell<TV>(System.Collections.Generic.Dictionary<BigInteger, TV> src, int keyLength,
         Action<TV, Builder> serializer)
     {
         if (src.Count == 0)
             return null;
 
-        Edge<TV> tree = BuildTree(src, keyLength);
         Builder builder = new();
-        SerializeEdge(tree, keyLength, serializer, builder);
+        SerializeDict(src, keyLength, serializer, builder);
         return builder.EndCell();
     }
 
