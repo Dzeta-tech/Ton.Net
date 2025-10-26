@@ -4,12 +4,12 @@ using System.Text;
 namespace Ton.Crypto.Primitives;
 
 /// <summary>
-/// SHA-256 hashing functions.
+///     SHA-256 hashing functions.
 /// </summary>
 public static class Sha256
 {
     /// <summary>
-    /// Computes SHA-256 hash of the input.
+    ///     Computes SHA-256 hash of the input.
     /// </summary>
     /// <param name="source">Input data as byte array or string.</param>
     /// <returns>32-byte SHA-256 hash.</returns>
@@ -19,7 +19,7 @@ public static class Sha256
     }
 
     /// <summary>
-    /// Computes SHA-256 hash of the input string (UTF-8 encoded).
+    ///     Computes SHA-256 hash of the input string (UTF-8 encoded).
     /// </summary>
     /// <param name="source">Input string.</param>
     /// <returns>32-byte SHA-256 hash.</returns>
@@ -28,4 +28,3 @@ public static class Sha256
         return SHA256.HashData(Encoding.UTF8.GetBytes(source));
     }
 }
-

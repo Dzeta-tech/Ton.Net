@@ -4,86 +4,76 @@ using Ton.Core.Addresses;
 namespace Ton.Core.Boc;
 
 /// <summary>
-/// Builder for constructing bit strings efficiently.
-/// Supports writing bits, integers, addresses, and other TON-specific types.
+///     Builder for constructing bit strings efficiently.
+///     Supports writing bits, integers, addresses, and other TON-specific types.
 /// </summary>
 public class BitBuilder
 {
-    readonly byte[] _buffer;
-    int _length;
+    readonly byte[] buffer;
 
     /// <summary>
-    /// Creates a new BitBuilder with the specified maximum size in bits.
+    ///     Creates a new BitBuilder with the specified maximum size in bits.
     /// </summary>
     /// <param name="size">Maximum size in bits (default: 1023).</param>
     public BitBuilder(int size = 1023)
     {
-        _buffer = new byte[(int)Math.Ceiling(size / 8.0)];
-        _length = 0;
+        buffer = new byte[(int)Math.Ceiling(size / 8.0)];
+        Length = 0;
     }
 
     /// <summary>
-    /// Gets the current number of bits written.
+    ///     Gets the current number of bits written.
     /// </summary>
-    public int Length => _length;
+    public int Length { get; private set; }
 
     /// <summary>
-    /// Writes a single bit.
+    ///     Writes a single bit.
     /// </summary>
     /// <param name="value">True for 1, false for 0.</param>
     /// <exception cref="InvalidOperationException">Thrown when buffer overflows.</exception>
     public void WriteBit(bool value)
     {
-        if (_length >= _buffer.Length * 8)
+        if (Length >= buffer.Length * 8)
             throw new InvalidOperationException("BitBuilder overflow");
 
-        if (value)
-        {
-            _buffer[_length / 8] |= (byte)(1 << (7 - (_length % 8)));
-        }
+        if (value) buffer[Length / 8] |= (byte)(1 << (7 - Length % 8));
 
-        _length++;
+        Length++;
     }
 
     /// <summary>
-    /// Writes bits from another BitString.
+    ///     Writes bits from another BitString.
     /// </summary>
     /// <param name="src">Source bit string.</param>
     public void WriteBits(BitString src)
     {
-        for (int i = 0; i < src.Length; i++)
-        {
-            WriteBit(src.At(i));
-        }
+        for (int i = 0; i < src.Length; i++) WriteBit(src.At(i));
     }
 
     /// <summary>
-    /// Writes bytes from a buffer.
+    ///     Writes bytes from a buffer.
     /// </summary>
     /// <param name="src">Source buffer.</param>
     public void WriteBuffer(byte[] src)
     {
         // Optimized path for byte-aligned writes
-        if (_length % 8 == 0)
+        if (Length % 8 == 0)
         {
-            if (_length + src.Length * 8 > _buffer.Length * 8)
+            if (Length + src.Length * 8 > buffer.Length * 8)
                 throw new InvalidOperationException("BitBuilder overflow");
 
-            Array.Copy(src, 0, _buffer, _length / 8, src.Length);
-            _length += src.Length * 8;
+            Array.Copy(src, 0, buffer, Length / 8, src.Length);
+            Length += src.Length * 8;
         }
         else
         {
             // Unaligned - write byte by byte as uint
-            foreach (byte b in src)
-            {
-                WriteUint(b, 8);
-            }
+            foreach (byte b in src) WriteUint(b, 8);
         }
     }
 
     /// <summary>
-    /// Writes an unsigned integer value.
+    ///     Writes an unsigned integer value.
     /// </summary>
     /// <param name="value">Value to write (as BigInteger or long).</param>
     /// <param name="bits">Number of bits to use.</param>
@@ -99,53 +89,51 @@ public class BitBuilder
             return;
         }
 
-        BigInteger maxValue = (BigInteger.One << bits);
+        BigInteger maxValue = BigInteger.One << bits;
         if (value < 0 || value >= maxValue)
             throw new ArgumentException($"bitLength is too small for value {value}. Got {bits}");
 
-        if (_length + bits > _buffer.Length * 8)
+        if (Length + bits > buffer.Length * 8)
             throw new InvalidOperationException("BitBuilder overflow");
 
         // Write bits
-        int tillByte = 8 - (_length % 8);
+        int tillByte = 8 - Length % 8;
         if (tillByte > 0)
         {
-            int bidx = _length / 8;
+            int bidx = Length / 8;
             if (bits < tillByte)
             {
-                byte wb = (byte)(value);
-                _buffer[bidx] |= (byte)(wb << (tillByte - bits));
-                _length += bits;
+                byte wb = (byte)value;
+                buffer[bidx] |= (byte)(wb << (tillByte - bits));
+                Length += bits;
                 return;
             }
             else
             {
                 byte wb = (byte)(value >> (bits - tillByte));
-                _buffer[bidx] |= wb;
-                _length += tillByte;
+                buffer[bidx] |= wb;
+                Length += tillByte;
                 bits -= tillByte;
             }
         }
 
         while (bits > 0)
-        {
             if (bits >= 8)
             {
-                _buffer[_length / 8] = (byte)((value >> (bits - 8)) & 0xFF);
-                _length += 8;
+                buffer[Length / 8] = (byte)((value >> (bits - 8)) & 0xFF);
+                Length += 8;
                 bits -= 8;
             }
             else
             {
-                _buffer[_length / 8] = (byte)((value << (8 - bits)) & 0xFF);
-                _length += bits;
+                buffer[Length / 8] = (byte)((value << (8 - bits)) & 0xFF);
+                Length += bits;
                 bits = 0;
             }
-        }
     }
 
     /// <summary>
-    /// Writes an unsigned integer value.
+    ///     Writes an unsigned integer value.
     /// </summary>
     public void WriteUint(long value, int bits)
     {
@@ -153,7 +141,7 @@ public class BitBuilder
     }
 
     /// <summary>
-    /// Writes a signed integer value.
+    ///     Writes a signed integer value.
     /// </summary>
     /// <param name="value">Value to write.</param>
     /// <param name="bits">Number of bits to use (includes sign bit).</param>
@@ -198,7 +186,7 @@ public class BitBuilder
     }
 
     /// <summary>
-    /// Writes a signed integer value.
+    ///     Writes a signed integer value.
     /// </summary>
     public void WriteInt(long value, int bits)
     {
@@ -206,7 +194,7 @@ public class BitBuilder
     }
 
     /// <summary>
-    /// Writes a variable-length unsigned integer (used for coins).
+    ///     Writes a variable-length unsigned integer (used for coins).
     /// </summary>
     /// <param name="value">Value to write.</param>
     /// <param name="headerBits">Number of bits for the length header.</param>
@@ -235,7 +223,7 @@ public class BitBuilder
     }
 
     /// <summary>
-    /// Writes a variable-length unsigned integer (used for coins).
+    ///     Writes a variable-length unsigned integer (used for coins).
     /// </summary>
     public void WriteVarUint(long value, int headerBits)
     {
@@ -243,7 +231,7 @@ public class BitBuilder
     }
 
     /// <summary>
-    /// Writes a variable-length signed integer.
+    ///     Writes a variable-length signed integer.
     /// </summary>
     /// <param name="value">Value to write.</param>
     /// <param name="headerBits">Number of bits for the length header.</param>
@@ -271,7 +259,7 @@ public class BitBuilder
     }
 
     /// <summary>
-    /// Writes a variable-length signed integer.
+    ///     Writes a variable-length signed integer.
     /// </summary>
     public void WriteVarInt(long value, int headerBits)
     {
@@ -279,7 +267,7 @@ public class BitBuilder
     }
 
     /// <summary>
-    /// Writes a coin amount in nanotons (varuint16 format).
+    ///     Writes a coin amount in nanotons (varuint16 format).
     /// </summary>
     /// <param name="amount">Amount in nanotons.</param>
     public void WriteCoins(BigInteger amount)
@@ -288,7 +276,7 @@ public class BitBuilder
     }
 
     /// <summary>
-    /// Writes a coin amount in nanotons (varuint16 format).
+    ///     Writes a coin amount in nanotons (varuint16 format).
     /// </summary>
     public void WriteCoins(long amount)
     {
@@ -296,7 +284,7 @@ public class BitBuilder
     }
 
     /// <summary>
-    /// Writes a TON address (internal or external) or null for empty address.
+    ///     Writes a TON address (internal or external) or null for empty address.
     /// </summary>
     /// <param name="address">Address to write, or null for empty address.</param>
     public void WriteAddress(Address? address)
@@ -308,32 +296,31 @@ public class BitBuilder
         }
 
         // Internal address
-        WriteUint(2, 2);        // Address type
-        WriteUint(0, 1);        // No anycast
+        WriteUint(2, 2); // Address type
+        WriteUint(0, 1); // No anycast
         WriteInt(address.WorkChain, 8);
         WriteBuffer(address.Hash);
     }
 
     /// <summary>
-    /// Builds the final BitString.
+    ///     Builds the final BitString.
     /// </summary>
     /// <returns>Immutable BitString containing the written bits.</returns>
     public BitString Build()
     {
-        return new BitString(_buffer, 0, _length);
+        return new BitString(buffer, 0, Length);
     }
 
     /// <summary>
-    /// Returns the underlying byte buffer (only valid if byte-aligned).
+    ///     Returns the underlying byte buffer (only valid if byte-aligned).
     /// </summary>
     /// <returns>Byte array.</returns>
     /// <exception cref="InvalidOperationException">Thrown if not byte-aligned.</exception>
     public byte[] Buffer()
     {
-        if (_length % 8 != 0)
+        if (Length % 8 != 0)
             throw new InvalidOperationException("BitBuilder buffer is not byte aligned");
 
-        return _buffer[..(_length / 8)];
+        return buffer[..(Length / 8)];
     }
 }
-

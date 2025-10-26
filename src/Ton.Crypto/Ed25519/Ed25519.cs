@@ -1,16 +1,12 @@
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Signers;
-using Org.BouncyCastle.Math.EC.Rfc8032;
-
 namespace Ton.Crypto.Ed25519;
 
 /// <summary>
-/// Ed25519 digital signature functions.
+///     Ed25519 digital signature functions.
 /// </summary>
 public static class Ed25519
 {
     /// <summary>
-    /// Generates a key pair from a 32-byte seed.
+    ///     Generates a key pair from a 32-byte seed.
     /// </summary>
     /// <param name="seed">32-byte seed.</param>
     /// <returns>Key pair.</returns>
@@ -24,7 +20,7 @@ public static class Ed25519
 
         // Generate the key pair using Bouncy Castle's Ed25519
         Org.BouncyCastle.Math.EC.Rfc8032.Ed25519.GeneratePublicKey(seed, 0, publicKey, 0);
-        
+
         // Secret key is seed + public key (64 bytes total)
         Array.Copy(seed, 0, privateKey, 0, 32);
         Array.Copy(publicKey, 0, privateKey, 32, 32);
@@ -33,7 +29,7 @@ public static class Ed25519
     }
 
     /// <summary>
-    /// Derives a key pair from a 64-byte secret key.
+    ///     Derives a key pair from a 64-byte secret key.
     /// </summary>
     /// <param name="secretKey">64-byte secret key (32-byte seed + 32-byte public key).</param>
     /// <returns>Key pair.</returns>
@@ -49,7 +45,7 @@ public static class Ed25519
     }
 
     /// <summary>
-    /// Signs data with a secret key.
+    ///     Signs data with a secret key.
     /// </summary>
     /// <param name="data">Data to sign.</param>
     /// <param name="secretKey">64-byte secret key.</param>
@@ -60,7 +56,7 @@ public static class Ed25519
             throw new ArgumentException("Secret key must be 64 bytes", nameof(secretKey));
 
         byte[] signature = new byte[64];
-        
+
         // Extract the 32-byte seed from the secret key
         byte[] seed = new byte[32];
         Array.Copy(secretKey, 0, seed, 0, 32);
@@ -71,7 +67,7 @@ public static class Ed25519
     }
 
     /// <summary>
-    /// Verifies a signature.
+    ///     Verifies a signature.
     /// </summary>
     /// <param name="data">Data that was signed.</param>
     /// <param name="signature">64-byte signature.</param>
@@ -87,4 +83,3 @@ public static class Ed25519
         return Org.BouncyCastle.Math.EC.Rfc8032.Ed25519.Verify(signature, 0, publicKey, 0, data, 0, data.Length);
     }
 }
-

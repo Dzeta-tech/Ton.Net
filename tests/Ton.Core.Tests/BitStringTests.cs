@@ -8,115 +8,126 @@ public class BitStringTests
     [Test]
     public void Test_ReadBits()
     {
-        var bs = new BitString(new byte[] { 0b10101010 }, 0, 8);
-        Assert.That(bs.At(0), Is.True);
-        Assert.That(bs.At(1), Is.False);
-        Assert.That(bs.At(2), Is.True);
-        Assert.That(bs.At(3), Is.False);
-        Assert.That(bs.At(4), Is.True);
-        Assert.That(bs.At(5), Is.False);
-        Assert.That(bs.At(6), Is.True);
-        Assert.That(bs.At(7), Is.False);
-        Assert.That(bs.ToString(), Is.EqualTo("AA"));
+        BitString bs = new([0b10101010], 0, 8);
+        Assert.Multiple(() =>
+        {
+            Assert.That(bs.At(0), Is.True);
+            Assert.That(bs.At(1), Is.False);
+            Assert.That(bs.At(2), Is.True);
+            Assert.That(bs.At(3), Is.False);
+            Assert.That(bs.At(4), Is.True);
+            Assert.That(bs.At(5), Is.False);
+            Assert.That(bs.At(6), Is.True);
+            Assert.That(bs.At(7), Is.False);
+            Assert.That(bs.ToString(), Is.EqualTo("AA"));
+        });
     }
 
     [Test]
     public void Test_Equals()
     {
-        var a = new BitString(new byte[] { 0b10101010 }, 0, 8);
-        var b = new BitString(new byte[] { 0b10101010 }, 0, 8);
-        var c = new BitString(new byte[] { 0, 0b10101010 }, 8, 8);
-        
-        Assert.That(a.Equals(b), Is.True);
-        Assert.That(b.Equals(a), Is.True);
-        Assert.That(a.Equals(c), Is.True);
-        Assert.That(c.Equals(a), Is.True);
-        Assert.That(a.ToString(), Is.EqualTo("AA"));
-        Assert.That(b.ToString(), Is.EqualTo("AA"));
-        Assert.That(c.ToString(), Is.EqualTo("AA"));
+        BitString a = new([0b10101010], 0, 8);
+        BitString b = new([0b10101010], 0, 8);
+        BitString c = new([0, 0b10101010], 8, 8);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(a.Equals(b), Is.True);
+            Assert.That(b.Equals(a), Is.True);
+            Assert.That(a.Equals(c), Is.True);
+            Assert.That(c.Equals(a), Is.True);
+            Assert.That(a.ToString(), Is.EqualTo("AA"));
+            Assert.That(b.ToString(), Is.EqualTo("AA"));
+            Assert.That(c.ToString(), Is.EqualTo("AA"));
+        });
     }
 
     [Test]
     public void Test_FormatStrings()
     {
-        Assert.That(new BitString(new byte[] { 0b00000000 }, 0, 1).ToString(), Is.EqualTo("4_"));
-        Assert.That(new BitString(new byte[] { 0b10000000 }, 0, 1).ToString(), Is.EqualTo("C_"));
-        Assert.That(new BitString(new byte[] { 0b11000000 }, 0, 2).ToString(), Is.EqualTo("E_"));
-        Assert.That(new BitString(new byte[] { 0b11100000 }, 0, 3).ToString(), Is.EqualTo("F_"));
-        Assert.That(new BitString(new byte[] { 0b11100000 }, 0, 4).ToString(), Is.EqualTo("E"));
-        Assert.That(new BitString(new byte[] { 0b11101000 }, 0, 5).ToString(), Is.EqualTo("EC_"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(new BitString([0b00000000], 0, 1).ToString(), Is.EqualTo("4_"));
+            Assert.That(new BitString([0b10000000], 0, 1).ToString(), Is.EqualTo("C_"));
+            Assert.That(new BitString([0b11000000], 0, 2).ToString(), Is.EqualTo("E_"));
+            Assert.That(new BitString([0b11100000], 0, 3).ToString(), Is.EqualTo("F_"));
+            Assert.That(new BitString([0b11100000], 0, 4).ToString(), Is.EqualTo("E"));
+            Assert.That(new BitString([0b11101000], 0, 5).ToString(), Is.EqualTo("EC_"));
+        });
     }
 
     [Test]
     public void Test_Subbuffers()
     {
-        var bs = new BitString(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, 0, 64);
-        var bs2 = bs.Subbuffer(0, 16);
-        Assert.That(bs2!.Length, Is.EqualTo(2));
+        BitString bs = new([1, 2, 3, 4, 5, 6, 7, 8], 0, 64);
+        byte[]? bs2 = bs.Subbuffer(0, 16);
+        Assert.That(bs2!, Has.Length.EqualTo(2));
     }
 
     [Test]
     public void Test_Substrings()
     {
-        var bs = new BitString(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, 0, 64);
-        var bs2 = bs.Substring(0, 16);
+        BitString bs = new([1, 2, 3, 4, 5, 6, 7, 8], 0, 64);
+        BitString bs2 = bs.Substring(0, 16);
         Assert.That(bs2.Length, Is.EqualTo(16));
     }
 
     [Test]
     public void Test_EmptySubstringsWithLength0()
     {
-        var bs = new BitString(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, 0, 64);
-        var bs2 = bs.Substring(bs.Length, 0);
+        BitString bs = new([1, 2, 3, 4, 5, 6, 7, 8], 0, 64);
+        BitString bs2 = bs.Substring(bs.Length, 0);
         Assert.That(bs2.Length, Is.EqualTo(0));
     }
 
     [Test]
     public void Test_OOB_WhenSubstringOffsetOutOfBounds()
     {
-        var bs = new BitString(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, 0, 64);
-        
-        var ex1 = Assert.Throws<ArgumentOutOfRangeException>(() => bs.Substring(bs.Length + 1, 0));
+        BitString bs = new([1, 2, 3, 4, 5, 6, 7, 8], 0, 64);
+
+        ArgumentOutOfRangeException? ex1 =
+            Assert.Throws<ArgumentOutOfRangeException>(() => bs.Substring(bs.Length + 1, 0));
         Assert.That(ex1!.Message, Does.Contain("out of bounds"));
-        
-        var ex2 = Assert.Throws<ArgumentOutOfRangeException>(() => bs.Substring(-1, 0));
+
+        ArgumentOutOfRangeException? ex2 = Assert.Throws<ArgumentOutOfRangeException>(() => bs.Substring(-1, 0));
         Assert.That(ex2!.Message, Does.Contain("out of bounds"));
     }
 
     [Test]
     public void Test_OOB_WhenSubbufferOffsetOutOfBounds()
     {
-        var bs = new BitString(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, 0, 64);
-        
-        var ex1 = Assert.Throws<ArgumentOutOfRangeException>(() => bs.Subbuffer(bs.Length + 1, 0));
+        BitString bs = new([1, 2, 3, 4, 5, 6, 7, 8], 0, 64);
+
+        ArgumentOutOfRangeException? ex1 =
+            Assert.Throws<ArgumentOutOfRangeException>(() => bs.Subbuffer(bs.Length + 1, 0));
         Assert.That(ex1!.Message, Does.Contain("out of bounds"));
-        
-        var ex2 = Assert.Throws<ArgumentOutOfRangeException>(() => bs.Subbuffer(-1, 0));
+
+        ArgumentOutOfRangeException? ex2 = Assert.Throws<ArgumentOutOfRangeException>(() => bs.Subbuffer(-1, 0));
         Assert.That(ex2!.Message, Does.Contain("out of bounds"));
     }
 
     [Test]
     public void Test_OOB_WhenOffsetAtEndAndLengthGreaterThan0()
     {
-        var bs = new BitString(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, 0, 64);
-        
-        var ex = Assert.Throws<ArgumentOutOfRangeException>(() => bs.Substring(bs.Length, 1));
+        BitString bs = new([1, 2, 3, 4, 5, 6, 7, 8], 0, 64);
+
+        ArgumentOutOfRangeException? ex = Assert.Throws<ArgumentOutOfRangeException>(() => bs.Substring(bs.Length, 1));
         Assert.That(ex!.Message, Does.Contain("out of bounds"));
     }
 
     [Test]
     public void Test_EmptySubbuffersWithLength0()
     {
-        var bs = new BitString(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, 0, 64);
-        var bs2 = bs.Subbuffer(bs.Length, 0);
+        BitString bs = new([1, 2, 3, 4, 5, 6, 7, 8], 0, 64);
+        byte[]? bs2 = bs.Subbuffer(bs.Length, 0);
         Assert.That(bs2!.Length, Is.EqualTo(0));
     }
 
     [Test]
     public void Test_MonkeyStrings()
     {
-        var cases = new (string bits, string expected)[]
-        {
+        (string bits, string expected)[] cases =
+        [
             ("001110101100111010", "3ACEA_"),
             ("01001", "4C_"),
             ("000000110101101010", "035AA_"),
@@ -167,27 +178,20 @@ public class BitStringTests
             ("10", "A_"),
             ("1010110110110110110100110010110", "ADB6D32D_"),
             ("010100000000001000111101011001", "50023D66_")
-        };
+        ];
 
-        foreach (var (bits, expected) in cases)
+        foreach ((string bits, string expected) in cases)
         {
             // Build string
-            var builder = new BitBuilder();
-            foreach (char c in bits)
-            {
-                builder.WriteBit(c == '1');
-            }
-            var result = builder.Build();
+            BitBuilder builder = new();
+            foreach (char c in bits) builder.WriteBit(c == '1');
+            BitString result = builder.Build();
 
             // Check that string is valid
-            for (int i = 0; i < bits.Length; i++)
-            {
-                Assert.That(result.At(i), Is.EqualTo(bits[i] == '1'));
-            }
+            for (int i = 0; i < bits.Length; i++) Assert.That(result.At(i), Is.EqualTo(bits[i] == '1'));
 
             // Check toString
             Assert.That(result.ToString(), Is.EqualTo(expected));
         }
     }
 }
-

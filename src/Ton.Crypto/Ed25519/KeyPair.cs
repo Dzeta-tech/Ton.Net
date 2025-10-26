@@ -1,22 +1,12 @@
 namespace Ton.Crypto.Ed25519;
 
 /// <summary>
-/// Ed25519 key pair containing public and private keys.
+///     Ed25519 key pair containing public and private keys.
 /// </summary>
 public class KeyPair
 {
     /// <summary>
-    /// Gets the 32-byte public key.
-    /// </summary>
-    public byte[] PublicKey { get; }
-
-    /// <summary>
-    /// Gets the 64-byte secret key (32-byte seed + 32-byte public key).
-    /// </summary>
-    public byte[] SecretKey { get; }
-
-    /// <summary>
-    /// Creates a new key pair.
+    ///     Creates a new key pair.
     /// </summary>
     /// <param name="publicKey">32-byte public key.</param>
     /// <param name="secretKey">64-byte secret key.</param>
@@ -30,5 +20,14 @@ public class KeyPair
         PublicKey = publicKey;
         SecretKey = secretKey;
     }
-}
 
+    /// <summary>
+    ///     Gets the 32-byte public key.
+    /// </summary>
+    public byte[] PublicKey { get; }
+
+    /// <summary>
+    ///     Gets the 64-byte secret key (32-byte seed + 32-byte public key).
+    /// </summary>
+    public byte[] SecretKey { get; }
+}

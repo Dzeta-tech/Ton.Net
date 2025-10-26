@@ -1,19 +1,47 @@
 using System.Numerics;
-using System.Text;
 using Ton.Core.Addresses;
 
 namespace Ton.Core.Boc;
 
 /// <summary>
-/// Builder for creating cells.
+///     Builder for creating cells.
 /// </summary>
 public class Builder
 {
-    private readonly BitBuilder _bits;
-    private readonly List<Cell> _refs;
+    readonly BitBuilder bits;
+    readonly List<Cell> refs;
 
     /// <summary>
-    /// Start building a cell.
+    ///     Creates a new builder.
+    /// </summary>
+    public Builder()
+    {
+        bits = new BitBuilder();
+        refs = [];
+    }
+
+    /// <summary>
+    ///     Gets the number of bits written.
+    /// </summary>
+    public int Bits => bits.Length;
+
+    /// <summary>
+    ///     Gets the number of references written.
+    /// </summary>
+    public int Refs => refs.Count;
+
+    /// <summary>
+    ///     Gets the number of available bits.
+    /// </summary>
+    public int AvailableBits => 1023 - Bits;
+
+    /// <summary>
+    ///     Gets the number of available references.
+    /// </summary>
+    public int AvailableRefs => 4 - Refs;
+
+    /// <summary>
+    ///     Start building a cell.
     /// </summary>
     /// <returns>A new builder.</returns>
     public static Builder BeginCell()
@@ -22,58 +50,29 @@ public class Builder
     }
 
     /// <summary>
-    /// Creates a new builder.
-    /// </summary>
-    public Builder()
-    {
-        _bits = new BitBuilder();
-        _refs = [];
-    }
-
-    /// <summary>
-    /// Gets the number of bits written.
-    /// </summary>
-    public int Bits => _bits.Length;
-
-    /// <summary>
-    /// Gets the number of references written.
-    /// </summary>
-    public int Refs => _refs.Count;
-
-    /// <summary>
-    /// Gets the number of available bits.
-    /// </summary>
-    public int AvailableBits => 1023 - Bits;
-
-    /// <summary>
-    /// Gets the number of available references.
-    /// </summary>
-    public int AvailableRefs => 4 - Refs;
-
-    /// <summary>
-    /// Store a single bit.
+    ///     Store a single bit.
     /// </summary>
     /// <param name="value">Bit value.</param>
     /// <returns>This builder.</returns>
     public Builder StoreBit(bool value)
     {
-        _bits.WriteBit(value);
+        bits.WriteBit(value);
         return this;
     }
 
     /// <summary>
-    /// Store bits from BitString.
+    ///     Store bits from BitString.
     /// </summary>
     /// <param name="src">Source bits.</param>
     /// <returns>This builder.</returns>
     public Builder StoreBits(BitString src)
     {
-        _bits.WriteBits(src);
+        bits.WriteBits(src);
         return this;
     }
 
     /// <summary>
-    /// Store buffer.
+    ///     Store buffer.
     /// </summary>
     /// <param name="src">Source buffer.</param>
     /// <param name="bytes">Optional number of bytes to write.</param>
@@ -81,15 +80,13 @@ public class Builder
     public Builder StoreBuffer(byte[] src, int? bytes = null)
     {
         if (bytes.HasValue && src.Length != bytes.Value)
-        {
             throw new ArgumentException($"Buffer length {src.Length} is not equal to {bytes}");
-        }
-        _bits.WriteBuffer(src);
+        bits.WriteBuffer(src);
         return this;
     }
 
     /// <summary>
-    /// Store maybe buffer.
+    ///     Store maybe buffer.
     /// </summary>
     /// <param name="src">Source buffer or null.</param>
     /// <param name="bytes">Optional number of bytes to write.</param>
@@ -105,35 +102,36 @@ public class Builder
         {
             StoreBit(false);
         }
+
         return this;
     }
 
     /// <summary>
-    /// Store uint value.
+    ///     Store uint value.
     /// </summary>
     /// <param name="value">Value.</param>
     /// <param name="bits">Number of bits.</param>
     /// <returns>This builder.</returns>
     public Builder StoreUint(long value, int bits)
     {
-        _bits.WriteUint(value, bits);
+        this.bits.WriteUint(value, bits);
         return this;
     }
 
     /// <summary>
-    /// Store uint value (BigInteger).
+    ///     Store uint value (BigInteger).
     /// </summary>
     /// <param name="value">Value.</param>
     /// <param name="bits">Number of bits.</param>
     /// <returns>This builder.</returns>
     public Builder StoreUint(BigInteger value, int bits)
     {
-        _bits.WriteUint(value, bits);
+        this.bits.WriteUint(value, bits);
         return this;
     }
 
     /// <summary>
-    /// Store maybe uint value.
+    ///     Store maybe uint value.
     /// </summary>
     /// <param name="value">Value or null.</param>
     /// <param name="bits">Number of bits.</param>
@@ -149,11 +147,12 @@ public class Builder
         {
             StoreBit(false);
         }
+
         return this;
     }
 
     /// <summary>
-    /// Store maybe uint value (BigInteger).
+    ///     Store maybe uint value (BigInteger).
     /// </summary>
     /// <param name="value">Value or null.</param>
     /// <param name="bits">Number of bits.</param>
@@ -169,35 +168,36 @@ public class Builder
         {
             StoreBit(false);
         }
+
         return this;
     }
 
     /// <summary>
-    /// Store int value.
+    ///     Store int value.
     /// </summary>
     /// <param name="value">Value.</param>
     /// <param name="bits">Number of bits.</param>
     /// <returns>This builder.</returns>
     public Builder StoreInt(long value, int bits)
     {
-        _bits.WriteInt(value, bits);
+        this.bits.WriteInt(value, bits);
         return this;
     }
 
     /// <summary>
-    /// Store int value (BigInteger).
+    ///     Store int value (BigInteger).
     /// </summary>
     /// <param name="value">Value.</param>
     /// <param name="bits">Number of bits.</param>
     /// <returns>This builder.</returns>
     public Builder StoreInt(BigInteger value, int bits)
     {
-        _bits.WriteInt(value, bits);
+        this.bits.WriteInt(value, bits);
         return this;
     }
 
     /// <summary>
-    /// Store maybe int value.
+    ///     Store maybe int value.
     /// </summary>
     /// <param name="value">Value or null.</param>
     /// <param name="bits">Number of bits.</param>
@@ -213,11 +213,12 @@ public class Builder
         {
             StoreBit(false);
         }
+
         return this;
     }
 
     /// <summary>
-    /// Store maybe int value (BigInteger).
+    ///     Store maybe int value (BigInteger).
     /// </summary>
     /// <param name="value">Value or null.</param>
     /// <param name="bits">Number of bits.</param>
@@ -233,35 +234,36 @@ public class Builder
         {
             StoreBit(false);
         }
+
         return this;
     }
 
     /// <summary>
-    /// Store varuint value.
+    ///     Store varuint value.
     /// </summary>
     /// <param name="value">Value.</param>
     /// <param name="bits">Header bits.</param>
     /// <returns>This builder.</returns>
     public Builder StoreVarUint(long value, int bits)
     {
-        _bits.WriteVarUint(value, bits);
+        this.bits.WriteVarUint(value, bits);
         return this;
     }
 
     /// <summary>
-    /// Store varuint value (BigInteger).
+    ///     Store varuint value (BigInteger).
     /// </summary>
     /// <param name="value">Value.</param>
     /// <param name="bits">Header bits.</param>
     /// <returns>This builder.</returns>
     public Builder StoreVarUint(BigInteger value, int bits)
     {
-        _bits.WriteVarUint(value, bits);
+        this.bits.WriteVarUint(value, bits);
         return this;
     }
 
     /// <summary>
-    /// Store maybe varuint value.
+    ///     Store maybe varuint value.
     /// </summary>
     /// <param name="value">Value or null.</param>
     /// <param name="bits">Header bits.</param>
@@ -277,11 +279,12 @@ public class Builder
         {
             StoreBit(false);
         }
+
         return this;
     }
 
     /// <summary>
-    /// Store maybe varuint value (BigInteger).
+    ///     Store maybe varuint value (BigInteger).
     /// </summary>
     /// <param name="value">Value or null.</param>
     /// <param name="bits">Header bits.</param>
@@ -297,35 +300,36 @@ public class Builder
         {
             StoreBit(false);
         }
+
         return this;
     }
 
     /// <summary>
-    /// Store varint value.
+    ///     Store varint value.
     /// </summary>
     /// <param name="value">Value.</param>
     /// <param name="bits">Header bits.</param>
     /// <returns>This builder.</returns>
     public Builder StoreVarInt(long value, int bits)
     {
-        _bits.WriteVarInt(value, bits);
+        this.bits.WriteVarInt(value, bits);
         return this;
     }
 
     /// <summary>
-    /// Store varint value (BigInteger).
+    ///     Store varint value (BigInteger).
     /// </summary>
     /// <param name="value">Value.</param>
     /// <param name="bits">Header bits.</param>
     /// <returns>This builder.</returns>
     public Builder StoreVarInt(BigInteger value, int bits)
     {
-        _bits.WriteVarInt(value, bits);
+        this.bits.WriteVarInt(value, bits);
         return this;
     }
 
     /// <summary>
-    /// Store maybe varint value.
+    ///     Store maybe varint value.
     /// </summary>
     /// <param name="value">Value or null.</param>
     /// <param name="bits">Header bits.</param>
@@ -341,11 +345,12 @@ public class Builder
         {
             StoreBit(false);
         }
+
         return this;
     }
 
     /// <summary>
-    /// Store maybe varint value (BigInteger).
+    ///     Store maybe varint value (BigInteger).
     /// </summary>
     /// <param name="value">Value or null.</param>
     /// <param name="bits">Header bits.</param>
@@ -361,33 +366,34 @@ public class Builder
         {
             StoreBit(false);
         }
+
         return this;
     }
 
     /// <summary>
-    /// Store coins value.
+    ///     Store coins value.
     /// </summary>
     /// <param name="amount">Amount.</param>
     /// <returns>This builder.</returns>
     public Builder StoreCoins(long amount)
     {
-        _bits.WriteCoins(amount);
+        bits.WriteCoins(amount);
         return this;
     }
 
     /// <summary>
-    /// Store coins value (BigInteger).
+    ///     Store coins value (BigInteger).
     /// </summary>
     /// <param name="amount">Amount.</param>
     /// <returns>This builder.</returns>
     public Builder StoreCoins(BigInteger amount)
     {
-        _bits.WriteCoins(amount);
+        bits.WriteCoins(amount);
         return this;
     }
 
     /// <summary>
-    /// Store maybe coins value.
+    ///     Store maybe coins value.
     /// </summary>
     /// <param name="amount">Amount or null.</param>
     /// <returns>This builder.</returns>
@@ -402,11 +408,12 @@ public class Builder
         {
             StoreBit(false);
         }
+
         return this;
     }
 
     /// <summary>
-    /// Store maybe coins value (BigInteger).
+    ///     Store maybe coins value (BigInteger).
     /// </summary>
     /// <param name="amount">Amount or null.</param>
     /// <returns>This builder.</returns>
@@ -421,37 +428,35 @@ public class Builder
         {
             StoreBit(false);
         }
+
         return this;
     }
 
     /// <summary>
-    /// Store address.
+    ///     Store address.
     /// </summary>
     /// <param name="address">Address or null.</param>
     /// <returns>This builder.</returns>
     public Builder StoreAddress(Address? address)
     {
-        _bits.WriteAddress(address);
+        bits.WriteAddress(address);
         return this;
     }
 
     /// <summary>
-    /// Store reference.
+    ///     Store reference.
     /// </summary>
     /// <param name="cell">Cell or builder.</param>
     /// <returns>This builder.</returns>
     public Builder StoreRef(Cell cell)
     {
-        if (_refs.Count >= 4)
-        {
-            throw new InvalidOperationException("Too many references");
-        }
-        _refs.Add(cell);
+        if (refs.Count >= 4) throw new InvalidOperationException("Too many references");
+        refs.Add(cell);
         return this;
     }
 
     /// <summary>
-    /// Store reference.
+    ///     Store reference.
     /// </summary>
     /// <param name="builder">Builder.</param>
     /// <returns>This builder.</returns>
@@ -461,7 +466,7 @@ public class Builder
     }
 
     /// <summary>
-    /// Store maybe reference.
+    ///     Store maybe reference.
     /// </summary>
     /// <param name="cell">Cell or null.</param>
     /// <returns>This builder.</returns>
@@ -476,11 +481,12 @@ public class Builder
         {
             StoreBit(false);
         }
+
         return this;
     }
 
     /// <summary>
-    /// Store maybe reference.
+    ///     Store maybe reference.
     /// </summary>
     /// <param name="builder">Builder or null.</param>
     /// <returns>This builder.</returns>
@@ -495,30 +501,25 @@ public class Builder
         {
             StoreBit(false);
         }
+
         return this;
     }
 
     /// <summary>
-    /// Store slice.
+    ///     Store slice.
     /// </summary>
     /// <param name="src">Source slice.</param>
     /// <returns>This builder.</returns>
     public Builder StoreSlice(Slice src)
     {
-        var c = src.Clone();
-        if (c.RemainingBits > 0)
-        {
-            StoreBits(c.LoadBits(c.RemainingBits));
-        }
-        while (c.RemainingRefs > 0)
-        {
-            StoreRef(c.LoadRef());
-        }
+        Slice c = src.Clone();
+        if (c.RemainingBits > 0) StoreBits(c.LoadBits(c.RemainingBits));
+        while (c.RemainingRefs > 0) StoreRef(c.LoadRef());
         return this;
     }
 
     /// <summary>
-    /// Store maybe slice.
+    ///     Store maybe slice.
     /// </summary>
     /// <param name="src">Source slice or null.</param>
     /// <returns>This builder.</returns>
@@ -533,11 +534,12 @@ public class Builder
         {
             StoreBit(false);
         }
+
         return this;
     }
 
     /// <summary>
-    /// Store builder.
+    ///     Store builder.
     /// </summary>
     /// <param name="src">Source builder.</param>
     /// <returns>This builder.</returns>
@@ -547,7 +549,7 @@ public class Builder
     }
 
     /// <summary>
-    /// Store maybe builder.
+    ///     Store maybe builder.
     /// </summary>
     /// <param name="src">Source builder or null.</param>
     /// <returns>This builder.</returns>
@@ -562,21 +564,22 @@ public class Builder
         {
             StoreBit(false);
         }
+
         return this;
     }
 
     /// <summary>
-    /// Complete building and return the cell.
+    ///     Complete building and return the cell.
     /// </summary>
     /// <param name="exotic">Whether to create an exotic cell.</param>
     /// <returns>Built cell.</returns>
     public Cell EndCell(bool exotic = false)
     {
-        return new Cell(_bits.Build(), [.. _refs], exotic);
+        return new Cell(bits.Build(), [.. refs], exotic);
     }
 
     /// <summary>
-    /// Convert to cell.
+    ///     Convert to cell.
     /// </summary>
     /// <returns>Cell.</returns>
     public Cell AsCell()
@@ -585,7 +588,7 @@ public class Builder
     }
 
     /// <summary>
-    /// Convert to slice.
+    ///     Convert to slice.
     /// </summary>
     /// <returns>Slice.</returns>
     public Slice AsSlice()
@@ -593,4 +596,3 @@ public class Builder
         return EndCell().BeginParse();
     }
 }
-

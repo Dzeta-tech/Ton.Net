@@ -1,14 +1,14 @@
 namespace Ton.Core.Utils;
 
 /// <summary>
-/// Provides Base32 encoding and decoding functionality.
+///     Provides Base32 encoding and decoding functionality.
 /// </summary>
 public static class Base32
 {
     const string Alphabet = "abcdefghijklmnopqrstuvwxyz234567";
 
     /// <summary>
-    /// Encodes a byte array to a Base32 string.
+    ///     Encodes a byte array to a Base32 string.
     /// </summary>
     /// <param name="data">The data to encode.</param>
     /// <returns>The Base32-encoded string.</returns>
@@ -30,17 +30,14 @@ public static class Base32
                 bits -= 5;
             }
         }
-        
-        if (bits > 0)
-        {
-            output += Alphabet[(value << (5 - bits)) & 31];
-        }
-        
+
+        if (bits > 0) output += Alphabet[(value << (5 - bits)) & 31];
+
         return output;
     }
 
     /// <summary>
-    /// Decodes a Base32 string to a byte array.
+    ///     Decodes a Base32 string to a byte array.
     /// </summary>
     /// <param name="input">The Base32-encoded string to decode.</param>
     /// <returns>The decoded byte array.</returns>
@@ -53,7 +50,7 @@ public static class Base32
         int bits = 0;
         int value = 0;
         int index = 0;
-        byte[] output = new byte[(length * 5) / 8];
+        byte[] output = new byte[length * 5 / 8];
 
         for (int i = 0; i < length; i++)
         {
@@ -74,11 +71,10 @@ public static class Base32
     static int ReadChar(char ch)
     {
         int idx = Alphabet.IndexOf(ch);
-        
+
         if (idx == -1)
             throw new ArgumentException($"Invalid character found: {ch}");
-        
+
         return idx;
     }
 }
-

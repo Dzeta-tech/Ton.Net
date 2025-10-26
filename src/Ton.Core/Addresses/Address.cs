@@ -4,27 +4,17 @@ using Ton.Core.Utils;
 namespace Ton.Core.Addresses;
 
 /// <summary>
-/// Represents a TON blockchain address.
-/// Addresses are immutable and can be parsed from both friendly (base64-encoded) and raw (workchain:hash) formats.
+///     Represents a TON blockchain address.
+///     Addresses are immutable and can be parsed from both friendly (base64-encoded) and raw (workchain:hash) formats.
 /// </summary>
-public class Address : IEquatable<Address>
+public partial class Address : IEquatable<Address>
 {
     const byte BounceableTag = 0x11;
     const byte NonBounceableTag = 0x51;
     const byte TestFlag = 0x80;
 
     /// <summary>
-    /// The workchain ID. Typically 0 for basechain or -1 for masterchain.
-    /// </summary>
-    public int WorkChain { get; }
-    
-    /// <summary>
-    /// The 32-byte address hash.
-    /// </summary>
-    public byte[] Hash { get; }
-
-    /// <summary>
-    /// Creates a new TON address with the specified workchain and hash.
+    ///     Creates a new TON address with the specified workchain and hash.
     /// </summary>
     /// <param name="workChain">The workchain ID.</param>
     /// <param name="hash">The 32-byte address hash.</param>
@@ -38,10 +28,38 @@ public class Address : IEquatable<Address>
         Hash = hash;
     }
 
+    /// <summary>
+    ///     The workchain ID. Typically 0 for basechain or -1 for masterchain.
+    /// </summary>
+    public int WorkChain { get; }
+
+    /// <summary>
+    ///     The 32-byte address hash.
+    /// </summary>
+    public byte[] Hash { get; }
+
+    // Equality
+
+    /// <summary>
+    ///     Determines whether this address is equal to another address.
+    /// </summary>
+    /// <param name="other">The address to compare with.</param>
+    /// <returns>True if the addresses are equal (same workchain and hash), false otherwise.</returns>
+    public bool Equals(Address? other)
+    {
+        if (other == null)
+            return false;
+
+        if (WorkChain != other.WorkChain)
+            return false;
+
+        return Hash.SequenceEqual(other.Hash);
+    }
+
     // Static factory methods
 
     /// <summary>
-    /// Parses an address from either friendly (base64-encoded) or raw (workchain:hash) format.
+    ///     Parses an address from either friendly (base64-encoded) or raw (workchain:hash) format.
     /// </summary>
     /// <param name="source">The address string to parse.</param>
     /// <returns>The parsed address.</returns>
@@ -56,7 +74,7 @@ public class Address : IEquatable<Address>
     }
 
     /// <summary>
-    /// Parses an address from raw format (workchain:hash).
+    ///     Parses an address from raw format (workchain:hash).
     /// </summary>
     /// <param name="source">The raw address string (e.g., "0:e4d954ef...").</param>
     /// <returns>The parsed address.</returns>
@@ -87,7 +105,7 @@ public class Address : IEquatable<Address>
     }
 
     /// <summary>
-    /// Parses an address from friendly (base64-encoded) format with metadata.
+    ///     Parses an address from friendly (base64-encoded) format with metadata.
     /// </summary>
     /// <param name="source">The friendly address string (e.g., "EQAs9VlT...").</param>
     /// <returns>A tuple containing IsBounceable flag, IsTestOnly flag, and the parsed Address.</returns>
@@ -109,7 +127,7 @@ public class Address : IEquatable<Address>
     }
 
     /// <summary>
-    /// Parses an address from friendly (base64-encoded) bytes with metadata.
+    ///     Parses an address from friendly (base64-encoded) bytes with metadata.
     /// </summary>
     /// <param name="source">The friendly address bytes.</param>
     /// <returns>A tuple containing IsBounceable flag, IsTestOnly flag, and the parsed Address.</returns>
@@ -136,7 +154,6 @@ public class Address : IEquatable<Address>
         // Parse tag
         byte tag = addr[0];
         bool isTestOnly = false;
-        bool isBounceable = false;
 
         if ((tag & TestFlag) != 0)
         {
@@ -147,7 +164,7 @@ public class Address : IEquatable<Address>
         if (tag != BounceableTag && tag != NonBounceableTag)
             throw new ArgumentException("Unknown address tag");
 
-        isBounceable = tag == BounceableTag;
+        bool isBounceable = tag == BounceableTag;
 
         int workChain = addr[1] == 0xff ? -1 : addr[1];
         byte[] hashPart = addr[2..34];
@@ -158,7 +175,7 @@ public class Address : IEquatable<Address>
     // Static validation methods
 
     /// <summary>
-    /// Checks if the given string is a valid friendly (base64-encoded) address format.
+    ///     Checks if the given string is a valid friendly (base64-encoded) address format.
     /// </summary>
     /// <param name="source">The string to validate.</param>
     /// <returns>True if the string is a valid friendly address format, false otherwise.</returns>
@@ -169,14 +186,14 @@ public class Address : IEquatable<Address>
             return false;
 
         // Check if address is valid base64
-        if (!Regex.IsMatch(source, "^[A-Za-z0-9+/_-]+$"))
+        if (!MyRegex().IsMatch(source))
             return false;
 
         return true;
     }
 
     /// <summary>
-    /// Checks if the given string is a valid raw (workchain:hash) address format.
+    ///     Checks if the given string is a valid raw (workchain:hash) address format.
     /// </summary>
     /// <param name="source">The string to validate.</param>
     /// <returns>True if the string is a valid raw address format, false otherwise.</returns>
@@ -198,7 +215,7 @@ public class Address : IEquatable<Address>
             return false;
 
         // hash is not valid hex
-        if (!Regex.IsMatch(hash.ToLower(), "^[a-f0-9]+$"))
+        if (!MyRegex1().IsMatch(hash.ToLower()))
             return false;
 
         // hash is not correct length
@@ -209,7 +226,7 @@ public class Address : IEquatable<Address>
     }
 
     /// <summary>
-    /// Normalizes an address string to its standard friendly format.
+    ///     Normalizes an address string to its standard friendly format.
     /// </summary>
     /// <param name="source">The address string to normalize.</param>
     /// <returns>The normalized address in friendly format.</returns>
@@ -219,7 +236,7 @@ public class Address : IEquatable<Address>
     }
 
     /// <summary>
-    /// Normalizes an address to its standard friendly format.
+    ///     Normalizes an address to its standard friendly format.
     /// </summary>
     /// <param name="source">The address to normalize.</param>
     /// <returns>The normalized address in friendly format.</returns>
@@ -231,7 +248,7 @@ public class Address : IEquatable<Address>
     // Instance methods
 
     /// <summary>
-    /// Converts the address to raw format (workchain:hash).
+    ///     Converts the address to raw format (workchain:hash).
     /// </summary>
     /// <returns>The address in raw string format (e.g., "0:e4d954ef...").</returns>
     public string ToRawString()
@@ -240,7 +257,7 @@ public class Address : IEquatable<Address>
     }
 
     /// <summary>
-    /// Converts the address to raw bytes format with workchain repeated.
+    ///     Converts the address to raw bytes format with workchain repeated.
     /// </summary>
     /// <returns>36-byte array: 32 bytes hash + 4 bytes workchain.</returns>
     public byte[] ToRaw()
@@ -255,7 +272,7 @@ public class Address : IEquatable<Address>
     }
 
     /// <summary>
-    /// Converts the address to friendly format bytes with checksum.
+    ///     Converts the address to friendly format bytes with checksum.
     /// </summary>
     /// <param name="bounceable">Whether the address should be bounceable (default: true).</param>
     /// <param name="testOnly">Whether this is a test-only address (default: false).</param>
@@ -281,7 +298,7 @@ public class Address : IEquatable<Address>
     }
 
     /// <summary>
-    /// Converts the address to friendly (base64-encoded) string format.
+    ///     Converts the address to friendly (base64-encoded) string format.
     /// </summary>
     /// <param name="urlSafe">Whether to use URL-safe base64 encoding (default: true).</param>
     /// <param name="bounceable">Whether the address should be bounceable (default: true).</param>
@@ -298,30 +315,12 @@ public class Address : IEquatable<Address>
     }
 
     /// <summary>
-    /// Converts the address to its default string representation (URL-safe, bounceable, production).
+    ///     Converts the address to its default string representation (URL-safe, bounceable, production).
     /// </summary>
     /// <returns>The address in friendly format.</returns>
     public override string ToString()
     {
         return ToString();
-    }
-
-    // Equality
-
-    /// <summary>
-    /// Determines whether this address is equal to another address.
-    /// </summary>
-    /// <param name="other">The address to compare with.</param>
-    /// <returns>True if the addresses are equal (same workchain and hash), false otherwise.</returns>
-    public bool Equals(Address? other)
-    {
-        if (other == null)
-            return false;
-            
-        if (WorkChain != other.WorkChain)
-            return false;
-
-        return Hash.SequenceEqual(other.Hash);
     }
 
     public override bool Equals(object? obj)
@@ -347,16 +346,22 @@ public class Address : IEquatable<Address>
     {
         return !(left == right);
     }
+
+    [GeneratedRegex("^[A-Za-z0-9+/_-]+$")]
+    private static partial Regex MyRegex();
+
+    [GeneratedRegex("^[a-f0-9]+$")]
+    private static partial Regex MyRegex1();
 }
 
 /// <summary>
-/// Extension methods for Address-related operations.
+///     Extension methods for Address-related operations.
 /// </summary>
 public static class AddressExtensions
 {
     /// <summary>
-    /// Parses a string as a TON address.
-    /// Convenience extension method matching JavaScript API style.
+    ///     Parses a string as a TON address.
+    ///     Convenience extension method matching JavaScript API style.
     /// </summary>
     /// <param name="source">The address string to parse.</param>
     /// <returns>The parsed address.</returns>

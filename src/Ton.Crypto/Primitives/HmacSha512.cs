@@ -4,12 +4,12 @@ using System.Text;
 namespace Ton.Crypto.Primitives;
 
 /// <summary>
-/// HMAC-SHA512 functions for message authentication.
+///     HMAC-SHA512 functions for message authentication.
 /// </summary>
 public static class HmacSha512
 {
     /// <summary>
-    /// Computes HMAC-SHA512 of the data with the given key.
+    ///     Computes HMAC-SHA512 of the data with the given key.
     /// </summary>
     /// <param name="key">HMAC key.</param>
     /// <param name="data">Data to authenticate.</param>
@@ -20,7 +20,7 @@ public static class HmacSha512
     }
 
     /// <summary>
-    /// Computes HMAC-SHA512 with string inputs (UTF-8 encoded).
+    ///     Computes HMAC-SHA512 with string inputs (UTF-8 encoded).
     /// </summary>
     /// <param name="key">HMAC key as string.</param>
     /// <param name="data">Data as string.</param>
@@ -31,7 +31,7 @@ public static class HmacSha512
     }
 
     /// <summary>
-    /// Computes HMAC-SHA512 with mixed inputs.
+    ///     Computes HMAC-SHA512 with mixed inputs.
     /// </summary>
     /// <param name="key">HMAC key.</param>
     /// <param name="data">Data as string.</param>
@@ -42,7 +42,7 @@ public static class HmacSha512
     }
 
     /// <summary>
-    /// Computes HMAC-SHA512 with mixed inputs.
+    ///     Computes HMAC-SHA512 with mixed inputs.
     /// </summary>
     /// <param name="key">HMAC key as string.</param>
     /// <param name="data">Data.</param>
@@ -52,4 +52,3 @@ public static class HmacSha512
         return HMACSHA512.HashData(Encoding.UTF8.GetBytes(key), data);
     }
 }
-

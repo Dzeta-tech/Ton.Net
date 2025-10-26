@@ -4,11 +4,11 @@ Modern .NET SDK for TON blockchain with 1:1 API compatibility with official Java
 
 ## Packages
 
-| Package | Description | Version |
-|---------|-------------|---------|
-| **Ton.Core** | Core types, addresses, cells, BOC | [![NuGet](https://img.shields.io/nuget/v/Ton.Core.svg)](https://www.nuget.org/packages/Ton.Core/) |
-| **Ton.Crypto** | Cryptography, mnemonics, Ed25519 | [![NuGet](https://img.shields.io/nuget/v/Ton.Crypto.svg)](https://www.nuget.org/packages/Ton.Crypto/) |
-| **Ton.Client** | HTTP clients, wallets, jettons | [![NuGet](https://img.shields.io/nuget/v/Ton.Client.svg)](https://www.nuget.org/packages/Ton.Client/) |
+| Package        | Description                       | Version                                                                                               |
+|----------------|-----------------------------------|-------------------------------------------------------------------------------------------------------|
+| **Ton.Core**   | Core types, addresses, cells, BOC | [![NuGet](https://img.shields.io/nuget/v/Ton.Core.svg)](https://www.nuget.org/packages/Ton.Core/)     |
+| **Ton.Crypto** | Cryptography, mnemonics, Ed25519  | [![NuGet](https://img.shields.io/nuget/v/Ton.Crypto.svg)](https://www.nuget.org/packages/Ton.Crypto/) |
+| **Ton.Client** | HTTP clients, wallets, jettons    | [![NuGet](https://img.shields.io/nuget/v/Ton.Client.svg)](https://www.nuget.org/packages/Ton.Client/) |
 
 ## Installation
 
@@ -41,6 +41,7 @@ bool isRaw = Address.IsRaw("0:2cf55953...");
 ## Features
 
 ### ✅ Ton.Core (v0.0.1)
+
 - ✅ Address type (immutable, full compatibility with JS)
 - ✅ CRC-16 checksum
 - ⏳ BitString, BitReader, BitBuilder
@@ -50,12 +51,14 @@ bool isRaw = Address.IsRaw("0:2cf55953...");
 - ⏳ TL-B schemas (Message, Transaction, Account, etc.)
 
 ### ⏳ Ton.Crypto (v0.0.1 - Coming Soon)
+
 - ⏳ Mnemonic (BIP39)
 - ⏳ Ed25519 signing
 - ⏳ SHA-256/512, HMAC, PBKDF2
 - ⏳ HD wallets
 
 ### ⏳ Ton.Client (v0.0.1 - Coming Soon)
+
 - ⏳ HTTP API clients
 - ⏳ Wallet contracts (V1-V5)
 - ⏳ Jetton support
@@ -65,6 +68,7 @@ bool isRaw = Address.IsRaw("0:2cf55953...");
 ## API Compatibility
 
 This SDK maintains 1:1 API compatibility with official TON JavaScript SDKs:
+
 - [@ton/core](https://github.com/ton-org/ton-core) → **Ton.Core**
 - [@ton/crypto](https://github.com/ton-org/ton-crypto) → **Ton.Crypto**
 - [@ton/ton](https://github.com/ton-org/ton) → **Ton.Client**
@@ -88,6 +92,7 @@ MIT License - see LICENSE file for details.
 ## Contributing
 
 Contributions welcome! This is a ground-up rewrite focused on:
+
 - Clean, modern C# code
 - Full test coverage
 - Complete API compatibility with JS SDKs

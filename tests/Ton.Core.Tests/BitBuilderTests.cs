@@ -19,9 +19,9 @@ public class BitBuilderTests
     [TestCase(54308, 17, "6A124_")]
     public void Test_SerializeUint(long value, int bits, string expected)
     {
-        var builder = new BitBuilder();
+        BitBuilder builder = new();
         builder.WriteUint(value, bits);
-        var result = builder.Build();
+        BitString result = builder.Build();
         Assert.That(result.ToString(), Is.EqualTo(expected));
     }
 
@@ -37,9 +37,9 @@ public class BitBuilderTests
     [TestCase(-22104, 21, "FD4D44_")]
     public void Test_SerializeInt(long value, int bits, string expected)
     {
-        var builder = new BitBuilder();
+        BitBuilder builder = new();
         builder.WriteInt(value, bits);
-        var result = builder.Build();
+        BitString result = builder.Build();
         Assert.That(result.ToString(), Is.EqualTo(expected));
     }
 
@@ -55,29 +55,34 @@ public class BitBuilderTests
     [TestCase("192570661887521", "6AF2459E55E21")]
     public void Test_SerializeCoins(string value, string expected)
     {
-        var builder = new BitBuilder();
+        BitBuilder builder = new();
         builder.WriteCoins(BigInteger.Parse(value));
-        var result = builder.Build();
+        BitString result = builder.Build();
         Assert.That(result.ToString(), Is.EqualTo(expected));
     }
 
-    [TestCase("Ef89v3kFhPfyauFSn_PWq-F6HyiBSQDZRXjoDRWq5f5IZeTm", "9FE7B7EF20B09EFE4D5C2A53FE7AD57C2F43E51029201B28AF1D01A2B55CBFC90CB_")]
-    [TestCase("Ef-zUJX6ySukm-41iSbHW5Ad788NYuWPYKzuAj4vLhe8WSgF", "9FF66A12BF592574937DC6B124D8EB7203BDF9E1AC5CB1EC159DC047C5E5C2F78B3_")]
-    [TestCase("Ef-x95AVmzKUKkS7isd6XF7YqZf0R0JyOzBO7jir239_feMb", "9FF63EF202B366528548977158EF4B8BDB1532FE88E84E476609DDC7157B6FEFEFB_")]
-    [TestCase("EQDA1y4uDTy1pdfReyOVD6WWGaAsD7CXg4SgltHS8NzITENs", "80181AE5C5C1A796B4BAFA2F6472A1F4B2C3340581F612F0709412DA3A5E1B99099_")]
-    [TestCase("Ef-BsrQDp9XMxUjQW2lnRAdZFKKzBXmATqX57NPO5fjbbEkn", "9FF036568074FAB998A91A0B6D2CE880EB22945660AF3009D4BF3D9A79DCBF1B6D9_")]
+    [TestCase("Ef89v3kFhPfyauFSn_PWq-F6HyiBSQDZRXjoDRWq5f5IZeTm",
+        "9FE7B7EF20B09EFE4D5C2A53FE7AD57C2F43E51029201B28AF1D01A2B55CBFC90CB_")]
+    [TestCase("Ef-zUJX6ySukm-41iSbHW5Ad788NYuWPYKzuAj4vLhe8WSgF",
+        "9FF66A12BF592574937DC6B124D8EB7203BDF9E1AC5CB1EC159DC047C5E5C2F78B3_")]
+    [TestCase("Ef-x95AVmzKUKkS7isd6XF7YqZf0R0JyOzBO7jir239_feMb",
+        "9FF63EF202B366528548977158EF4B8BDB1532FE88E84E476609DDC7157B6FEFEFB_")]
+    [TestCase("EQDA1y4uDTy1pdfReyOVD6WWGaAsD7CXg4SgltHS8NzITENs",
+        "80181AE5C5C1A796B4BAFA2F6472A1F4B2C3340581F612F0709412DA3A5E1B99099_")]
+    [TestCase("Ef-BsrQDp9XMxUjQW2lnRAdZFKKzBXmATqX57NPO5fjbbEkn",
+        "9FF036568074FAB998A91A0B6D2CE880EB22945660AF3009D4BF3D9A79DCBF1B6D9_")]
     public void Test_SerializeAddress(string address, string expected)
     {
-        var builder = new BitBuilder();
+        BitBuilder builder = new();
         builder.WriteAddress(Address.Parse(address));
-        var result = builder.Build();
+        BitString result = builder.Build();
         Assert.That(result.ToString(), Is.EqualTo(expected));
     }
 
     [Test]
     public void Test_StoreBigintAndNumberForLen1()
     {
-        var builder = new BitBuilder();
+        BitBuilder builder = new();
         builder.WriteInt(0, 1);
         builder.WriteInt(new BigInteger(0), 1);
         builder.WriteInt(-1, 1);
@@ -88,10 +93,9 @@ public class BitBuilderTests
     [Test]
     public void Test_StoreBigintAndNumberForLen0()
     {
-        var builder = new BitBuilder();
+        BitBuilder builder = new();
         builder.WriteInt(0, 0);
         builder.WriteInt(new BigInteger(0), 0);
         Assert.That(builder.Length, Is.EqualTo(0));
     }
 }
-

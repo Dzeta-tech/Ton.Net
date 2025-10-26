@@ -1,12 +1,12 @@
 namespace Ton.Core.Utils;
 
 /// <summary>
-/// Provides CRC-16 checksum computation for TON addresses.
+///     Provides CRC-16 checksum computation for TON addresses.
 /// </summary>
 public static class Crc16
 {
     /// <summary>
-    /// Computes the CRC-16 checksum for the given data using the XMODEM polynomial (0x1021).
+    ///     Computes the CRC-16 checksum for the given data using the XMODEM polynomial (0x1021).
     /// </summary>
     /// <param name="data">The data to compute the checksum for.</param>
     /// <returns>A 2-byte array containing the checksum.</returns>
@@ -34,6 +34,6 @@ public static class Crc16
             }
         }
 
-        return new[] { (byte)(reg / 256), (byte)(reg % 256) };
+        return [(byte)(reg / 256), (byte)(reg % 256)];
     }
 }

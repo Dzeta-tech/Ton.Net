@@ -70,16 +70,22 @@ public class CoinsTests
     [Test]
     public void Test_FromNano_RemovesTrailingZeros()
     {
-        Assert.That(Coins.FromNano("1000000000"), Is.EqualTo("1"));
-        Assert.That(Coins.FromNano("1500000000"), Is.EqualTo("1.5"));
-        Assert.That(Coins.FromNano("1000000001"), Is.EqualTo("1.000000001"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(Coins.FromNano("1000000000"), Is.EqualTo("1"));
+            Assert.That(Coins.FromNano("1500000000"), Is.EqualTo("1.5"));
+            Assert.That(Coins.FromNano("1000000001"), Is.EqualTo("1.000000001"));
+        });
     }
 
     [Test]
     public void Test_ToNano_HandlesNegative()
     {
-        Assert.That(Coins.ToNano("-1"), Is.EqualTo(BigInteger.Parse("-1000000000")));
-        Assert.That(Coins.ToNano("--1"), Is.EqualTo(BigInteger.Parse("1000000000"))); // Double negative
+        Assert.Multiple(() =>
+        {
+            Assert.That(Coins.ToNano("-1"), Is.EqualTo(BigInteger.Parse("-1000000000")));
+            Assert.That(Coins.ToNano("--1"), Is.EqualTo(BigInteger.Parse("1000000000"))); // Double negative
+        });
     }
 
     [Test]
@@ -90,22 +96,22 @@ public class CoinsTests
 }
 
 [TestFixture]
-public class Crc32cTests
+public class Crc32CTests
 {
     [Test]
     public void Test_Crc32c_EmptyArray()
     {
-        byte[] result = Crc32c.Compute(Array.Empty<byte>());
-        Assert.That(result.Length, Is.EqualTo(4));
+        byte[] result = Crc32C.Compute([]);
+        Assert.That(result, Has.Length.EqualTo(4));
     }
 
     [Test]
     public void Test_Crc32c_KnownValue()
     {
         // Test with known CRC32C value
-        byte[] data = System.Text.Encoding.UTF8.GetBytes("123456789");
-        byte[] result = Crc32c.Compute(data);
-        
+        byte[] data = "123456789"u8.ToArray();
+        byte[] result = Crc32C.Compute(data);
+
         // CRC32C of "123456789" is 0xE3069283 in little-endian
         Assert.That(result, Is.EqualTo(new byte[] { 0x83, 0x92, 0x06, 0xE3 }));
     }
@@ -117,17 +123,17 @@ public class Base32Tests
     [Test]
     public void Test_Base32_EncodeEmpty()
     {
-        string result = Base32.Encode(Array.Empty<byte>());
+        string result = Base32.Encode([]);
         Assert.That(result, Is.EqualTo(""));
     }
 
     [Test]
     public void Test_Base32_EncodeDecode()
     {
-        byte[] original = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05 };
+        byte[] original = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05];
         string encoded = Base32.Encode(original);
         byte[] decoded = Base32.Decode(encoded);
-        
+
         Assert.That(decoded, Is.EqualTo(original));
     }
 
@@ -135,7 +141,7 @@ public class Base32Tests
     public void Test_Base32_EncodeKnownValue()
     {
         // "Hello" in ASCII
-        byte[] data = new byte[] { 0x48, 0x65, 0x6c, 0x6c, 0x6f };
+        byte[] data = [0x48, 0x65, 0x6c, 0x6c, 0x6f];
         string result = Base32.Encode(data);
         Assert.That(result, Is.EqualTo("jbswy3dp"));
     }
@@ -144,7 +150,7 @@ public class Base32Tests
     public void Test_Base32_DecodeKnownValue()
     {
         byte[] result = Base32.Decode("jbswy3dp");
-        byte[] expected = new byte[] { 0x48, 0x65, 0x6c, 0x6c, 0x6f };
+        byte[] expected = [0x48, 0x65, 0x6c, 0x6c, 0x6f];
         Assert.That(result, Is.EqualTo(expected));
     }
 
@@ -172,7 +178,7 @@ public class MethodIdTests
         // These are real TON method IDs
         int seqno = MethodId.Get("seqno");
         Assert.That(seqno & 0x10000, Is.EqualTo(0x10000)); // Should have the flag
-        
+
         int getPublicKey = MethodId.Get("get_public_key");
         Assert.That(getPublicKey & 0x10000, Is.EqualTo(0x10000));
     }
@@ -195,4 +201,3 @@ public class MethodIdTests
         Assert.That(id1, Is.Not.EqualTo(id2));
     }
 }
-

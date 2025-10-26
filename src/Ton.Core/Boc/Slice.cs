@@ -4,77 +4,76 @@ using Ton.Core.Addresses;
 namespace Ton.Core.Boc;
 
 /// <summary>
-/// Slice allows reading data from cells.
+///     Slice allows reading data from cells.
 /// </summary>
 public class Slice
 {
-    private readonly BitReader _reader;
-    private readonly Cell[] _refs;
-    private int _refsOffset;
+    readonly BitReader reader;
+    readonly Cell[] refs;
 
     /// <summary>
-    /// Creates a new slice.
+    ///     Creates a new slice.
     /// </summary>
     /// <param name="reader">Bit reader.</param>
     /// <param name="refs">Cell references.</param>
     public Slice(BitReader reader, Cell[] refs)
     {
-        _reader = reader.Clone();
-        _refs = [.. refs];
-        _refsOffset = 0;
+        this.reader = reader.Clone();
+        this.refs = [.. refs];
+        OffsetRefs = 0;
     }
 
     /// <summary>
-    /// Gets remaining bits.
+    ///     Gets remaining bits.
     /// </summary>
-    public int RemainingBits => _reader.Remaining;
+    public int RemainingBits => reader.Remaining;
 
     /// <summary>
-    /// Gets offset bits.
+    ///     Gets offset bits.
     /// </summary>
-    public int OffsetBits => _reader.Offset;
+    public int OffsetBits => reader.Offset;
 
     /// <summary>
-    /// Gets remaining refs.
+    ///     Gets remaining refs.
     /// </summary>
-    public int RemainingRefs => _refs.Length - _refsOffset;
+    public int RemainingRefs => refs.Length - OffsetRefs;
 
     /// <summary>
-    /// Gets offset refs.
+    ///     Gets offset refs.
     /// </summary>
-    public int OffsetRefs => _refsOffset;
+    public int OffsetRefs { get; private set; }
 
     /// <summary>
-    /// Skip bits.
+    ///     Skip bits.
     /// </summary>
     /// <param name="bits">Number of bits to skip.</param>
     /// <returns>This slice.</returns>
     public Slice Skip(int bits)
     {
-        _reader.Skip(bits);
+        reader.Skip(bits);
         return this;
     }
 
     /// <summary>
-    /// Load a single bit.
+    ///     Load a single bit.
     /// </summary>
     /// <returns>Bit value.</returns>
     public bool LoadBit()
     {
-        return _reader.LoadBit();
+        return reader.LoadBit();
     }
 
     /// <summary>
-    /// Preload a single bit.
+    ///     Preload a single bit.
     /// </summary>
     /// <returns>Bit value.</returns>
     public bool PreloadBit()
     {
-        return _reader.PreloadBit();
+        return reader.PreloadBit();
     }
 
     /// <summary>
-    /// Load a boolean.
+    ///     Load a boolean.
     /// </summary>
     /// <returns>Boolean value.</returns>
     public bool LoadBoolean()
@@ -83,397 +82,364 @@ public class Slice
     }
 
     /// <summary>
-    /// Load maybe boolean.
+    ///     Load maybe boolean.
     /// </summary>
     /// <returns>Boolean value or null.</returns>
     public bool? LoadMaybeBoolean()
     {
-        if (LoadBit())
-        {
-            return LoadBoolean();
-        }
+        if (LoadBit()) return LoadBoolean();
         return null;
     }
 
     /// <summary>
-    /// Load bits as BitString.
+    ///     Load bits as BitString.
     /// </summary>
     /// <param name="bits">Number of bits.</param>
     /// <returns>BitString.</returns>
     public BitString LoadBits(int bits)
     {
-        return _reader.LoadBits(bits);
+        return reader.LoadBits(bits);
     }
 
     /// <summary>
-    /// Preload bits as BitString.
+    ///     Preload bits as BitString.
     /// </summary>
     /// <param name="bits">Number of bits.</param>
     /// <returns>BitString.</returns>
     public BitString PreloadBits(int bits)
     {
-        return _reader.PreloadBits(bits);
+        return reader.PreloadBits(bits);
     }
 
     /// <summary>
-    /// Load uint.
+    ///     Load uint.
     /// </summary>
     /// <param name="bits">Number of bits.</param>
     /// <returns>Uint value.</returns>
     public long LoadUint(int bits)
     {
-        return _reader.LoadUint(bits);
+        return reader.LoadUint(bits);
     }
 
     /// <summary>
-    /// Load uint big.
+    ///     Load uint big.
     /// </summary>
     /// <param name="bits">Number of bits.</param>
     /// <returns>Uint value as BigInteger.</returns>
     public BigInteger LoadUintBig(int bits)
     {
-        return _reader.LoadUintBig(bits);
+        return reader.LoadUintBig(bits);
     }
 
     /// <summary>
-    /// Preload uint.
+    ///     Preload uint.
     /// </summary>
     /// <param name="bits">Number of bits.</param>
     /// <returns>Uint value.</returns>
     public long PreloadUint(int bits)
     {
-        return _reader.PreloadUint(bits);
+        return reader.PreloadUint(bits);
     }
 
     /// <summary>
-    /// Preload uint big.
+    ///     Preload uint big.
     /// </summary>
     /// <param name="bits">Number of bits.</param>
     /// <returns>Uint value as BigInteger.</returns>
     public BigInteger PreloadUintBig(int bits)
     {
-        return _reader.PreloadUintBig(bits);
+        return reader.PreloadUintBig(bits);
     }
 
     /// <summary>
-    /// Load maybe uint.
+    ///     Load maybe uint.
     /// </summary>
     /// <param name="bits">Number of bits.</param>
     /// <returns>Uint value or null.</returns>
     public long? LoadMaybeUint(int bits)
     {
-        if (LoadBit())
-        {
-            return LoadUint(bits);
-        }
+        if (LoadBit()) return LoadUint(bits);
         return null;
     }
 
     /// <summary>
-    /// Load maybe uint big.
+    ///     Load maybe uint big.
     /// </summary>
     /// <param name="bits">Number of bits.</param>
     /// <returns>Uint value as BigInteger or null.</returns>
     public BigInteger? LoadMaybeUintBig(int bits)
     {
-        if (LoadBit())
-        {
-            return LoadUintBig(bits);
-        }
+        if (LoadBit()) return LoadUintBig(bits);
         return null;
     }
 
     /// <summary>
-    /// Load int.
+    ///     Load int.
     /// </summary>
     /// <param name="bits">Number of bits.</param>
     /// <returns>Int value.</returns>
     public long LoadInt(int bits)
     {
-        return _reader.LoadInt(bits);
+        return reader.LoadInt(bits);
     }
 
     /// <summary>
-    /// Load int big.
+    ///     Load int big.
     /// </summary>
     /// <param name="bits">Number of bits.</param>
     /// <returns>Int value as BigInteger.</returns>
     public BigInteger LoadIntBig(int bits)
     {
-        return _reader.LoadIntBig(bits);
+        return reader.LoadIntBig(bits);
     }
 
     /// <summary>
-    /// Preload int.
+    ///     Preload int.
     /// </summary>
     /// <param name="bits">Number of bits.</param>
     /// <returns>Int value.</returns>
     public long PreloadInt(int bits)
     {
-        return _reader.PreloadInt(bits);
+        return reader.PreloadInt(bits);
     }
 
     /// <summary>
-    /// Preload int big.
+    ///     Preload int big.
     /// </summary>
     /// <param name="bits">Number of bits.</param>
     /// <returns>Int value as BigInteger.</returns>
     public BigInteger PreloadIntBig(int bits)
     {
-        return _reader.PreloadIntBig(bits);
+        return reader.PreloadIntBig(bits);
     }
 
     /// <summary>
-    /// Load maybe int.
+    ///     Load maybe int.
     /// </summary>
     /// <param name="bits">Number of bits.</param>
     /// <returns>Int value or null.</returns>
     public long? LoadMaybeInt(int bits)
     {
-        if (LoadBit())
-        {
-            return LoadInt(bits);
-        }
+        if (LoadBit()) return LoadInt(bits);
         return null;
     }
 
     /// <summary>
-    /// Load maybe int big.
+    ///     Load maybe int big.
     /// </summary>
     /// <param name="bits">Number of bits.</param>
     /// <returns>Int value as BigInteger or null.</returns>
     public BigInteger? LoadMaybeIntBig(int bits)
     {
-        if (LoadBit())
-        {
-            return LoadIntBig(bits);
-        }
+        if (LoadBit()) return LoadIntBig(bits);
         return null;
     }
 
     /// <summary>
-    /// Load varuint.
+    ///     Load varuint.
     /// </summary>
     /// <param name="bits">Header bits.</param>
     /// <returns>Varuint value.</returns>
     public long LoadVarUint(int bits)
     {
-        return _reader.LoadVarUint(bits);
+        return reader.LoadVarUint(bits);
     }
 
     /// <summary>
-    /// Load varuint big.
+    ///     Load varuint big.
     /// </summary>
     /// <param name="bits">Header bits.</param>
     /// <returns>Varuint value as BigInteger.</returns>
     public BigInteger LoadVarUintBig(int bits)
     {
-        return _reader.LoadVarUintBig(bits);
+        return reader.LoadVarUintBig(bits);
     }
 
     /// <summary>
-    /// Preload varuint.
+    ///     Preload varuint.
     /// </summary>
     /// <param name="bits">Header bits.</param>
     /// <returns>Varuint value.</returns>
     public long PreloadVarUint(int bits)
     {
-        return _reader.PreloadVarUint(bits);
+        return reader.PreloadVarUint(bits);
     }
 
     /// <summary>
-    /// Preload varuint big.
+    ///     Preload varuint big.
     /// </summary>
     /// <param name="bits">Header bits.</param>
     /// <returns>Varuint value as BigInteger.</returns>
     public BigInteger PreloadVarUintBig(int bits)
     {
-        return _reader.PreloadVarUintBig(bits);
+        return reader.PreloadVarUintBig(bits);
     }
 
     /// <summary>
-    /// Load varint.
+    ///     Load varint.
     /// </summary>
     /// <param name="bits">Header bits.</param>
     /// <returns>Varint value.</returns>
     public long LoadVarInt(int bits)
     {
-        return _reader.LoadVarInt(bits);
+        return reader.LoadVarInt(bits);
     }
 
     /// <summary>
-    /// Load varint big.
+    ///     Load varint big.
     /// </summary>
     /// <param name="bits">Header bits.</param>
     /// <returns>Varint value as BigInteger.</returns>
     public BigInteger LoadVarIntBig(int bits)
     {
-        return _reader.LoadVarIntBig(bits);
+        return reader.LoadVarIntBig(bits);
     }
 
     /// <summary>
-    /// Preload varint.
+    ///     Preload varint.
     /// </summary>
     /// <param name="bits">Header bits.</param>
     /// <returns>Varint value.</returns>
     public long PreloadVarInt(int bits)
     {
-        return _reader.PreloadVarInt(bits);
+        return reader.PreloadVarInt(bits);
     }
 
     /// <summary>
-    /// Preload varint big.
+    ///     Preload varint big.
     /// </summary>
     /// <param name="bits">Header bits.</param>
     /// <returns>Varint value as BigInteger.</returns>
     public BigInteger PreloadVarIntBig(int bits)
     {
-        return _reader.PreloadVarIntBig(bits);
+        return reader.PreloadVarIntBig(bits);
     }
 
     /// <summary>
-    /// Load coins.
+    ///     Load coins.
     /// </summary>
     /// <returns>Coins value.</returns>
     public BigInteger LoadCoins()
     {
-        return _reader.LoadCoins();
+        return reader.LoadCoins();
     }
 
     /// <summary>
-    /// Preload coins.
+    ///     Preload coins.
     /// </summary>
     /// <returns>Coins value.</returns>
     public BigInteger PreloadCoins()
     {
-        return _reader.PreloadCoins();
+        return reader.PreloadCoins();
     }
 
     /// <summary>
-    /// Load maybe coins.
+    ///     Load maybe coins.
     /// </summary>
     /// <returns>Coins value or null.</returns>
     public BigInteger? LoadMaybeCoins()
     {
-        if (_reader.LoadBit())
-        {
-            return _reader.LoadCoins();
-        }
+        if (reader.LoadBit()) return reader.LoadCoins();
         return null;
     }
 
     /// <summary>
-    /// Load address.
+    ///     Load address.
     /// </summary>
     /// <returns>Address or null.</returns>
     public Address? LoadAddress()
     {
-        return _reader.LoadAddress();
+        return reader.LoadAddress();
     }
 
     /// <summary>
-    /// Load maybe address.
+    ///     Load maybe address.
     /// </summary>
     /// <returns>Address or null.</returns>
     public Address? LoadMaybeAddress()
     {
-        return _reader.LoadMaybeAddress();
+        return reader.LoadMaybeAddress();
     }
 
     /// <summary>
-    /// Preload address.
+    ///     Preload address.
     /// </summary>
     /// <returns>Address or null.</returns>
     public Address? PreloadAddress()
     {
-        return _reader.PreloadAddress();
+        return reader.PreloadAddress();
     }
 
     /// <summary>
-    /// Load reference.
+    ///     Load reference.
     /// </summary>
     /// <returns>Cell.</returns>
     public Cell LoadRef()
     {
-        if (_refsOffset >= _refs.Length)
-        {
-            throw new InvalidOperationException("No more references");
-        }
-        return _refs[_refsOffset++];
+        if (OffsetRefs >= refs.Length) throw new InvalidOperationException("No more references");
+        return refs[OffsetRefs++];
     }
 
     /// <summary>
-    /// Preload reference.
+    ///     Preload reference.
     /// </summary>
     /// <returns>Cell.</returns>
     public Cell PreloadRef()
     {
-        if (_refsOffset >= _refs.Length)
-        {
-            throw new InvalidOperationException("No more references");
-        }
-        return _refs[_refsOffset];
+        if (OffsetRefs >= refs.Length) throw new InvalidOperationException("No more references");
+        return refs[OffsetRefs];
     }
 
     /// <summary>
-    /// Load maybe reference.
+    ///     Load maybe reference.
     /// </summary>
     /// <returns>Cell or null.</returns>
     public Cell? LoadMaybeRef()
     {
-        if (LoadBit())
-        {
-            return LoadRef();
-        }
+        if (LoadBit()) return LoadRef();
         return null;
     }
 
     /// <summary>
-    /// Preload maybe reference.
+    ///     Preload maybe reference.
     /// </summary>
     /// <returns>Cell or null.</returns>
     public Cell? PreloadMaybeRef()
     {
-        if (PreloadBit())
-        {
-            return PreloadRef();
-        }
+        if (PreloadBit()) return PreloadRef();
         return null;
     }
 
     /// <summary>
-    /// Load buffer.
+    ///     Load buffer.
     /// </summary>
     /// <param name="bytes">Number of bytes.</param>
     /// <returns>Buffer.</returns>
     public byte[] LoadBuffer(int bytes)
     {
-        return _reader.LoadBuffer(bytes);
+        return reader.LoadBuffer(bytes);
     }
 
     /// <summary>
-    /// Preload buffer.
+    ///     Preload buffer.
     /// </summary>
     /// <param name="bytes">Number of bytes.</param>
     /// <returns>Buffer.</returns>
     public byte[] PreloadBuffer(int bytes)
     {
-        return _reader.PreloadBuffer(bytes);
+        return reader.PreloadBuffer(bytes);
     }
 
     /// <summary>
-    /// Check if slice is empty and throw if not.
+    ///     Check if slice is empty and throw if not.
     /// </summary>
     public void EndParse()
     {
-        if (RemainingBits > 0 || RemainingRefs > 0)
-        {
-            throw new InvalidOperationException("Slice is not empty");
-        }
+        if (RemainingBits > 0 || RemainingRefs > 0) throw new InvalidOperationException("Slice is not empty");
     }
 
     /// <summary>
-    /// Convert slice to cell.
+    ///     Convert slice to cell.
     /// </summary>
     /// <returns>Cell.</returns>
     public Cell AsCell()
@@ -482,7 +448,7 @@ public class Slice
     }
 
     /// <summary>
-    /// Convert slice to builder.
+    ///     Convert slice to builder.
     /// </summary>
     /// <returns>Builder.</returns>
     public Builder AsBuilder()
@@ -491,7 +457,7 @@ public class Slice
     }
 
     /// <summary>
-    /// Clone slice.
+    ///     Clone slice.
     /// </summary>
     /// <param name="fromStart">Whether to clone from start.</param>
     /// <returns>Cloned slice.</returns>
@@ -499,20 +465,18 @@ public class Slice
     {
         if (fromStart)
         {
-            var reader = _reader.Clone();
+            BitReader reader = this.reader.Clone();
             reader.Reset();
-            return new Slice(reader, _refs);
+            return new Slice(reader, refs);
         }
-        else
-        {
-            var res = new Slice(_reader, _refs);
-            res._refsOffset = _refsOffset;
-            return res;
-        }
+
+        Slice res = new(reader, refs);
+        res.OffsetRefs = OffsetRefs;
+        return res;
     }
 
     /// <summary>
-    /// Print slice as string.
+    ///     Print slice as string.
     /// </summary>
     /// <returns>String representation.</returns>
     public override string ToString()
@@ -520,4 +484,3 @@ public class Slice
         return AsCell().ToString();
     }
 }
-

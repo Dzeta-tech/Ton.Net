@@ -4,12 +4,12 @@ using System.Text;
 namespace Ton.Crypto.Primitives;
 
 /// <summary>
-/// PBKDF2-SHA512 key derivation functions.
+///     PBKDF2-SHA512 key derivation functions.
 /// </summary>
 public static class Pbkdf2Sha512
 {
     /// <summary>
-    /// Derives a key using PBKDF2-SHA512.
+    ///     Derives a key using PBKDF2-SHA512.
     /// </summary>
     /// <param name="password">Password.</param>
     /// <param name="salt">Salt.</param>
@@ -18,12 +18,12 @@ public static class Pbkdf2Sha512
     /// <returns>Derived key.</returns>
     public static byte[] DeriveKey(byte[] password, byte[] salt, int iterations, int keyLength)
     {
-        using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA512);
+        using Rfc2898DeriveBytes pbkdf2 = new(password, salt, iterations, HashAlgorithmName.SHA512);
         return pbkdf2.GetBytes(keyLength);
     }
 
     /// <summary>
-    /// Derives a key using PBKDF2-SHA512 with string inputs (UTF-8 encoded).
+    ///     Derives a key using PBKDF2-SHA512 with string inputs (UTF-8 encoded).
     /// </summary>
     /// <param name="password">Password as string.</param>
     /// <param name="salt">Salt as string.</param>
@@ -36,7 +36,7 @@ public static class Pbkdf2Sha512
     }
 
     /// <summary>
-    /// Derives a key using PBKDF2-SHA512 with mixed inputs.
+    ///     Derives a key using PBKDF2-SHA512 with mixed inputs.
     /// </summary>
     /// <param name="password">Password.</param>
     /// <param name="salt">Salt as string.</param>
@@ -49,7 +49,7 @@ public static class Pbkdf2Sha512
     }
 
     /// <summary>
-    /// Derives a key using PBKDF2-SHA512 with mixed inputs.
+    ///     Derives a key using PBKDF2-SHA512 with mixed inputs.
     /// </summary>
     /// <param name="password">Password as string.</param>
     /// <param name="salt">Salt.</param>
@@ -61,4 +61,3 @@ public static class Pbkdf2Sha512
         return DeriveKey(Encoding.UTF8.GetBytes(password), salt, iterations, keyLength);
     }
 }
-

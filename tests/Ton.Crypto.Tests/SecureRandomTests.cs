@@ -10,12 +10,15 @@ public class SecureRandomTests
     {
         byte[] bytes1 = SecureRandom.GetBytes(32);
         byte[] bytes2 = SecureRandom.GetBytes(32);
-        
-        Assert.That(bytes1.Length, Is.EqualTo(32));
-        Assert.That(bytes2.Length, Is.EqualTo(32));
-        
-        // Two random byte arrays should be different
-        Assert.That(bytes1, Is.Not.EqualTo(bytes2));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(bytes1, Has.Length.EqualTo(32));
+            Assert.That(bytes2, Has.Length.EqualTo(32));
+
+            // Two random byte arrays should be different
+            Assert.That(bytes1, Is.Not.EqualTo(bytes2));
+        });
     }
 
     [Test]
@@ -23,7 +26,7 @@ public class SecureRandomTests
     {
         int min = 10;
         int max = 20;
-        
+
         // Generate multiple random numbers and check they're all in range
         for (int i = 0; i < 100; i++)
         {
@@ -39,19 +42,16 @@ public class SecureRandomTests
         int min = 0;
         int max = 10;
         int[] counts = new int[max - min];
-        
+
         // Generate many random numbers
         for (int i = 0; i < 1000; i++)
         {
             int num = SecureRandom.GetNumber(min, max);
             counts[num - min]++;
         }
-        
+
         // Check that all numbers appeared at least once (statistically very likely)
-        foreach (int count in counts)
-        {
-            Assert.That(count, Is.GreaterThan(0));
-        }
+        foreach (int count in counts) Assert.That(count, Is.GreaterThan(0));
     }
 
     [Test]
@@ -67,7 +67,7 @@ public class SecureRandomTests
         foreach (int size in new[] { 1, 16, 32, 64, 128, 256 })
         {
             byte[] bytes = SecureRandom.GetBytes(size);
-            Assert.That(bytes.Length, Is.EqualTo(size));
+            Assert.That(bytes, Has.Length.EqualTo(size));
         }
     }
 
@@ -76,7 +76,7 @@ public class SecureRandomTests
     {
         int min = 0;
         int max = 1000000;
-        
+
         // Test a few times with large range
         for (int i = 0; i < 10; i++)
         {
@@ -86,4 +86,3 @@ public class SecureRandomTests
         }
     }
 }
-

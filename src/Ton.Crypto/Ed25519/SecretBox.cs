@@ -1,21 +1,21 @@
+using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
-using System.Security.Cryptography;
 
 namespace Ton.Crypto.Ed25519;
 
 /// <summary>
-/// Secret-key authenticated encryption using XSalsa20-Poly1305 (NaCl secretbox).
+///     Secret-key authenticated encryption using XSalsa20-Poly1305 (NaCl secretbox).
 /// </summary>
 public static class SecretBox
 {
-    private const int KeySize = 32;
-    private const int NonceSize = 24;
-    private const int TagSize = 16;
+    const int KeySize = 32;
+    const int NonceSize = 24;
+    const int TagSize = 16;
 
     /// <summary>
-    /// Encrypts and authenticates data using XSalsa20-Poly1305.
+    ///     Encrypts and authenticates data using XSalsa20-Poly1305.
     /// </summary>
     /// <param name="data">Data to encrypt.</param>
     /// <param name="nonce">24-byte nonce.</param>
@@ -37,14 +37,14 @@ public static class SecretBox
         Array.Copy(nonce, 16, salsa20Nonce, 0, 8);
 
         // Encrypt with Salsa20
-        var salsa = new Salsa20Engine();
+        Salsa20Engine salsa = new();
         salsa.Init(true, new ParametersWithIV(new KeyParameter(subkey), salsa20Nonce));
 
         byte[] ciphertext = new byte[data.Length];
         salsa.ProcessBytes(data, 0, data.Length, ciphertext, 0);
 
         // Compute Poly1305 MAC
-        var poly = new Poly1305();
+        Poly1305 poly = new();
         poly.Init(new KeyParameter(subkey));
         poly.BlockUpdate(ciphertext, 0, ciphertext.Length);
 
@@ -60,7 +60,7 @@ public static class SecretBox
     }
 
     /// <summary>
-    /// Decrypts and verifies data encrypted with XSalsa20-Poly1305.
+    ///     Decrypts and verifies data encrypted with XSalsa20-Poly1305.
     /// </summary>
     /// <param name="data">Encrypted data with 16-byte authentication tag prepended.</param>
     /// <param name="nonce">24-byte nonce.</param>
@@ -88,7 +88,7 @@ public static class SecretBox
             HSalsa20(subkey, nonce, key);
 
             // Verify Poly1305 MAC
-            var poly = new Poly1305();
+            Poly1305 poly = new();
             poly.Init(new KeyParameter(subkey));
             poly.BlockUpdate(ciphertext, 0, ciphertext.Length);
 
@@ -104,7 +104,7 @@ public static class SecretBox
             Array.Copy(nonce, 16, salsa20Nonce, 0, 8);
 
             // Decrypt with Salsa20
-            var salsa = new Salsa20Engine();
+            Salsa20Engine salsa = new();
             salsa.Init(false, new ParametersWithIV(new KeyParameter(subkey), salsa20Nonce));
 
             byte[] plaintext = new byte[ciphertext.Length];
@@ -118,7 +118,7 @@ public static class SecretBox
         }
     }
 
-    private static void HSalsa20(byte[] output, byte[] nonce, byte[] key)
+    static void HSalsa20(byte[] output, byte[] nonce, byte[] key)
     {
         // HSalsa20 core function - used to derive subkey from nonce and key
         uint[] x = new uint[16];
@@ -202,12 +202,13 @@ public static class SecretBox
         Store32(output, 28, x[9]);
     }
 
-    private static uint Load32(byte[] buffer, int offset)
+    static uint Load32(byte[] buffer, int offset)
     {
-        return (uint)(buffer[offset] | (buffer[offset + 1] << 8) | (buffer[offset + 2] << 16) | (buffer[offset + 3] << 24));
+        return (uint)(buffer[offset] | (buffer[offset + 1] << 8) | (buffer[offset + 2] << 16) |
+                      (buffer[offset + 3] << 24));
     }
 
-    private static void Store32(byte[] buffer, int offset, uint value)
+    static void Store32(byte[] buffer, int offset, uint value)
     {
         buffer[offset] = (byte)value;
         buffer[offset + 1] = (byte)(value >> 8);
@@ -215,10 +216,8 @@ public static class SecretBox
         buffer[offset + 3] = (byte)(value >> 24);
     }
 
-    private static uint Rotate(uint v, int c)
+    static uint Rotate(uint v, int c)
     {
         return (v << c) | (v >> (32 - c));
     }
 }
-
-

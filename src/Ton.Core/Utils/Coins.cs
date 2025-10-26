@@ -5,15 +5,15 @@ using System.Text.RegularExpressions;
 namespace Ton.Core.Utils;
 
 /// <summary>
-/// Utility functions for converting between TON coins and nanotons.
-/// 1 TON = 1,000,000,000 nanotons
+///     Utility functions for converting between TON coins and nanotons.
+///     1 TON = 1,000,000,000 nanotons
 /// </summary>
-public static class Coins
+public static partial class Coins
 {
     const long NanoPower = 1_000_000_000L;
-    
+
     /// <summary>
-    /// Converts TON coins to nanotons.
+    ///     Converts TON coins to nanotons.
     /// </summary>
     /// <param name="value">The value in TON coins (can be string, long, or BigInteger).</param>
     /// <returns>The value in nanotons.</returns>
@@ -39,14 +39,14 @@ public static class Coins
         // Prepare parts
         string whole = parts.Length > 0 ? parts[0] : "";
         string frac = parts.Length > 1 ? parts[1] : "";
-        
+
         if (string.IsNullOrEmpty(whole))
             whole = "0";
         if (string.IsNullOrEmpty(frac))
             frac = "0";
         if (frac.Length > 9)
             throw new ArgumentException("Invalid number: too many decimal places", nameof(value));
-        
+
         while (frac.Length < 9)
             frac += "0";
 
@@ -54,12 +54,12 @@ public static class Coins
         BigInteger result = BigInteger.Parse(whole) * NanoPower + BigInteger.Parse(frac);
         if (neg)
             result = -result;
-        
+
         return result;
     }
 
     /// <summary>
-    /// Converts TON coins to nanotons.
+    ///     Converts TON coins to nanotons.
     /// </summary>
     /// <param name="value">The value in TON coins.</param>
     /// <returns>The value in nanotons.</returns>
@@ -69,7 +69,7 @@ public static class Coins
     }
 
     /// <summary>
-    /// Converts TON coins to nanotons.
+    ///     Converts TON coins to nanotons.
     /// </summary>
     /// <param name="value">The value in TON coins.</param>
     /// <returns>The value in nanotons.</returns>
@@ -84,19 +84,18 @@ public static class Coins
             string str = value.ToString("F9", CultureInfo.InvariantCulture);
             return ToNano(str);
         }
-        else if (value - Math.Truncate(value) == 0)
+
+        if (value - Math.Truncate(value) == 0)
         {
             string str = value.ToString("F0", CultureInfo.InvariantCulture);
             return ToNano(str);
         }
-        else
-        {
-            throw new ArgumentException("Not enough precision for a number value. Use string value instead", nameof(value));
-        }
+
+        throw new ArgumentException("Not enough precision for a number value. Use string value instead", nameof(value));
     }
 
     /// <summary>
-    /// Converts nanotons to TON coins as a decimal string.
+    ///     Converts nanotons to TON coins as a decimal string.
     /// </summary>
     /// <param name="value">The value in nanotons.</param>
     /// <returns>The value in TON coins as a string.</returns>
@@ -114,9 +113,9 @@ public static class Coins
         string fracStr = frac.ToString();
         while (fracStr.Length < 9)
             fracStr = "0" + fracStr;
-        
+
         // Remove trailing zeros
-        fracStr = Regex.Replace(fracStr, "^([0-9]*[1-9]|0)(0*)$", "$1");
+        fracStr = MyRegex().Replace(fracStr, "$1");
 
         // Convert whole
         BigInteger whole = value / NanoPower;
@@ -131,7 +130,7 @@ public static class Coins
     }
 
     /// <summary>
-    /// Converts nanotons to TON coins as a decimal string.
+    ///     Converts nanotons to TON coins as a decimal string.
     /// </summary>
     /// <param name="value">The value in nanotons.</param>
     /// <returns>The value in TON coins as a string.</returns>
@@ -141,7 +140,7 @@ public static class Coins
     }
 
     /// <summary>
-    /// Converts nanotons to TON coins as a decimal string.
+    ///     Converts nanotons to TON coins as a decimal string.
     /// </summary>
     /// <param name="value">The value in nanotons as a string.</param>
     /// <returns>The value in TON coins as a string.</returns>
@@ -149,5 +148,7 @@ public static class Coins
     {
         return FromNano(BigInteger.Parse(value));
     }
-}
 
+    [GeneratedRegex("^([0-9]*[1-9]|0)(0*)$")]
+    private static partial Regex MyRegex();
+}
