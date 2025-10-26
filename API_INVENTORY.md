@@ -107,14 +107,14 @@ This document tracks the implementation status of all APIs from the JavaScript S
 - [x] `Sha512.Hash()` - SHA-512 hashing ✅ v0.0.5
 - [x] `Pbkdf2Sha512.DeriveKey()` - PBKDF2 with SHA-512 ✅ v0.0.5
 - [x] `HmacSha512.Hash()` - HMAC with SHA-512 ✅ v0.0.5
-- [ ] `GetSecureRandomBytes()` / `GetSecureRandomWords()` / `GetSecureRandomNumber()` - secure random generation
+- [x] `SecureRandom.GetBytes()` / `SecureRandom.GetNumber()` - secure random generation ✅ v0.0.6
 
 ### NaCl (Ed25519)
-- [ ] `KeyPair` struct - public/private key pair
-- [ ] `KeyPairFromSeed()` - derive keypair from seed
-- [ ] `KeyPairFromSecretKey()` - derive keypair from secret key
-- [ ] `Sign()` / `SignVerify()` - Ed25519 signing
-- [ ] `SealBox()` / `OpenBox()` - authenticated encryption
+- [x] `KeyPair` class - public/private key pair ✅ v0.0.6
+- [x] `Ed25519.KeyPairFromSeed()` - derive keypair from seed ✅ v0.0.6
+- [x] `Ed25519.KeyPairFromSecretKey()` - derive keypair from secret key ✅ v0.0.6
+- [x] `Ed25519.Sign()` / `Ed25519.SignVerify()` - Ed25519 signing ✅ v0.0.6
+- [x] `SecretBox.Seal()` / `SecretBox.Open()` - authenticated encryption (XSalsa20-Poly1305) ✅ v0.0.6
 
 ### Mnemonic (BIP39)
 - [ ] `MnemonicNew()` - generate new mnemonic (12/15/18/21/24 words)
