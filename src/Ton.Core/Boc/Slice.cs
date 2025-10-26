@@ -431,6 +431,30 @@ public class Slice
     }
 
     /// <summary>
+    ///     Load dictionary (reads ref to dictionary root).
+    /// </summary>
+    /// <param name="key">Key serializer.</param>
+    /// <param name="value">Value serializer.</param>
+    /// <returns>Dictionary.</returns>
+    public Dict.Dictionary<K, V> LoadDict<K, V>(Dict.IDictionaryKey<K> key, Dict.IDictionaryValue<V> value)
+        where K : Dict.IDictionaryKeyType
+    {
+        return Dict.Dictionary<K, V>.Load(key, value, this);
+    }
+
+    /// <summary>
+    ///     Load dictionary directly (no ref indirection).
+    /// </summary>
+    /// <param name="key">Key serializer.</param>
+    /// <param name="value">Value serializer.</param>
+    /// <returns>Dictionary.</returns>
+    public Dict.Dictionary<K, V> LoadDictDirect<K, V>(Dict.IDictionaryKey<K> key, Dict.IDictionaryValue<V> value)
+        where K : Dict.IDictionaryKeyType
+    {
+        return Dict.Dictionary<K, V>.LoadDirect(key, value, this);
+    }
+
+    /// <summary>
     ///     Check if slice is empty and throw if not.
     /// </summary>
     public void EndParse()

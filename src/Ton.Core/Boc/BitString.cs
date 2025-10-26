@@ -161,6 +161,43 @@ public class BitString : IEquatable<BitString>
     }
 
     /// <summary>
+    ///     Parse a bit string from its canonical hex representation.
+    /// </summary>
+    /// <param name="str">Hex string (may end with "_" if length is not a multiple of 4).</param>
+    /// <returns>Parsed BitString.</returns>
+    public static BitString Parse(string str)
+    {
+        // Handle underscore suffix
+        bool hasUnderscore = str.EndsWith("_");
+        string hex = hasUnderscore ? str[..^1] : str;
+
+        // Convert hex to bytes
+        byte[] bytes = Convert.FromHexString(hex);
+        int bitLength = hex.Length * 4;
+
+        // Adjust bit length if there's an underscore (means last nibble is incomplete)
+        if (hasUnderscore)
+        {
+            // Find the position of the padding bit (first set bit from the right in the last nibble)
+            int lastByte = bytes[^1];
+            int lastNibble = lastByte & 0x0F;
+            int paddingPos = 0;
+            for (int i = 3; i >= 0; i--)
+            {
+                if ((lastNibble & (1 << i)) != 0)
+                {
+                    paddingPos = i;
+                    break;
+                }
+            }
+
+            bitLength = (hex.Length - 1) * 4 + (3 - paddingPos);
+        }
+
+        return new BitString(bytes, 0, bitLength);
+    }
+
+    /// <summary>
     ///     Converts bits to a padded buffer for serialization.
     /// </summary>
     byte[] BitsToPaddedBuffer()

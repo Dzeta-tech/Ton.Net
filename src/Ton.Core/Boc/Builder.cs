@@ -569,6 +569,28 @@ public class Builder
     }
 
     /// <summary>
+    ///     Store dictionary (stores ref to dictionary root).
+    /// </summary>
+    /// <param name="dict">Dictionary to store.</param>
+    /// <returns>This builder.</returns>
+    public Builder StoreDict<K, V>(Dict.Dictionary<K, V>? dict) where K : Dict.IDictionaryKeyType
+    {
+        dict?.Store(this);
+        return this;
+    }
+
+    /// <summary>
+    ///     Store dictionary directly (no ref indirection).
+    /// </summary>
+    /// <param name="dict">Dictionary to store.</param>
+    /// <returns>This builder.</returns>
+    public Builder StoreDictDirect<K, V>(Dict.Dictionary<K, V>? dict) where K : Dict.IDictionaryKeyType
+    {
+        dict?.StoreDirect(this);
+        return this;
+    }
+
+    /// <summary>
     ///     Complete building and return the cell.
     /// </summary>
     /// <param name="exotic">Whether to create an exotic cell.</param>
