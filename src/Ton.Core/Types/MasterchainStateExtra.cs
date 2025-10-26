@@ -6,16 +6,25 @@ namespace Ton.Core.Types;
 
 /// <summary>
 ///     MasterchainStateExtra - masterchain state extra information.
-///     Source: https://github.com/ton-foundation/ton/blob/ae5c0720143e231c32c3d2034cfe4e533a16d969/crypto/block/block.tlb#L534
-///     
+///     Source:
+///     https://github.com/ton-foundation/ton/blob/ae5c0720143e231c32c3d2034cfe4e533a16d969/crypto/block/block.tlb#L534
 ///     masterchain_state_extra#cc26
-///       shard_hashes:ShardHashes
-///       config:ConfigParams
-///       extra_ref: flags, validator_info, prev_blocks, etc.
-///       global_balance:CurrencyCollection
+///     shard_hashes:ShardHashes
+///     config:ConfigParams
+///     extra_ref: flags, validator_info, prev_blocks, etc.
+///     global_balance:CurrencyCollection
 /// </summary>
 public record MasterchainStateExtra
 {
+    public MasterchainStateExtra(
+        BigInteger configAddress, TonDict.Dictionary<TonDict.DictKeyInt, Cell> config,
+        CurrencyCollection globalBalance)
+    {
+        ConfigAddress = configAddress;
+        Config = config;
+        GlobalBalance = globalBalance;
+    }
+
     /// <summary>
     ///     Configuration address (256 bits).
     /// </summary>
@@ -30,16 +39,6 @@ public record MasterchainStateExtra
     ///     Global balance (total TON in circulation).
     /// </summary>
     public CurrencyCollection GlobalBalance { get; init; }
-
-    public MasterchainStateExtra(
-        BigInteger configAddress,
-        TonDict.Dictionary<TonDict.DictKeyInt, Cell> config,
-        CurrencyCollection globalBalance)
-    {
-        ConfigAddress = configAddress;
-        Config = config;
-        GlobalBalance = globalBalance;
-    }
 
     /// <summary>
     ///     Loads MasterchainStateExtra from slice.
@@ -57,12 +56,11 @@ public record MasterchainStateExtra
 
         // Read ConfigParams: config_addr:bits256 config:^(Hashmap 32 ^Cell)
         BigInteger configAddress = slice.LoadUintBig(256);
-        TonDict.Dictionary<TonDict.DictKeyInt, Cell> config =
-            TonDict.Dictionary<TonDict.DictKeyInt, Cell>.LoadDirect(
-                TonDict.DictionaryKeys.Int(32),
-                TonDict.DictionaryValues.Cell(),
-                slice
-            );
+        TonDict.Dictionary<TonDict.DictKeyInt, Cell> config = TonDict.Dictionary<TonDict.DictKeyInt, Cell>.LoadDirect(
+            TonDict.DictionaryKeys.Int(32),
+            TonDict.DictionaryValues.Cell(),
+            slice
+        );
 
         // Skip the extra ref (flags, validator_info, etc.)
         // This contains advanced data that's rarely needed
@@ -99,4 +97,3 @@ public record MasterchainStateExtra
         GlobalBalance.Store(builder);
     }
 }
-
