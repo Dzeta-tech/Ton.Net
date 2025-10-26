@@ -394,8 +394,21 @@ public class BitReader
     /// <returns>Address or null.</returns>
     public Address? LoadMaybeAddress()
     {
-        if (LoadBit()) return LoadAddress();
-        return null;
+        int type = (int)LoadUint(2);
+
+        if (type == 0)
+            return null; // Empty address
+
+        if (type == 2)
+        {
+            // Internal address - continue reading without re-reading the type
+            Skip(1); // anycast (not supported, must be 0)
+            int workchain = (int)LoadInt(8);
+            byte[] hash = LoadBuffer(32);
+            return new Address(workchain, hash);
+        }
+
+        throw new InvalidOperationException($"Invalid address type for LoadMaybeAddress: {type}");
     }
 
     /// <summary>

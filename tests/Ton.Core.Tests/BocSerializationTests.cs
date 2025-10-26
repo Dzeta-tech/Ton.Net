@@ -232,7 +232,7 @@ public class BocSerializationTests
     {
         Cell cell = Builder.BeginCell().StoreUint(12345, 32).EndCell();
 
-        byte[] bocWithCRC = cell.ToBoc(true, true);
+        byte[] bocWithCRC = cell.ToBoc();
         byte[] bocWithoutCRC = cell.ToBoc(true, false);
 
         // BOC with CRC should be 4 bytes longer

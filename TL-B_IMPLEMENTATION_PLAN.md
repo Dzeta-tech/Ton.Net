@@ -2,7 +2,7 @@
 
 ## Priority 1: Core Types (Essential for Wallets & DApps)
 
-### 1.1 Foundation (Week 1, Days 1-2)
+### 1.1 Foundation (Week 1, Days 1-2) ✅ COMPLETE
 - [x] `SendMode.ts` - Enum (simple)
 - [x] `StateInit.ts` - Contract initialization
 - [x] `TickTock.ts` - Tick-tock flag (dependency)
@@ -10,20 +10,21 @@
 - [x] `CommonMessageInfo.ts` - Message headers (3 variants)
 - [x] `CurrencyCollection.ts` - TON + extra currencies
 - [x] `ExternalAddress.ts` - External address type
-- [ ] `Message.ts` - Messages (internal/external)
-- [ ] `CommonMessageInfoRelaxed.ts` - Relaxed message headers
-- [ ] `MessageRelaxed.ts` - Relaxed messages
+- [x] `Message.ts` - Messages (internal/external)
+- [x] `CommonMessageInfoRelaxed.ts` - Relaxed message headers
+- [x] `MessageRelaxed.ts` - Relaxed messages
 
 **Why first:** Required for ANY contract interaction (sending messages, deploying contracts).
 
-### 1.2 Account Types (Week 1, Days 3-4)
-- [ ] `AccountStatus.ts` - Enum (simple)
-- [ ] `AccountStorage.ts` - Account storage data
-- [ ] `AccountState.ts` - Account state
-- [ ] `Account.ts` - Full account structure
-- [ ] `StorageInfo.ts` - Storage statistics
-- [ ] `StorageUsed.ts` - Storage usage
-- [ ] `DepthBalanceInfo.ts` - Balance info
+### 1.2 Account Types (Week 1, Days 3-4) ✅ COMPLETE
+- [x] `AccountStatus.ts` - Enum (simple)
+- [x] `AccountStorage.ts` - Account storage data
+- [x] `AccountState.ts` - Account state
+- [x] `StorageInfo.ts` - Storage statistics
+- [x] `StorageUsed.ts` - Storage usage
+- [x] `StorageExtraInfo.ts` - Extra storage info
+- [x] `Account.ts` - Full account structure
+- [x] `DepthBalanceInfo.ts` - Balance info
 
 **Why second:** Needed to read account data, check balances, get contract state.
 

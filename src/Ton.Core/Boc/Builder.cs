@@ -446,11 +446,11 @@ public class Builder
     }
 
     /// <summary>
-    ///     Store address (internal or external).
+    ///     Store external address.
     /// </summary>
-    /// <param name="address">Address (can be Address, ExternalAddress, or null).</param>
+    /// <param name="address">External address or null.</param>
     /// <returns>This builder.</returns>
-    public Builder StoreAddress(ExternalAddress? address)
+    public Builder StoreExternalAddress(ExternalAddress? address)
     {
         bits.WriteAddressExt(address);
         return this;

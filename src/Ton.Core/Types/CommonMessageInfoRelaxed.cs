@@ -5,16 +5,22 @@ using Ton.Core.Boc;
 namespace Ton.Core.Types;
 
 /// <summary>
-///     Common message info variants for TON messages.
+///     Relaxed common message info variants (allows Maybe for src addresses).
 ///     Source:
-///     https://github.com/ton-blockchain/ton/blob/24dc184a2ea67f9c47042b4104bbb4d82289fac1/crypto/block/block.tlb#L123
+///     https://github.com/ton-blockchain/ton/blob/24dc184a2ea67f9c47042b4104bbb4d82289fac1/crypto/block/block.tlb#L132
+///     int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool
+///     src:MsgAddress dest:MsgAddressInt
+///     value:CurrencyCollection ihr_fee:Grams fwd_fee:Grams
+///     created_lt:uint64 created_at:uint32 = CommonMsgInfoRelaxed;
+///     ext_out_msg_info$11 src:MsgAddress dest:MsgAddressExt
+///     created_lt:uint64 created_at:uint32 = CommonMsgInfoRelaxed;
 /// </summary>
-public abstract record CommonMessageInfo
+public abstract record CommonMessageInfoRelaxed
 {
     /// <summary>
-    ///     Loads CommonMessageInfo from a slice.
+    ///     Loads CommonMessageInfoRelaxed from a Slice.
     /// </summary>
-    public static CommonMessageInfo Load(Slice slice)
+    public static CommonMessageInfoRelaxed Load(Slice slice)
     {
         // Read first bit to determine message type
         if (!slice.LoadBit())
@@ -23,7 +29,7 @@ public abstract record CommonMessageInfo
             bool ihrDisabled = slice.LoadBit();
             bool bounce = slice.LoadBit();
             bool bounced = slice.LoadBit();
-            Address src = slice.LoadAddress()!;
+            Address? src = slice.LoadMaybeAddress();
             Address dest = slice.LoadAddress()!;
             CurrencyCollection value = CurrencyCollection.Load(slice);
             BigInteger ihrFee = slice.LoadCoins();
@@ -45,19 +51,12 @@ public abstract record CommonMessageInfo
             );
         }
 
-        // External message - read second bit
+        // External In message is not allowed for relaxed
         if (!slice.LoadBit())
-        {
-            // External In message (starts with 10)
-            ExternalAddress? src = slice.LoadMaybeExternalAddress();
-            Address dest = slice.LoadAddress()!;
-            BigInteger importFee = slice.LoadCoins();
-
-            return new ExternalIn(src, dest, importFee);
-        }
+            throw new InvalidOperationException("External In message is not possible for CommonMessageInfoRelaxed");
 
         // External Out message (starts with 11)
-        Address srcOut = slice.LoadAddress()!;
+        Address? srcOut = slice.LoadMaybeAddress();
         ExternalAddress? destOut = slice.LoadMaybeExternalAddress();
         BigInteger createdLtOut = slice.LoadUintBig(64);
         uint createdAtOut = (uint)slice.LoadUint(32);
@@ -66,7 +65,7 @@ public abstract record CommonMessageInfo
     }
 
     /// <summary>
-    ///     Stores CommonMessageInfo to a builder.
+    ///     Stores CommonMessageInfoRelaxed to a builder.
     /// </summary>
     public void Store(Builder builder)
     {
@@ -86,14 +85,6 @@ public abstract record CommonMessageInfo
                 builder.StoreUint(i.CreatedAt, 32);
                 break;
 
-            case ExternalIn ei:
-                builder.StoreBit(true); // 1
-                builder.StoreBit(false); // 0 -> 10 for external-in
-                builder.StoreExternalAddress(ei.Src);
-                builder.StoreAddress(ei.Dest);
-                builder.StoreCoins(ei.ImportFee);
-                break;
-
             case ExternalOut eo:
                 builder.StoreBit(true); // 1
                 builder.StoreBit(true); // 1 -> 11 for external-out
@@ -104,50 +95,33 @@ public abstract record CommonMessageInfo
                 break;
 
             default:
-                throw new InvalidOperationException($"Unknown CommonMessageInfo type: {GetType()}");
+                throw new InvalidOperationException($"Unknown CommonMessageInfoRelaxed type: {GetType()}");
         }
     }
 
     /// <summary>
-    ///     Internal message (between contracts on TON).
-    ///     int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool
-    ///     src:MsgAddressInt dest:MsgAddressInt
-    ///     value:CurrencyCollection ihr_fee:Grams fwd_fee:Grams
-    ///     created_lt:uint64 created_at:uint32 = CommonMsgInfo;
+    ///     Internal message (relaxed - src can be null).
     /// </summary>
     public record Internal(
         bool IhrDisabled,
         bool Bounce,
         bool Bounced,
-        Address Src,
+        Address? Src,
         Address Dest,
         CurrencyCollection Value,
         BigInteger IhrFee,
         BigInteger ForwardFee,
         BigInteger CreatedLt,
         uint CreatedAt
-    ) : CommonMessageInfo;
+    ) : CommonMessageInfoRelaxed;
 
     /// <summary>
-    ///     External incoming message (from outside TON to a contract).
-    ///     ext_in_msg_info$10 src:MsgAddressExt dest:MsgAddressInt
-    ///     import_fee:Grams = CommonMsgInfo;
-    /// </summary>
-    public record ExternalIn(
-        ExternalAddress? Src,
-        Address Dest,
-        BigInteger ImportFee
-    ) : CommonMessageInfo;
-
-    /// <summary>
-    ///     External outgoing message (from a contract to outside TON).
-    ///     ext_out_msg_info$11 src:MsgAddressInt dest:MsgAddressExt
-    ///     created_lt:uint64 created_at:uint32 = CommonMsgInfo;
+    ///     External outgoing message (relaxed - src can be null).
     /// </summary>
     public record ExternalOut(
-        Address Src,
+        Address? Src,
         ExternalAddress? Dest,
         BigInteger CreatedLt,
         uint CreatedAt
-    ) : CommonMessageInfo;
+    ) : CommonMessageInfoRelaxed;
 }
