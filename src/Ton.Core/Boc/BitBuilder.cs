@@ -79,7 +79,7 @@ public class BitBuilder
     /// <param name="bits">Number of bits to use.</param>
     public void WriteUint(BigInteger value, int bits)
     {
-        if (bits < 0 || bits > int.MaxValue)
+        if (bits is < 0 or > int.MaxValue)
             throw new ArgumentException($"Invalid bit length. Got {bits}");
 
         if (bits == 0)
@@ -147,7 +147,7 @@ public class BitBuilder
     /// <param name="bits">Number of bits to use (includes sign bit).</param>
     public void WriteInt(BigInteger value, int bits)
     {
-        if (bits < 0 || bits > int.MaxValue)
+        if (bits is < 0 or > int.MaxValue)
             throw new ArgumentException($"Invalid bit length. Got {bits}");
 
         if (bits == 0)
@@ -200,7 +200,7 @@ public class BitBuilder
     /// <param name="headerBits">Number of bits for the length header.</param>
     public void WriteVarUint(BigInteger value, int headerBits)
     {
-        if (headerBits < 0 || headerBits > int.MaxValue)
+        if (headerBits is < 0 or > int.MaxValue)
             throw new ArgumentException($"Invalid bit length. Got {headerBits}");
         if (value < 0)
             throw new ArgumentException($"Value is negative. Got {value}");
@@ -237,7 +237,7 @@ public class BitBuilder
     /// <param name="headerBits">Number of bits for the length header.</param>
     public void WriteVarInt(BigInteger value, int headerBits)
     {
-        if (headerBits < 0 || headerBits > int.MaxValue)
+        if (headerBits is < 0 or > int.MaxValue)
             throw new ArgumentException($"Invalid bit length. Got {headerBits}");
 
         if (value == 0)
@@ -300,6 +300,40 @@ public class BitBuilder
         WriteUint(0, 1); // No anycast
         WriteInt(address.WorkChain, 8);
         WriteBuffer(address.Hash);
+    }
+
+    /// <summary>
+    ///     Writes an external address (can be Address or ExternalAddress or null).
+    /// </summary>
+    /// <param name="address">Address to write.</param>
+    public void WriteAddressExt(object? address)
+    {
+        if (address == null)
+        {
+            WriteUint(0, 2); // Empty address
+            return;
+        }
+
+        // Internal address
+        if (address is Address internalAddr)
+        {
+            WriteUint(2, 2); // Internal address type
+            WriteUint(0, 1); // No anycast
+            WriteInt(internalAddr.WorkChain, 8);
+            WriteBuffer(internalAddr.Hash);
+            return;
+        }
+
+        // External address
+        if (address is ExternalAddress externalAddr)
+        {
+            WriteUint(1, 2); // External address type
+            WriteUint(externalAddr.Bits, 9);
+            WriteUint(externalAddr.Value, externalAddr.Bits);
+            return;
+        }
+
+        throw new InvalidOperationException($"Invalid address type: {address.GetType()}");
     }
 
     /// <summary>

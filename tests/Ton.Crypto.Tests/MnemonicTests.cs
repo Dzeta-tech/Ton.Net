@@ -75,7 +75,7 @@ public class MnemonicTests
     {
         string[] mnemonic = Mnemonic.Mnemonic.New();
 
-        Assert.That(mnemonic.Length, Is.EqualTo(24));
+        Assert.That(mnemonic, Has.Length.EqualTo(24));
     }
 
     [Test]
@@ -138,6 +138,6 @@ public class MnemonicTests
         // Should not throw
         string[] mnemonics = Mnemonic.Mnemonic.FromRandomSeed(seed);
 
-        Assert.That(mnemonics.Length, Is.EqualTo(24));
+        Assert.That(mnemonics, Has.Length.EqualTo(24));
     }
 }

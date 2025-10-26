@@ -214,7 +214,7 @@ public static class Mnemonic
         StringBuilder res = new();
         foreach (int index in indexes)
         {
-            if (index < 0 || index >= 2048)
+            if (index is < 0 or >= 2048)
                 throw new ArgumentException("Invalid input");
 
             res.Append(Convert.ToString(index, 2).PadLeft(11, '0'));

@@ -172,14 +172,11 @@ public class BitString : IEquatable<BitString>
         string hex = hasUnderscore ? str[..^1] : str;
 
         // Handle odd-length hex strings by padding with '0' (matching JS SDK behavior)
-        if (hex.Length % 2 != 0)
-        {
-            hex += "0";
-        }
+        if (hex.Length % 2 != 0) hex += "0";
 
         // Convert hex to bytes
         byte[] bytes = Convert.FromHexString(hex);
-        
+
         // Calculate bit length
         int bitLength;
         if (hasUnderscore || (hex.Length > 0 && hex.Length % 2 != 0))
@@ -187,31 +184,23 @@ public class BitString : IEquatable<BitString>
             // Find the padding bit and calculate actual bit length (matching JS paddedBufferToBits)
             bitLength = 0;
             for (int i = bytes.Length - 1; i >= 0; i--)
-            {
                 if (bytes[i] != 0)
                 {
                     int testByte = bytes[i];
                     // Find rightmost set bit (padding bit)
                     int bitPos = testByte & -testByte;
                     if ((bitPos & 1) == 0)
-                    {
                         // It's a power of 2 (only one bit set)
                         bitPos = (int)Math.Log2(bitPos) + 1;
-                    }
                     else
-                    {
                         bitPos = 0;
-                    }
-                    
+
                     if (i > 0)
-                    {
                         // Number of full bytes * 8
                         bitLength = i * 8;
-                    }
                     bitLength += 8 - bitPos;
                     break;
                 }
-            }
         }
         else
         {

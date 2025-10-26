@@ -340,6 +340,43 @@ public class BitReader
     }
 
     /// <summary>
+    ///     Loads an external address.
+    /// </summary>
+    /// <returns>ExternalAddress.</returns>
+    public ExternalAddress LoadExternalAddress()
+    {
+        int type = (int)LoadUint(2);
+        if (type != 1)
+            throw new InvalidOperationException($"Expected external address (type=1), got type={type}");
+
+        int bits = (int)LoadUint(9);
+        BigInteger value = LoadUintBig(bits);
+
+        return new ExternalAddress(value, bits);
+    }
+
+    /// <summary>
+    ///     Loads an optional external address.
+    /// </summary>
+    /// <returns>ExternalAddress or null.</returns>
+    public ExternalAddress? LoadMaybeExternalAddress()
+    {
+        int type = (int)LoadUint(2);
+
+        if (type == 0)
+            return null; // Empty address
+
+        if (type == 1)
+        {
+            int bits = (int)LoadUint(9);
+            BigInteger value = LoadUintBig(bits);
+            return new ExternalAddress(value, bits);
+        }
+
+        throw new InvalidOperationException($"Invalid address type for maybe external: {type}");
+    }
+
+    /// <summary>
     ///     Preload address (read without advancing offset).
     /// </summary>
     /// <returns>Address or null if no address.</returns>
@@ -450,13 +487,11 @@ public class BitReader
         // Remove padding (find last 1 bit and remove it + trailing zeros)
         int paddingBits = 0;
         for (int i = result.Length - 1; i >= 0; i--)
-        {
             if (result.At(i))
             {
                 paddingBits = result.Length - i;
                 break;
             }
-        }
 
         if (paddingBits > 0)
             result = result.Substring(0, result.Length - paddingBits);

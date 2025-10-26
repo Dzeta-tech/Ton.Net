@@ -446,6 +446,28 @@ public class Builder
     }
 
     /// <summary>
+    ///     Store address (internal or external).
+    /// </summary>
+    /// <param name="address">Address (can be Address, ExternalAddress, or null).</param>
+    /// <returns>This builder.</returns>
+    public Builder StoreAddress(ExternalAddress? address)
+    {
+        bits.WriteAddressExt(address);
+        return this;
+    }
+
+    /// <summary>
+    ///     Store address (internal or external) using object type.
+    /// </summary>
+    /// <param name="address">Address (can be Address, ExternalAddress, or null).</param>
+    /// <returns>This builder.</returns>
+    public Builder StoreAddressAny(object? address)
+    {
+        bits.WriteAddressExt(address);
+        return this;
+    }
+
+    /// <summary>
     ///     Store reference.
     /// </summary>
     /// <param name="cell">Cell or builder.</param>
@@ -577,7 +599,10 @@ public class Builder
     /// <returns>This builder.</returns>
     public Builder StoreDict<TK, TV>(Dict.Dictionary<TK, TV>? dict) where TK : IDictionaryKeyType
     {
-        dict?.Store(this);
+        if (dict != null)
+            dict.Store(this);
+        else
+            StoreBit(false); // Store 0 bit for null dict (matching JS SDK behavior)
         return this;
     }
 

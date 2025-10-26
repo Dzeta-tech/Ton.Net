@@ -1,4 +1,4 @@
-using System.Numerics;
+using Ton.Core.Utils;
 
 namespace Ton.Core.Boc;
 
@@ -71,7 +71,7 @@ public static class BocSerialization
 
         if (hasCrc32C)
         {
-            byte[] crc32 = Utils.Crc32C.Compute(builder.Buffer());
+            byte[] crc32 = Crc32C.Compute(builder.Buffer());
             builder.WriteBuffer(crc32);
         }
 
@@ -100,13 +100,12 @@ public static class BocSerialization
         {
             CellData cll = ReadCell(reader, boc.Size);
             cells.Add(cll);
-            
+
             // Debug: Check if any reference index is out of bounds
             foreach (int refIdx in cll.Refs)
-            {
                 if (refIdx < 0 || refIdx >= boc.Cells)
-                    throw new InvalidOperationException($"Cell {i} has invalid reference index {refIdx} (total cells: {boc.Cells}, sizeBytes: {boc.Size})");
-            }
+                    throw new InvalidOperationException(
+                        $"Cell {i} has invalid reference index {refIdx} (total cells: {boc.Cells}, sizeBytes: {boc.Size})");
         }
 
         // Build cells (bottom-up)
@@ -119,9 +118,11 @@ public static class BocSerialization
             foreach (int r in cells[i].Refs)
             {
                 if (r < 0 || r >= cells.Count)
-                    throw new InvalidOperationException($"Invalid BOC file: cell {i} references non-existent cell {r} (total cells: {cells.Count})");
+                    throw new InvalidOperationException(
+                        $"Invalid BOC file: cell {i} references non-existent cell {r} (total cells: {cells.Count})");
                 if (cells[r].Result == null)
-                    throw new InvalidOperationException($"Invalid BOC file: cell {i} references cell {r} which hasn't been built yet");
+                    throw new InvalidOperationException(
+                        $"Invalid BOC file: cell {i} references cell {r} which hasn't been built yet");
                 refs.Add(cells[r].Result!);
             }
 
@@ -217,8 +218,6 @@ public static class BocSerialization
         return result;
     }
 
-    record CellWithRefs(Cell Cell, string[] RefHashes);
-
     static int BitsForNumber(int n)
     {
         if (n == 0) return 1;
@@ -263,14 +262,12 @@ public static class BocSerialization
         byte[] buf = new byte[bytes];
 
         for (int i = 0; i < len; i++)
-        {
             if (bits.At(i))
-                buf[i / 8] |= (byte)(1 << (7 - (i % 8)));
-        }
+                buf[i / 8] |= (byte)(1 << (7 - i % 8));
 
         // Add padding bit if needed
         if (len % 8 != 0)
-            buf[bytes - 1] |= (byte)(1 << (7 - (len % 8)));
+            buf[bytes - 1] |= (byte)(1 << (7 - len % 8));
 
         return buf;
     }
@@ -306,7 +303,7 @@ public static class BocSerialization
             byte[] cellData = reader.LoadBuffer(totalCellSize);
             byte[] crc32 = reader.LoadBuffer(4);
 
-            if (!Utils.Crc32C.Compute(src[..^4]).SequenceEqual(crc32))
+            if (!Crc32C.Compute(src[..^4]).SequenceEqual(crc32))
                 throw new InvalidOperationException("Invalid CRC32C");
 
             return new BocHeader(size, offBytes, cells, roots, absent, totalCellSize, index, cellData, [0]);
@@ -338,7 +335,7 @@ public static class BocSerialization
             if (hasCrc32C)
             {
                 byte[] crc32 = reader.LoadBuffer(4);
-                if (!Utils.Crc32C.Compute(src[..^4]).SequenceEqual(crc32))
+                if (!Crc32C.Compute(src[..^4]).SequenceEqual(crc32))
                     throw new InvalidOperationException("Invalid CRC32C");
             }
 
@@ -359,7 +356,7 @@ public static class BocSerialization
         // D2
         int d2 = (int)reader.LoadUint(8);
         int dataBytesize = (int)Math.Ceiling(d2 / 2.0);
-        bool paddingAdded = (d2 % 2) != 0;
+        bool paddingAdded = d2 % 2 != 0;
 
         // In standard BOC format without cache bits, cells don't include hashes/depths
         // They're only included if has_cache_bits flag is set in the BOC header
@@ -396,6 +393,8 @@ public static class BocSerialization
         return n + 1; // 1 repr + up to 3 higher hashes
     }
 
+    record CellWithRefs(Cell Cell, string[] RefHashes);
+
     record BocHeader(
         int Size,
         int OffBytes,
@@ -417,4 +416,3 @@ public static class BocSerialization
 
     record CellRef(Cell Cell, int[] Refs);
 }
-

@@ -21,7 +21,8 @@ internal static class DictParser
         return result;
     }
 
-    static void DoParse<TV>(string prefix, Slice slice, int n, System.Collections.Generic.Dictionary<BigInteger, TV> res,
+    static void DoParse<TV>(string prefix, Slice slice, int n,
+        System.Collections.Generic.Dictionary<BigInteger, TV> res,
         Func<Slice, TV> extractor)
     {
         // Reading label

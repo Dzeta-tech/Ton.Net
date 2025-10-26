@@ -1,5 +1,4 @@
 using System.Numerics;
-using NUnit.Framework;
 using Ton.Core.Addresses;
 using Ton.Core.Boc;
 
@@ -15,7 +14,7 @@ public class BocSerializationTests
         byte[] boc = empty.ToBoc();
         Cell[] restored = Cell.FromBoc(boc);
 
-        Assert.That(restored.Length, Is.EqualTo(1));
+        Assert.That(restored, Has.Length.EqualTo(1));
         Assert.Multiple(() =>
         {
             Assert.That(restored[0].Bits.Length, Is.EqualTo(0));
@@ -35,7 +34,7 @@ public class BocSerializationTests
         byte[] boc = cell.ToBoc();
         Cell[] restored = Cell.FromBoc(boc);
 
-        Assert.That(restored.Length, Is.EqualTo(1));
+        Assert.That(restored, Has.Length.EqualTo(1));
         Assert.That(restored[0].Hash().SequenceEqual(cell.Hash()), Is.True);
 
         Slice slice = restored[0].BeginParse();
@@ -61,12 +60,15 @@ public class BocSerializationTests
         byte[] boc = parent.ToBoc();
         Cell[] restored = Cell.FromBoc(boc);
 
-        Assert.That(restored.Length, Is.EqualTo(1));
+        Assert.That(restored, Has.Length.EqualTo(1));
         Assert.That(restored[0].Hash().SequenceEqual(parent.Hash()), Is.True);
 
         Slice slice = restored[0].BeginParse();
-        Assert.That(slice.LoadUint(32), Is.EqualTo(999UL));
-        Assert.That(slice.LoadRef().BeginParse().LoadUint(32), Is.EqualTo(111UL));
+        Assert.Multiple(() =>
+        {
+            Assert.That(slice.LoadUint(32), Is.EqualTo(999UL));
+            Assert.That(slice.LoadRef().BeginParse().LoadUint(32), Is.EqualTo(111UL));
+        });
         Assert.That(slice.LoadRef().BeginParse().LoadUint(32), Is.EqualTo(222UL));
     }
 
@@ -80,7 +82,7 @@ public class BocSerializationTests
         byte[] boc = level1.ToBoc();
         Cell[] restored = Cell.FromBoc(boc);
 
-        Assert.That(restored.Length, Is.EqualTo(1));
+        Assert.That(restored, Has.Length.EqualTo(1));
         Assert.That(restored[0].Hash().SequenceEqual(level1.Hash()), Is.True);
 
         Slice s1 = restored[0].BeginParse();
@@ -105,12 +107,15 @@ public class BocSerializationTests
         byte[] boc = cell.ToBoc();
         Cell[] restored = Cell.FromBoc(boc);
 
-        Assert.That(restored.Length, Is.EqualTo(1));
+        Assert.That(restored, Has.Length.EqualTo(1));
 
         Slice slice = restored[0].BeginParse();
         Address? restoredAddr = slice.LoadAddress();
-        Assert.That(restoredAddr?.ToString(), Is.EqualTo(addr.ToString()));
-        Assert.That(slice.LoadUint(32), Is.EqualTo(42UL));
+        Assert.Multiple(() =>
+        {
+            Assert.That(restoredAddr?.ToString(), Is.EqualTo(addr.ToString()));
+            Assert.That(slice.LoadUint(32), Is.EqualTo(42UL));
+        });
     }
 
     [Test]
@@ -147,9 +152,12 @@ public class BocSerializationTests
             byte[] boc = cell.ToBoc();
             Cell[] restored = Cell.FromBoc(boc);
 
-            Assert.That(restored.Length, Is.EqualTo(1));
-            Assert.That(restored[0].Bits.Length, Is.EqualTo(bits));
-            Assert.That(restored[0].Hash().SequenceEqual(cell.Hash()), Is.True);
+            Assert.That(restored, Has.Length.EqualTo(1));
+            Assert.Multiple(() =>
+            {
+                Assert.That(restored[0].Bits.Length, Is.EqualTo(bits));
+                Assert.That(restored[0].Hash().SequenceEqual(cell.Hash()), Is.True);
+            });
         }
     }
 
@@ -172,8 +180,8 @@ public class BocSerializationTests
         byte[] boc = cell.ToBoc();
         Cell[] restored = Cell.FromBoc(boc);
 
-        Assert.That(restored.Length, Is.EqualTo(1));
-        Assert.That(restored[0].Refs.Length, Is.EqualTo(4));
+        Assert.That(restored, Has.Length.EqualTo(1));
+        Assert.That(restored[0].Refs, Has.Length.EqualTo(4));
 
         Slice slice = restored[0].BeginParse();
         slice.LoadUint(8);
@@ -201,7 +209,7 @@ public class BocSerializationTests
         byte[] boc = parent.ToBoc();
         Cell[] restored = Cell.FromBoc(boc);
 
-        Assert.That(restored.Length, Is.EqualTo(1));
+        Assert.That(restored, Has.Length.EqualTo(1));
         Assert.That(restored[0].Hash().SequenceEqual(parent.Hash()), Is.True);
 
         Slice parentSlice = restored[0].BeginParse();
@@ -211,9 +219,12 @@ public class BocSerializationTests
         Cell restoredShared1 = restoredChild1.BeginParse().Skip(8).LoadRef();
         Cell restoredShared2 = restoredChild2.BeginParse().Skip(8).LoadRef();
 
-        // Verify the shared cell is actually the same reference
-        Assert.That(restoredShared1.Hash().SequenceEqual(restoredShared2.Hash()), Is.True);
-        Assert.That(restoredShared1.BeginParse().LoadUint(32), Is.EqualTo(42UL));
+        Assert.Multiple(() =>
+        {
+            // Verify the shared cell is actually the same reference
+            Assert.That(restoredShared1.Hash().SequenceEqual(restoredShared2.Hash()), Is.True);
+            Assert.That(restoredShared1.BeginParse().LoadUint(32), Is.EqualTo(42UL));
+        });
     }
 
     [Test]
@@ -221,11 +232,11 @@ public class BocSerializationTests
     {
         Cell cell = Builder.BeginCell().StoreUint(12345, 32).EndCell();
 
-        byte[] bocWithCRC = cell.ToBoc(hasIdx: true, hasCrc32C: true);
-        byte[] bocWithoutCRC = cell.ToBoc(hasIdx: true, hasCrc32C: false);
+        byte[] bocWithCRC = cell.ToBoc(true, true);
+        byte[] bocWithoutCRC = cell.ToBoc(true, false);
 
         // BOC with CRC should be 4 bytes longer
-        Assert.That(bocWithCRC.Length, Is.EqualTo(bocWithoutCRC.Length + 4));
+        Assert.That(bocWithCRC, Has.Length.EqualTo(bocWithoutCRC.Length + 4));
 
         // Both should deserialize to the same cell
         Cell[] restored1 = Cell.FromBoc(bocWithCRC);
@@ -245,11 +256,11 @@ public class BocSerializationTests
             .StoreRef(child)
             .EndCell();
 
-        byte[] bocWithIdx = parent.ToBoc(hasIdx: true, hasCrc32C: false);
-        byte[] bocWithoutIdx = parent.ToBoc(hasIdx: false, hasCrc32C: false);
+        byte[] bocWithIdx = parent.ToBoc(true, false);
+        byte[] bocWithoutIdx = parent.ToBoc(false, false);
 
         // BOC with index should be longer
-        Assert.That(bocWithIdx.Length, Is.GreaterThan(bocWithoutIdx.Length));
+        Assert.That(bocWithIdx, Has.Length.GreaterThan(bocWithoutIdx.Length));
 
         // Both should deserialize to the same cell
         Cell[] restored1 = Cell.FromBoc(bocWithIdx);
@@ -266,26 +277,26 @@ public class BocSerializationTests
         Cell leaf2 = Builder.BeginCell().StoreUint(2, 32).EndCell();
         Cell leaf3 = Builder.BeginCell().StoreUint(3, 32).EndCell();
 
-        Cell level2a = Builder.BeginCell()
+        Cell level2A = Builder.BeginCell()
             .StoreRef(leaf1)
             .StoreRef(leaf2)
             .EndCell();
 
-        Cell level2b = Builder.BeginCell()
+        Cell level2B = Builder.BeginCell()
             .StoreRef(leaf3)
             .StoreRef(leaf1) // Shared ref
             .EndCell();
 
         Cell root = Builder.BeginCell()
             .StoreUint(999, 32)
-            .StoreRef(level2a)
-            .StoreRef(level2b)
+            .StoreRef(level2A)
+            .StoreRef(level2B)
             .EndCell();
 
         byte[] boc = root.ToBoc();
         Cell[] restored = Cell.FromBoc(boc);
 
-        Assert.That(restored.Length, Is.EqualTo(1));
+        Assert.That(restored, Has.Length.EqualTo(1));
         Assert.That(restored[0].Hash().SequenceEqual(root.Hash()), Is.True);
     }
 
@@ -327,4 +338,3 @@ public class BocSerializationTests
         Assert.Throws<ArgumentOutOfRangeException>(() => Cell.FromBoc(emptyBoc));
     }
 }
-

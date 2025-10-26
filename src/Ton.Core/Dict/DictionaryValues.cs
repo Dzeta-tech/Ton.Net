@@ -100,7 +100,8 @@ public static class DictionaryValues
     /// <summary>
     ///     Create nested Dictionary value serializer.
     /// </summary>
-    public static IDictionaryValue<Dictionary<TK, TV>> Dictionary<TK, TV>(IDictionaryKey<TK> key, IDictionaryValue<TV> value)
+    public static IDictionaryValue<Dictionary<TK, TV>> Dictionary<TK, TV>(IDictionaryKey<TK> key,
+        IDictionaryValue<TV> value)
         where TK : IDictionaryKeyType
     {
         return new DictionaryValue<TK, TV>(key, value);
@@ -273,7 +274,8 @@ public static class DictionaryValues
         }
     }
 
-    class DictionaryValue<TK, TV>(IDictionaryKey<TK> key, IDictionaryValue<TV> value) : IDictionaryValue<Dictionary<TK, TV>>
+    class DictionaryValue<TK, TV>(IDictionaryKey<TK> key, IDictionaryValue<TV> value)
+        : IDictionaryValue<Dictionary<TK, TV>>
         where TK : IDictionaryKeyType
     {
         public void Serialize(Dictionary<TK, TV> value, Builder builder)

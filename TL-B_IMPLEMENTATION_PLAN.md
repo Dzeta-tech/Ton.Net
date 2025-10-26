@@ -4,9 +4,13 @@
 
 ### 1.1 Foundation (Week 1, Days 1-2)
 - [x] `SendMode.ts` - Enum (simple)
-- [ ] `StateInit.ts` - Contract initialization
+- [x] `StateInit.ts` - Contract initialization
+- [x] `TickTock.ts` - Tick-tock flag (dependency)
+- [x] `SimpleLibrary.ts` - Library structure (dependency)
+- [x] `CommonMessageInfo.ts` - Message headers (3 variants)
+- [x] `CurrencyCollection.ts` - TON + extra currencies
+- [x] `ExternalAddress.ts` - External address type
 - [ ] `Message.ts` - Messages (internal/external)
-- [ ] `CommonMessageInfo.ts` - Message headers (3 variants)
 - [ ] `CommonMessageInfoRelaxed.ts` - Relaxed message headers
 - [ ] `MessageRelaxed.ts` - Relaxed messages
 
@@ -24,7 +28,6 @@
 **Why second:** Needed to read account data, check balances, get contract state.
 
 ### 1.3 Currency (Week 1, Day 5)
-- [ ] `CurrencyCollection.ts` - TON + extra currencies
 - [ ] `ExtraCurrency.ts` - Non-TON currencies (jettons)
 
 **Why third:** Handle TON coins + jettons in transactions.

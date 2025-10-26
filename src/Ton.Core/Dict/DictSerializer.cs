@@ -25,7 +25,8 @@ internal static class DictSerializer
     /// <summary>
     ///     Serialize dictionary to a Cell (for Store method that uses refs).
     /// </summary>
-    public static Cell? SerializeDictToCell<TV>(System.Collections.Generic.Dictionary<BigInteger, TV> src, int keyLength,
+    public static Cell? SerializeDictToCell<TV>(System.Collections.Generic.Dictionary<BigInteger, TV> src,
+        int keyLength,
         Action<TV, Builder> serializer)
     {
         if (src.Count == 0)

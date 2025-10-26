@@ -355,6 +355,24 @@ public class Slice
     }
 
     /// <summary>
+    ///     Loads an external address.
+    /// </summary>
+    /// <returns>ExternalAddress.</returns>
+    public ExternalAddress LoadExternalAddress()
+    {
+        return reader.LoadExternalAddress();
+    }
+
+    /// <summary>
+    ///     Loads an optional external address.
+    /// </summary>
+    /// <returns>ExternalAddress or null.</returns>
+    public ExternalAddress? LoadMaybeExternalAddress()
+    {
+        return reader.LoadMaybeExternalAddress();
+    }
+
+    /// <summary>
     ///     Load maybe address.
     /// </summary>
     /// <returns>Address or null.</returns>

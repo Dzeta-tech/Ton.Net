@@ -17,9 +17,9 @@ public class DictionaryTests
     [Test]
     public void Test_SetGetHas_Uint_Keys()
     {
-        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict =
-            TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(TonDict.DictionaryKeys.Uint(16),
-                TonDict.DictionaryValues.Uint(16));
+        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict = TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(
+            TonDict.DictionaryKeys.Uint(16),
+            TonDict.DictionaryValues.Uint(16));
 
         dict.Set(13, 169);
         dict.Set(17, 289);
@@ -39,22 +39,22 @@ public class DictionaryTests
     [Test]
     public void Test_Keys_Values()
     {
-        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict =
-            TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(TonDict.DictionaryKeys.Uint(16),
-                TonDict.DictionaryValues.Uint(16));
+        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict = TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(
+            TonDict.DictionaryKeys.Uint(16),
+            TonDict.DictionaryValues.Uint(16));
 
         dict.Set(13, 169);
         dict.Set(17, 289);
         dict.Set(239, 57121);
 
         TonDict.DictKeyUint[] keys = dict.Keys();
-        Assert.That(keys.Length, Is.EqualTo(3));
+        Assert.That(keys, Has.Length.EqualTo(3));
         Assert.That(keys, Does.Contain((TonDict.DictKeyUint)13));
         Assert.That(keys, Does.Contain((TonDict.DictKeyUint)17));
         Assert.That(keys, Does.Contain((TonDict.DictKeyUint)239));
 
         ulong[] values = dict.Values();
-        Assert.That(values.Length, Is.EqualTo(3));
+        Assert.That(values, Has.Length.EqualTo(3));
         Assert.That(values, Does.Contain(169UL));
         Assert.That(values, Does.Contain(289UL));
         Assert.That(values, Does.Contain(57121UL));
@@ -63,9 +63,9 @@ public class DictionaryTests
     [Test]
     public void Test_Delete()
     {
-        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict =
-            TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(TonDict.DictionaryKeys.Uint(16),
-                TonDict.DictionaryValues.Uint(16));
+        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict = TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(
+            TonDict.DictionaryKeys.Uint(16),
+            TonDict.DictionaryValues.Uint(16));
 
         dict.Set(13, 169);
         dict.Set(17, 289);
@@ -86,9 +86,9 @@ public class DictionaryTests
     [Test]
     public void Test_Clear()
     {
-        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict =
-            TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(TonDict.DictionaryKeys.Uint(16),
-                TonDict.DictionaryValues.Uint(16));
+        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict = TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(
+            TonDict.DictionaryKeys.Uint(16),
+            TonDict.DictionaryValues.Uint(16));
 
         dict.Set(13, 169);
         dict.Set(17, 289);
@@ -102,9 +102,9 @@ public class DictionaryTests
     public void Test_Serialize_Parse_RoundTrip_Uint()
     {
         // Create dict and populate
-        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict =
-            TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(TonDict.DictionaryKeys.Uint(16),
-                TonDict.DictionaryValues.Uint(16));
+        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict = TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(
+            TonDict.DictionaryKeys.Uint(16),
+            TonDict.DictionaryValues.Uint(16));
         dict.Set(13, 169);
         dict.Set(17, 289);
         dict.Set(239, 57121);
@@ -135,9 +135,9 @@ public class DictionaryTests
     [Test]
     public void Test_Int_Keys()
     {
-        TonDict.Dictionary<TonDict.DictKeyInt, long> dict =
-            TonDict.Dictionary<TonDict.DictKeyInt, long>.Empty(TonDict.DictionaryKeys.Int(32),
-                TonDict.DictionaryValues.Int(32));
+        TonDict.Dictionary<TonDict.DictKeyInt, long> dict = TonDict.Dictionary<TonDict.DictKeyInt, long>.Empty(
+            TonDict.DictionaryKeys.Int(32),
+            TonDict.DictionaryValues.Int(32));
 
         dict.Set(-100, -1000);
         dict.Set(0, 0);
@@ -161,9 +161,12 @@ public class DictionaryTests
             cell.BeginParse()
         );
 
-        Assert.That(parsed.Get(-100), Is.EqualTo(-1000L));
-        Assert.That(parsed.Get(0), Is.EqualTo(0L));
-        Assert.That(parsed.Get(100), Is.EqualTo(1000L));
+        Assert.Multiple(() =>
+        {
+            Assert.That(parsed.Get(-100), Is.EqualTo(-1000L));
+            Assert.That(parsed.Get(0), Is.EqualTo(0L));
+            Assert.That(parsed.Get(100), Is.EqualTo(1000L));
+        });
     }
 
     [Test]
@@ -300,9 +303,12 @@ public class DictionaryTests
             cell.BeginParse()
         );
 
-        Assert.That(parsed.Get(1), Is.True);
-        Assert.That(parsed.Get(2), Is.False);
-        Assert.That(parsed.Get(3), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(parsed.Get(1), Is.True);
+            Assert.That(parsed.Get(2), Is.False);
+            Assert.That(parsed.Get(3), Is.True);
+        });
     }
 
     [Test]
@@ -383,9 +389,9 @@ public class DictionaryTests
     [Test]
     public void Test_Store_Load_With_Ref()
     {
-        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict =
-            TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(TonDict.DictionaryKeys.Uint(16),
-                TonDict.DictionaryValues.Uint(16));
+        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict = TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(
+            TonDict.DictionaryKeys.Uint(16),
+            TonDict.DictionaryValues.Uint(16));
         dict.Set(13, 169);
         dict.Set(17, 289);
 
@@ -410,9 +416,9 @@ public class DictionaryTests
     [Test]
     public void Test_Empty_Dictionary_Serialization()
     {
-        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict =
-            TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(TonDict.DictionaryKeys.Uint(16),
-                TonDict.DictionaryValues.Uint(16));
+        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict = TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(
+            TonDict.DictionaryKeys.Uint(16),
+            TonDict.DictionaryValues.Uint(16));
 
         // Store with ref
         Builder builder = Builder.BeginCell();
@@ -431,9 +437,9 @@ public class DictionaryTests
     [Test]
     public void Test_Enumeration()
     {
-        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict =
-            TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(TonDict.DictionaryKeys.Uint(16),
-                TonDict.DictionaryValues.Uint(16));
+        TonDict.Dictionary<TonDict.DictKeyUint, ulong> dict = TonDict.Dictionary<TonDict.DictKeyUint, ulong>.Empty(
+            TonDict.DictionaryKeys.Uint(16),
+            TonDict.DictionaryValues.Uint(16));
         dict.Set(13, 169);
         dict.Set(17, 289);
         dict.Set(239, 57121);
@@ -468,7 +474,7 @@ public class DictionaryTests
             .StoreDictDirect(dict)
             .EndCell();
 
-        byte[] boc = cell.ToBoc(hasIdx: false, hasCrc32C: false);
+        byte[] boc = cell.ToBoc(false, false);
 
         // Deserialize and verify
         Cell[] restored = Cell.FromBoc(boc);
@@ -502,7 +508,7 @@ public class DictionaryTests
             .StoreDictDirect(dict)
             .EndCell();
 
-        byte[] boc = packed.ToBoc(hasIdx: false, hasCrc32C: false);
+        byte[] boc = packed.ToBoc(false, false);
 
         // Deserialize
         Cell[] restored = Cell.FromBoc(boc);
@@ -541,7 +547,7 @@ public class DictionaryTests
             .StoreDictDirect(dict)
             .EndCell();
 
-        byte[] boc = cell.ToBoc(hasIdx: false, hasCrc32C: false);
+        byte[] boc = cell.ToBoc(false, false);
 
         // Deserialize and verify
         Cell[] restored = Cell.FromBoc(boc);
@@ -574,7 +580,7 @@ public class DictionaryTests
             .StoreDictDirect(dict)
             .EndCell();
 
-        byte[] boc = cell.ToBoc(hasIdx: false, hasCrc32C: false);
+        byte[] boc = cell.ToBoc(false, false);
 
         // Deserialize and verify
         Cell[] restored = Cell.FromBoc(boc);
@@ -604,7 +610,7 @@ public class DictionaryTests
             .StoreDictDirect(dict)
             .EndCell();
 
-        byte[] boc = cell.ToBoc(hasIdx: false, hasCrc32C: false);
+        byte[] boc = cell.ToBoc(false, false);
 
         // Deserialize and verify
         Cell[] restored = Cell.FromBoc(boc);
@@ -623,7 +629,8 @@ public class DictionaryTests
     {
         // Test non-byte-aligned BitString keys (9 bits)
         BitString key = new(new byte[] { 0x54, 0x65, 0x73, 0x74 }, 0, 9); // "Test" but only 9 bits
-        BitString value = new(new byte[] { 0x42, 0x69, 0x74, 0x53, 0x74, 0x72, 0x69, 0x6E, 0x67 }, 0, 72); // "BitString"
+        BitString value = new(new byte[] { 0x42, 0x69, 0x74, 0x53, 0x74, 0x72, 0x69, 0x6E, 0x67 }, 0,
+            72); // "BitString"
 
         TonDict.Dictionary<TonDict.DictKeyBitString, BitString> dict =
             TonDict.Dictionary<TonDict.DictKeyBitString, BitString>.Empty(
@@ -638,7 +645,7 @@ public class DictionaryTests
             .StoreDictDirect(dict)
             .EndCell();
 
-        byte[] boc = cell.ToBoc(hasIdx: false, hasCrc32C: false);
+        byte[] boc = cell.ToBoc(false, false);
 
         // Deserialize and verify
         Cell[] restored = Cell.FromBoc(boc);
@@ -667,7 +674,7 @@ public class DictionaryTests
             .StoreDictDirect(dict)
             .EndCell();
 
-        byte[] boc = cell.ToBoc(hasIdx: false, hasCrc32C: false);
+        byte[] boc = cell.ToBoc(false, false);
 
         // Deserialize and verify all values
         Cell[] restored = Cell.FromBoc(boc);

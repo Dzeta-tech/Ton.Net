@@ -26,12 +26,14 @@ public class TupleTests
         Cell serialized = TonTuple.SerializeTuple(items);
 
         // Verify BOC output matches JS SDK
-        string bocBase64 = Convert.ToBase64String(serialized.ToBoc(hasIdx: false, hasCrc32C: false));
+        string bocBase64 = Convert.ToBase64String(serialized.ToBoc(false, false));
         Assert.Multiple(() =>
         {
             Assert.That(serialized, Is.Not.Null);
             Assert.That(serialized.Type, Is.EqualTo(CellType.Ordinary));
-            Assert.That(bocBase64, Is.EqualTo("te6ccgEBCAEAWQABGAAABwEAAAAABfXhAAEBEgEAAAAAAAAJxAIBEgEAAAAABfXhAAMBEgEAAAAABfXhAAQBEgEAAAALmE+yAAUBEgH//////////wYBEgH//////////wcAAA=="));
+            Assert.That(bocBase64,
+                Is.EqualTo(
+                    "te6ccgEBCAEAWQABGAAABwEAAAAABfXhAAEBEgEAAAAAAAAJxAIBEgEAAAAABfXhAAMBEgEAAAAABfXhAAQBEgEAAAALmE+yAAUBEgH//////////wYBEgH//////////wcAAA=="));
         });
     }
 
@@ -46,14 +48,15 @@ public class TupleTests
         Cell serialized = TonTuple.SerializeTuple(items);
 
         // Verify BOC output matches JS SDK
-        string bocBase64 = Convert.ToBase64String(serialized.ToBoc(hasIdx: false, hasCrc32C: false));
+        string bocBase64 = Convert.ToBase64String(serialized.ToBoc(false, false));
 
         // Verify it creates a cell and can be parsed back
         TupleItem[] parsed = TonTuple.ParseTuple(serialized);
         Assert.Multiple(() =>
         {
-            Assert.That(bocBase64, Is.EqualTo("te6ccgEBAgEAKgABSgAAAQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqt4e0IsLXV0BAAA="));
-            Assert.That(parsed.Length, Is.EqualTo(1));
+            Assert.That(bocBase64,
+                Is.EqualTo("te6ccgEBAgEAKgABSgAAAQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqt4e0IsLXV0BAAA="));
+            Assert.That(parsed, Has.Length.EqualTo(1));
             Assert.That((parsed[0] as TupleItemInt)?.Value, Is.EqualTo(BigInteger.Parse("12312312312312323421")));
         });
     }
@@ -73,15 +76,16 @@ public class TupleTests
         ];
 
         Cell serialized = TonTuple.SerializeTuple(items);
-        
+
         // Verify BOC output matches JS SDK exactly
-        string bocBase64 = Convert.ToBase64String(serialized.ToBoc(hasIdx: false, hasCrc32C: false));
-        Assert.That(bocBase64, Is.EqualTo("te6ccgEBAwEAMgACDwAAAQQAELAgAQIAAABDn/k3QjSzAxvCFAxl2WAXIYvKOdG/BD9NlNG8vx1vw1C00A=="));
-        
+        string bocBase64 = Convert.ToBase64String(serialized.ToBoc(false, false));
+        Assert.That(bocBase64,
+            Is.EqualTo("te6ccgEBAwEAMgACDwAAAQQAELAgAQIAAABDn/k3QjSzAxvCFAxl2WAXIYvKOdG/BD9NlNG8vx1vw1C00A=="));
+
         TupleItem[] parsed = TonTuple.ParseTuple(serialized);
 
-        Assert.That(parsed.Length, Is.EqualTo(1));
-        
+        Assert.That(parsed, Has.Length.EqualTo(1));
+
         TupleItemSlice? sliceItem = parsed[0] as TupleItemSlice;
         Assert.That(sliceItem, Is.Not.Null);
         Address? readAddr = sliceItem!.Cell.BeginParse().LoadAddress();
@@ -97,7 +101,7 @@ public class TupleTests
         Cell serialized = TonTuple.SerializeTuple(items);
 
         // Verify BOC output matches JS SDK exactly
-        string bocBase64 = Convert.ToBase64String(serialized.ToBoc(hasIdx: false, hasCrc32C: false));
+        string bocBase64 = Convert.ToBase64String(serialized.ToBoc(false, false));
         Assert.That(bocBase64, Is.EqualTo("te6ccgEBAwEAHwACDwAAAQQAB0AgAQIAAAAd4GEghEZ4iF1r9AWzyJs4"));
 
         // Verify round-trip serialization works
@@ -105,9 +109,9 @@ public class TupleTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(deserialized.Length, Is.EqualTo(1));
+            Assert.That(deserialized, Has.Length.EqualTo(1));
             Assert.That(deserialized[0], Is.InstanceOf<TupleItemSlice>());
-            
+
             // Verify the cell data matches
             Slice originalSlice = cell.BeginParse();
             Slice deserializedSlice = ((TupleItemSlice)deserialized[0]).Cell.BeginParse();
@@ -121,20 +125,23 @@ public class TupleTests
         // Test with very large 257-bit integer from JS SDK
         TupleItem[] items =
         [
-            new TupleItemInt(BigInteger.Parse("91243637913382117273357363328745502088904016167292989471764554225637796775334"))
+            new TupleItemInt(
+                BigInteger.Parse("91243637913382117273357363328745502088904016167292989471764554225637796775334"))
         ];
 
         Cell serialized = TonTuple.SerializeTuple(items);
 
         // Verify BOC output matches JS SDK
-        string bocBase64 = Convert.ToBase64String(serialized.ToBoc(hasIdx: false, hasCrc32C: false));
+        string bocBase64 = Convert.ToBase64String(serialized.ToBoc(false, false));
         Assert.That(bocBase64, Is.EqualTo("te6ccgEBAgEAKgABSgAAAQIAyboRpZgY3hCgYy7LALkMXlHOjfgh+mymjeX4634ahaYBAAA="));
 
         TupleItem[] deserialized = TonTuple.ParseTuple(serialized);
         Assert.Multiple(() =>
         {
-            Assert.That(deserialized.Length, Is.EqualTo(1));
-            Assert.That(((TupleItemInt)deserialized[0]).Value, Is.EqualTo(BigInteger.Parse("91243637913382117273357363328745502088904016167292989471764554225637796775334")));
+            Assert.That(deserialized, Has.Length.EqualTo(1));
+            Assert.That(((TupleItemInt)deserialized[0]).Value,
+                Is.EqualTo(BigInteger.Parse(
+                    "91243637913382117273357363328745502088904016167292989471764554225637796775334")));
         });
     }
 
@@ -142,24 +149,25 @@ public class TupleTests
     public void Test_ParseTuple_ComplexFromBoc()
     {
         // Test parsing complex tuple from JS SDK
-        string golden = "te6ccgEBEAEAjgADDAAABwcABAEIDQESAf//////////AgESAQAAAAAAAAADAwESAQAAAAAAAAACBAESAQAAAAAAAAABBQECAAYBEgEAAAAAAAAAAQcAAAIACQwCAAoLABIBAAAAAAAAAHsAEgEAAAAAAAHimQECAw8BBgcAAQ4BCQQAB0AgDwAd4GEghEZ4iF1r9AWzyJs4";
+        string golden =
+            "te6ccgEBEAEAjgADDAAABwcABAEIDQESAf//////////AgESAQAAAAAAAAADAwESAQAAAAAAAAACBAESAQAAAAAAAAABBQECAAYBEgEAAAAAAAAAAQcAAAIACQwCAAoLABIBAAAAAAAAAHsAEgEAAAAAAAHimQECAw8BBgcAAQ4BCQQAB0AgDwAd4GEghEZ4iF1r9AWzyJs4";
         Cell cell = Cell.FromBoc(Convert.FromBase64String(golden))[0];
-        
+
         TupleItem[] parsed = TonTuple.ParseTuple(cell);
-        
+
         // Verify we can parse it successfully and re-serialize
         Cell reserialized = TonTuple.SerializeTuple(parsed);
-        string bocBase64 = Convert.ToBase64String(reserialized.ToBoc(hasIdx: false, hasCrc32C: false));
-        
+        string bocBase64 = Convert.ToBase64String(reserialized.ToBoc(false, false));
+
         // Verify BOC matches exactly
         Assert.That(bocBase64, Is.EqualTo(golden));
-        
+
         // Verify round-trip: parse the reserialized version
         TupleItem[] reparsed = TonTuple.ParseTuple(reserialized);
-        
+
         Assert.Multiple(() =>
         {
-            Assert.That(parsed.Length, Is.EqualTo(reparsed.Length));
+            Assert.That(parsed, Has.Length.EqualTo(reparsed.Length));
             Assert.That(parsed.Length, Is.GreaterThan(0)); // Should have parsed some items
         });
     }
@@ -181,7 +189,7 @@ public class TupleTests
         Cell serialized = TonTuple.SerializeTuple(originalItems);
         TupleItem[] parsed = TonTuple.ParseTuple(serialized);
 
-        Assert.That(parsed.Length, Is.EqualTo(originalItems.Length));
+        Assert.That(parsed, Has.Length.EqualTo(originalItems.Length));
 
         for (int i = 0; i < originalItems.Length; i++)
             if (originalItems[i] is TupleItemInt origInt && parsed[i] is TupleItemInt parsedInt)
@@ -334,7 +342,7 @@ public class TupleTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(list.Length, Is.EqualTo(3));
+            Assert.That(list, Has.Length.EqualTo(3));
             Assert.That((list[0] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(1)));
             Assert.That((list[1] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(2)));
             Assert.That((list[2] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(3)));
@@ -455,7 +463,7 @@ public class TupleTests
         TupleItem[] items = builder.Build();
         Assert.Multiple(() =>
         {
-            Assert.That(items.Length, Is.EqualTo(3));
+            Assert.That(items, Has.Length.EqualTo(3));
             Assert.That((items[0] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(123)));
             Assert.That((items[1] as TupleItemInt)?.Value, Is.EqualTo(new BigInteger(456)));
             Assert.That(items[2], Is.InstanceOf<TupleItemNull>());
@@ -488,7 +496,7 @@ public class TupleTests
         builder.WriteAddress(null);
 
         TupleItem[] items = builder.Build();
-        Assert.That(items.Length, Is.EqualTo(2));
+        Assert.That(items, Has.Length.EqualTo(2));
         Assert.Multiple(() =>
         {
             Assert.That(items[0], Is.InstanceOf<TupleItemSlice>());
@@ -509,7 +517,7 @@ public class TupleTests
         builder.WriteCell((Cell?)null);
 
         TupleItem[] items = builder.Build();
-        Assert.That(items.Length, Is.EqualTo(2));
+        Assert.That(items, Has.Length.EqualTo(2));
         Assert.Multiple(() =>
         {
             Assert.That(items[0], Is.InstanceOf<TupleItemCell>());
@@ -525,7 +533,7 @@ public class TupleTests
         builder.WriteString(null);
 
         TupleItem[] items = builder.Build();
-        Assert.That(items.Length, Is.EqualTo(2));
+        Assert.That(items, Has.Length.EqualTo(2));
         Assert.Multiple(() =>
         {
             Assert.That(items[0], Is.InstanceOf<TupleItemSlice>());
@@ -545,7 +553,7 @@ public class TupleTests
         builder.WriteBuffer(null);
 
         TupleItem[] items = builder.Build();
-        Assert.That(items.Length, Is.EqualTo(2));
+        Assert.That(items, Has.Length.EqualTo(2));
         Assert.Multiple(() =>
         {
             Assert.That(items[0], Is.InstanceOf<TupleItemSlice>());
@@ -566,7 +574,7 @@ public class TupleTests
         builder.WriteTuple(null);
 
         TupleItem[] items = builder.Build();
-        Assert.That(items.Length, Is.EqualTo(2));
+        Assert.That(items, Has.Length.EqualTo(2));
         Assert.Multiple(() =>
         {
             Assert.That(items[0], Is.InstanceOf<TupleItemTuple>());
