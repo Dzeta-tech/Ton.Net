@@ -4,18 +4,18 @@ Modern .NET SDK for TON blockchain with 1:1 API compatibility with official Java
 
 ## Packages
 
-| Package        | Description                       | Version                                                                                               |
-|----------------|-----------------------------------|-------------------------------------------------------------------------------------------------------|
-| **Ton.Core**   | Core types, addresses, cells, BOC | [![NuGet](https://img.shields.io/nuget/v/Ton.Core.svg)](https://www.nuget.org/packages/Ton.Core/)     |
-| **Ton.Crypto** | Cryptography, mnemonics, Ed25519  | [![NuGet](https://img.shields.io/nuget/v/Ton.Crypto.svg)](https://www.nuget.org/packages/Ton.Crypto/) |
-| **Ton.Client** | HTTP clients, wallets, jettons    | [![NuGet](https://img.shields.io/nuget/v/Ton.Client.svg)](https://www.nuget.org/packages/Ton.Client/) |
+| Package            | Description                       | Version                                                                                                       |
+|--------------------|-----------------------------------|---------------------------------------------------------------------------------------------------------------|
+| **Ton.Core**       | Core types, addresses, cells, BOC | [![NuGet](https://img.shields.io/nuget/v/Ton.Core.svg)](https://www.nuget.org/packages/Ton.Core/)             |
+| **Ton.Crypto**     | Cryptography, mnemonics, Ed25519  | [![NuGet](https://img.shields.io/nuget/v/Ton.Crypto.svg)](https://www.nuget.org/packages/Ton.Crypto/)         |
+| **Ton.HttpClient** | HTTP API, wallets, jettons        | [![NuGet](https://img.shields.io/nuget/v/Ton.HttpClient.svg)](https://www.nuget.org/packages/Ton.HttpClient/) |
 
 ## Installation
 
 ```bash
 dotnet add package Ton.Core
 dotnet add package Ton.Crypto
-dotnet add package Ton.Client
+dotnet add package Ton.HttpClient
 ```
 
 ## Quick Start
@@ -57,9 +57,9 @@ bool isRaw = Address.IsRaw("0:2cf55953...");
 - ⏳ SHA-256/512, HMAC, PBKDF2
 - ⏳ HD wallets
 
-### ⏳ Ton.Client (v0.0.1 - Coming Soon)
+### ⏳ Ton.HttpClient (v0.1.0 - Coming Soon)
 
-- ⏳ HTTP API clients
+- ⏳ HTTP API clients (Toncenter v2/v4)
 - ⏳ Wallet contracts (V1-V5)
 - ⏳ Jetton support
 - ⏳ Multisig
@@ -71,7 +71,7 @@ This SDK maintains 1:1 API compatibility with official TON JavaScript SDKs:
 
 - [@ton/core](https://github.com/ton-org/ton-core) → **Ton.Core**
 - [@ton/crypto](https://github.com/ton-org/ton-crypto) → **Ton.Crypto**
-- [@ton/ton](https://github.com/ton-org/ton) → **Ton.Client**
+- [@ton/ton](https://github.com/ton-org/ton) → **Ton.HttpClient**
 
 API naming follows C# conventions (PascalCase) while preserving the same method signatures and behavior.
 

@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ton.Core", "src\Ton.Core\To
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ton.Crypto", "src\Ton.Crypto\Ton.Crypto.csproj", "{E6162DE6-5CA9-4FF8-9843-FD85B9A02BB1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ton.Client", "src\Ton.Client\Ton.Client.csproj", "{E7883DFD-28EA-4CB5-948F-2F32327926A5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ton.HttpClient", "src\Ton.HttpClient\Ton.HttpClient.csproj", "{E7883DFD-28EA-4CB5-948F-2F32327926A5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{7854DABD-8422-4DCA-A96B-426F9C4E7517}"
 EndProject
