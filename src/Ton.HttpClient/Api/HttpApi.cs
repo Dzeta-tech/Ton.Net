@@ -70,7 +70,8 @@ public class HttpApi : IDisposable
         int limit,
         string? lt = null,
         string? hash = null,
-        string? toLt = null)
+        string? toLt = null,
+        bool archival = false)
     {
         var parameters = new Dictionary<string, object>
         {
@@ -86,8 +87,72 @@ public class HttpApi : IDisposable
             parameters["hash"] = Convert.ToHexString(hashBytes).ToLowerInvariant();
         }
         if (toLt != null) parameters["to_lt"] = toLt;
+        if (archival) parameters["archival"] = true;
 
         return await DoCallAsync<List<RawTransaction>>("getTransactions", parameters);
+    }
+
+    /// <summary>
+    /// Get single transaction by address, lt, and hash.
+    /// </summary>
+    public async Task<RawTransaction?> GetTransactionAsync(Address address, string lt, string hash)
+    {
+        // Convert base64 to hex
+        var hashBytes = Convert.FromBase64String(hash);
+        var hashHex = Convert.ToHexString(hashBytes).ToLowerInvariant();
+        
+        var transactions = await DoCallAsync<List<RawTransaction>>("getTransactions", new Dictionary<string, object>
+        {
+            ["address"] = address.ToString(),
+            ["lt"] = lt,
+            ["hash"] = hashHex,
+            ["limit"] = 1
+        });
+
+        return transactions.FirstOrDefault(t => t.TransactionId.Lt == lt && t.TransactionId.Hash == hash);
+    }
+
+    /// <summary>
+    /// Get shards for a masterchain block.
+    /// </summary>
+    public async Task<List<BlockIdExt>> GetShardsAsync(int seqno)
+    {
+        var response = await DoCallAsync<ShardResponse>("shards", new { seqno });
+        return response.Shards;
+    }
+
+    /// <summary>
+    /// Get block transactions.
+    /// </summary>
+    public async Task<BlockTransactions> GetBlockTransactionsAsync(int workchain, int seqno, string shard)
+    {
+        return await DoCallAsync<BlockTransactions>("getBlockTransactions", new { workchain, seqno, shard });
+    }
+
+    /// <summary>
+    /// Try to locate result transaction.
+    /// </summary>
+    public async Task<RawTransaction> TryLocateResultTxAsync(Address source, Address destination, string createdLt)
+    {
+        return await DoCallAsync<RawTransaction>("tryLocateResultTx", new
+        {
+            source = source.ToString(),
+            destination = destination.ToString(),
+            created_lt = createdLt
+        });
+    }
+
+    /// <summary>
+    /// Try to locate source transaction.
+    /// </summary>
+    public async Task<RawTransaction> TryLocateSourceTxAsync(Address source, Address destination, string createdLt)
+    {
+        return await DoCallAsync<RawTransaction>("tryLocateSourceTx", new
+        {
+            source = source.ToString(),
+            destination = destination.ToString(),
+            created_lt = createdLt
+        });
     }
 
     private async Task<T> DoCallAsync<T>(string method, object parameters)
