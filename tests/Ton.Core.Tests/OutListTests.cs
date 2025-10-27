@@ -28,7 +28,7 @@ public class OutListTests
     [Test]
     public void Test_OutAction_SendMsg_Serialize()
     {
-        SendMode mode = SendMode.PayFeesSeparately;
+        SendMode mode = SendMode.SendPayFwdFeesSeparately;
         OutAction.SendMsg action = new(mode, MockMessageRelaxed1);
 
         Builder builder = Builder.BeginCell();
@@ -107,7 +107,7 @@ public class OutListTests
     [Test]
     public void Test_OutAction_SendMsg_Deserialize()
     {
-        SendMode mode = SendMode.PayFeesSeparately;
+        SendMode mode = SendMode.SendPayFwdFeesSeparately;
 
         Builder msgBuilder = Builder.BeginCell();
         MockMessageRelaxed1.Store(msgBuilder);
@@ -194,8 +194,8 @@ public class OutListTests
     [Test]
     public void Test_OutList_Serialize()
     {
-        SendMode sendMode1 = SendMode.PayFeesSeparately;
-        SendMode sendMode2 = SendMode.IgnoreErrors;
+        SendMode sendMode1 = SendMode.SendPayFwdFeesSeparately;
+        SendMode sendMode2 = SendMode.SendIgnoreErrors;
         ReserveMode reserveMode = ReserveMode.ThisAmount;
         byte changeLibraryMode = 1;
 
@@ -262,8 +262,8 @@ public class OutListTests
     [Test]
     public void Test_OutList_Deserialize()
     {
-        SendMode sendMode1 = SendMode.PayFeesSeparately;
-        SendMode sendMode2 = SendMode.IgnoreErrors;
+        SendMode sendMode1 = SendMode.SendPayFwdFeesSeparately;
+        SendMode sendMode2 = SendMode.SendIgnoreErrors;
         ReserveMode reserveMode = ReserveMode.ThisAmount;
         byte changeLibraryMode = 1;
 

@@ -141,7 +141,7 @@ public class WalletV5R1IntegrationTests
             1,
             testSecretKey,
             [message],
-            SendMode.PayFeesSeparately | SendMode.IgnoreErrors
+            SendMode.SendPayFwdFeesSeparately | SendMode.SendIgnoreErrors
         );
 
         Assert.That(transfer, Is.Not.Null);

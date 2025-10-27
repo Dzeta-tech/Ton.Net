@@ -108,7 +108,7 @@ public class WalletV5R1ActionsTests
     [Test]
     public void ShouldSerializeExtendedOutList()
     {
-        SendMode sendMode1 = SendMode.PayFeesSeparately;
+        SendMode sendMode1 = SendMode.SendPayFwdFeesSeparately;
         const bool isPublicKeyEnabled = false;
 
         List<IWalletV5Action> actions =
@@ -152,7 +152,7 @@ public class WalletV5R1ActionsTests
     [Test]
     public void ShouldSerializeExtendedOutListAndProduceExpectedBoc()
     {
-        const SendMode sendMode1 = SendMode.PayFeesSeparately | SendMode.IgnoreErrors;
+        const SendMode sendMode1 = SendMode.SendPayFwdFeesSeparately | SendMode.SendIgnoreErrors;
         const bool isPublicKeyEnabled = false;
 
         List<IWalletV5Action> actions =
@@ -176,8 +176,8 @@ public class WalletV5R1ActionsTests
     [Test]
     public void ShouldSerializeExtendedOutListAndProduceExpectedBocForComplexStructures()
     {
-        SendMode sendMode1 = SendMode.PayFeesSeparately | SendMode.IgnoreErrors;
-        SendMode sendMode2 = SendMode.None;
+        SendMode sendMode1 = SendMode.SendPayFwdFeesSeparately | SendMode.SendIgnoreErrors;
+        SendMode sendMode2 = SendMode.SendDefault;
         const bool isPublicKeyEnabled = false;
 
         List<IWalletV5Action> actions =
@@ -203,7 +203,7 @@ public class WalletV5R1ActionsTests
     [Test]
     public void ShouldDeserializeExtendedOutList()
     {
-        const SendMode sendMode1 = SendMode.PayFeesSeparately;
+        const SendMode sendMode1 = SendMode.SendPayFwdFeesSeparately;
         const bool isPublicKeyEnabled = true;
 
         List<IWalletV5Action> expected =
@@ -268,17 +268,17 @@ public class WalletV5R1ActionsTests
     [Test]
     public void CheckToSafeSendModeAddIgnoreErrorsToExternals()
     {
-        SendMode notSafeSendMode = SendMode.PayFeesSeparately;
+        SendMode notSafeSendMode = SendMode.SendPayFwdFeesSeparately;
         string authType = "external";
         SendMode safeSendMode = WalletV5R1Actions.ToSafeV5R1SendMode(notSafeSendMode, authType);
 
-        Assert.That(safeSendMode, Is.EqualTo(notSafeSendMode | SendMode.IgnoreErrors));
+        Assert.That(safeSendMode, Is.EqualTo(notSafeSendMode | SendMode.SendIgnoreErrors));
     }
 
     [Test]
     public void CheckToSafeSendModeKeepModeForInternals()
     {
-        SendMode notSafeSendMode = SendMode.PayFeesSeparately;
+        SendMode notSafeSendMode = SendMode.SendPayFwdFeesSeparately;
         string authType = "internal";
         SendMode safeSendMode = WalletV5R1Actions.ToSafeV5R1SendMode(notSafeSendMode, authType);
 
@@ -288,7 +288,7 @@ public class WalletV5R1ActionsTests
     [Test]
     public void CheckToSafeSendModeKeepModeForExtensions()
     {
-        SendMode notSafeSendMode = SendMode.PayFeesSeparately;
+        SendMode notSafeSendMode = SendMode.SendPayFwdFeesSeparately;
         string authType = "extension";
         SendMode safeSendMode = WalletV5R1Actions.ToSafeV5R1SendMode(notSafeSendMode, authType);
 
@@ -298,7 +298,7 @@ public class WalletV5R1ActionsTests
     [Test]
     public void CheckToSafeSendModeDontAddIgnoreErrorsTwiceForExternals()
     {
-        SendMode safeSendMode = SendMode.PayFeesSeparately | SendMode.IgnoreErrors;
+        SendMode safeSendMode = SendMode.SendPayFwdFeesSeparately | SendMode.SendIgnoreErrors;
         string authType = "external";
         SendMode actualSafeSendMode = WalletV5R1Actions.ToSafeV5R1SendMode(safeSendMode, authType);
 
@@ -308,7 +308,7 @@ public class WalletV5R1ActionsTests
     [Test]
     public void CheckToSafeSendModeDontAddIgnoreErrorsTwiceForInternals()
     {
-        SendMode safeSendMode = SendMode.PayFeesSeparately | SendMode.IgnoreErrors;
+        SendMode safeSendMode = SendMode.SendPayFwdFeesSeparately | SendMode.SendIgnoreErrors;
         string authType = "internal";
         SendMode actualSafeSendMode = WalletV5R1Actions.ToSafeV5R1SendMode(safeSendMode, authType);
 

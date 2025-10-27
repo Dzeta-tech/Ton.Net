@@ -9,7 +9,7 @@
 
         <!-- NuGet Package Metadata -->
         <PackageId>Ton.Core</PackageId>
-        <Version>0.1.2</Version>
+        <Version>0.1.3</Version>
         <Authors>Dzeta.Tech Team</Authors>
         <Company>Dzeta.Tech</Company>
         <Description>Core TON blockchain library for .NET - Addresses, Cells, BOC, and fundamental data structures. 1:1 API compatibility with @ton/core JavaScript library.</Description>

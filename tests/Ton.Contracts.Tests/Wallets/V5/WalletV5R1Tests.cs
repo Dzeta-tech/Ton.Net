@@ -92,7 +92,7 @@ public class WalletV5R1Tests
             1, // seqno
             TestSecretKey,
             [message],
-            SendMode.PayFeesSeparately | SendMode.IgnoreErrors,
+            SendMode.SendPayFwdFeesSeparately | SendMode.SendIgnoreErrors,
             null,
             "external"
         );
@@ -138,7 +138,7 @@ public class WalletV5R1Tests
             5,
             TestSecretKey,
             messages,
-            SendMode.PayFeesSeparately,
+            SendMode.SendPayFwdFeesSeparately,
             null,
             "external"
         );
@@ -169,7 +169,7 @@ public class WalletV5R1Tests
             10,
             TestSecretKey,
             [message],
-            SendMode.PayFeesSeparately,
+            SendMode.SendPayFwdFeesSeparately,
             customTimeout,
             "external"
         );
@@ -198,7 +198,7 @@ public class WalletV5R1Tests
             0,
             TestSecretKey,
             [message],
-            SendMode.PayFeesSeparately,
+            SendMode.SendPayFwdFeesSeparately,
             null,
             "external"
         );
@@ -281,7 +281,7 @@ public class WalletV5R1Tests
             Builder.BeginCell().EndCell()
         );
 
-        List<IWalletV5Action> actions = [new OutActionSendMsg(SendMode.PayFeesSeparately, message)];
+        List<IWalletV5Action> actions = [new OutActionSendMsg(SendMode.SendPayFwdFeesSeparately, message)];
 
         Cell request = wallet.CreateRequest(
             5,
@@ -332,7 +332,7 @@ public class WalletV5R1Tests
             7,
             TestSecretKey,
             [message],
-            SendMode.PayFeesSeparately
+            SendMode.SendPayFwdFeesSeparately
         );
 
         // Serialize to BOC and back

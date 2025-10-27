@@ -338,7 +338,7 @@ public class WalletV5R1 : IContract
         public async Task SendAsync(SenderArguments args)
         {
             int seqno = await wallet.GetSeqnoAsync(provider);
-            SendMode sendMode = args.SendMode ?? SendMode.PayFeesSeparately | SendMode.IgnoreErrors;
+            SendMode sendMode = args.SendMode ?? SendMode.SendPayFwdFeesSeparately | SendMode.SendIgnoreErrors;
 
             MessageRelaxed message = new(
                 new CommonMessageInfoRelaxed.Internal(

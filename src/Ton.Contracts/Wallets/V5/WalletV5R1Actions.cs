@@ -166,7 +166,7 @@ public static class WalletV5R1Actions
     {
         if (authType == "internal" || authType == "extension") return sendMode;
 
-        return sendMode | SendMode.IgnoreErrors;
+        return sendMode | SendMode.SendIgnoreErrors;
     }
 
     /// <summary>

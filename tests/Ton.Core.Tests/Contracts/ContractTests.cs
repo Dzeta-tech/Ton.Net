@@ -119,7 +119,7 @@ public class ContractTests
             To = Address.Parse("EQCtW_zzk6n82ebaVQFq8P_04wOemYhtwqMd3NuArmPODRvD"),
             Body = body,
             Bounce = true,
-            SendMode = SendMode.PayFeesSeparately,
+            SendMode = SendMode.SendPayFwdFeesSeparately,
             Init = init
         };
 
@@ -128,7 +128,7 @@ public class ContractTests
             Assert.That(args.Value, Is.EqualTo(new BigInteger(2000000)));
             Assert.That(args.Body, Is.Not.Null);
             Assert.That(args.Bounce, Is.True);
-            Assert.That(args.SendMode, Is.EqualTo(SendMode.PayFeesSeparately));
+            Assert.That(args.SendMode, Is.EqualTo(SendMode.SendPayFwdFeesSeparately));
             Assert.That(args.Init, Is.Not.Null);
         });
     }
@@ -162,14 +162,14 @@ public class ContractTests
         {
             Value = 100000,
             Bounce = false,
-            SendMode = SendMode.IgnoreErrors
+            SendMode = SendMode.SendIgnoreErrors
         };
 
         Assert.Multiple(() =>
         {
             Assert.That(args.Value, Is.EqualTo(new BigInteger(100000)));
             Assert.That(args.Bounce, Is.False);
-            Assert.That(args.SendMode, Is.EqualTo(SendMode.IgnoreErrors));
+            Assert.That(args.SendMode, Is.EqualTo(SendMode.SendIgnoreErrors));
         });
     }
 

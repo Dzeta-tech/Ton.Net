@@ -10,30 +10,38 @@ public enum SendMode : byte
     /// <summary>
     ///     Ordinary message (default).
     /// </summary>
-    None = 0,
+    SendDefault = 0,
 
     /// <summary>
-    ///     Pay transfer fees separately from the message value.
+    ///     Pay forward fees separately from the message value.
     /// </summary>
-    PayFeesSeparately = 1,
+    SendPayFwdFeesSeparately = 1,
 
     /// <summary>
     ///     Ignore any errors arising while processing this message during the action phase.
     /// </summary>
-    IgnoreErrors = 2,
+    SendIgnoreErrors = 2,
 
     /// <summary>
-    ///     Current account must be destroyed if its resulting balance is zero.
+    ///     Bounce the transaction in case of any errors during the action phase.
+    ///     Has no effect if SendIgnoreErrors flag is used.
     /// </summary>
-    DestroyIfZero = 32,
+    SendBounceIfActionFail = 16,
 
     /// <summary>
-    ///     Carry all the remaining value of the inbound message in addition to the value initially indicated.
+    ///     The current account (contract) will be destroyed if its resulting balance is zero.
+    ///     This flag is often used with SendRemainingBalance mode.
     /// </summary>
-    CarryAllRemainingBalance = 64,
+    SendDestroyIfZero = 32,
 
     /// <summary>
-    ///     Carry all the remaining balance of the current smart contract instead of the value originally indicated.
+    ///     Carries all the remaining value of the inbound message in addition to the value initially indicated in the new message.
     /// </summary>
-    CarryAllRemainingIncomingValue = 128
+    SendRemainingValue = 64,
+
+    /// <summary>
+    ///     Carries all the remaining balance of the current smart contract instead of the value originally indicated in the message.
+    ///     Use with caution as it works with the balance of the entire contract.
+    /// </summary>
+    SendRemainingBalance = 128
 }
