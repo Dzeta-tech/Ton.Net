@@ -1,106 +1,122 @@
 # Ton.NET
 
-Modern .NET SDK for TON blockchain with 1:1 API compatibility with official JavaScript SDKs.
+A comprehensive .NET SDK for the TON (The Open Network) blockchain, providing 1:1 API compatibility with the official [TON JavaScript SDK](https://github.com/ton-org/ton).
 
-## Packages
+## 📦 Packages
 
-| Package            | Description                       | Version                                                                                                       |
-|--------------------|-----------------------------------|---------------------------------------------------------------------------------------------------------------|
-| **Ton.Core**       | Core types, addresses, cells, BOC | [![NuGet](https://img.shields.io/nuget/v/Ton.Core.svg)](https://www.nuget.org/packages/Ton.Core/)             |
-| **Ton.Crypto**     | Cryptography, mnemonics, Ed25519  | [![NuGet](https://img.shields.io/nuget/v/Ton.Crypto.svg)](https://www.nuget.org/packages/Ton.Crypto/)         |
-| **Ton.HttpClient** | HTTP API, wallets, jettons        | [![NuGet](https://img.shields.io/nuget/v/Ton.HttpClient.svg)](https://www.nuget.org/packages/Ton.HttpClient/) |
+| Package | Version | Description |
+|---------|---------|-------------|
+| **Ton.Core** | [![NuGet](https://img.shields.io/nuget/v/Ton.Core.svg)](https://www.nuget.org/packages/Ton.Core/) | Core primitives: Cells, BOC, Addresses, Types |
+| **Ton.Crypto** | [![NuGet](https://img.shields.io/nuget/v/Ton.Crypto.svg)](https://www.nuget.org/packages/Ton.Crypto/) | Ed25519, Mnemonics (BIP39), SHA, HMAC |
+| **Ton.Contracts** | [![NuGet](https://img.shields.io/nuget/v/Ton.Contracts.svg)](https://www.nuget.org/packages/Ton.Contracts/) | Smart contracts: Wallets, Jettons, NFTs |
+| **Ton.HttpClient** | [![NuGet](https://img.shields.io/nuget/v/Ton.HttpClient.svg)](https://www.nuget.org/packages/Ton.HttpClient/) | HTTP API clients (Toncenter v2/v4) |
 
-## Installation
+## 🚀 Quick Start
 
 ```bash
 dotnet add package Ton.Core
 dotnet add package Ton.Crypto
+dotnet add package Ton.Contracts
 dotnet add package Ton.HttpClient
 ```
 
-## Quick Start
+### Create and Use a Wallet
 
 ```csharp
-using Ton.Core.Addresses;
+using Ton.Contracts.Wallets.V5;
+using Ton.Crypto.Mnemonic;
+using Ton.HttpClient;
 
-// Parse and work with TON addresses
-var address = Address.Parse("EQAs9VlT6S776tq3unJcP5Ogsj-ELLunLXuOb1EKcOQi4wJB");
-Console.WriteLine($"Workchain: {address.WorkChain}");
-Console.WriteLine($"Raw: {address.ToRawString()}");
+// Generate mnemonic
+var mnemonic = Mnemonic.Generate();
+var keyPair = Mnemonic.ToKeyPair(mnemonic);
 
-// Convert between formats
-var raw = "0:2cf55953e92efbeadab7ba725c3f93a0b23f842cbba72d7b8e6f510a70e422e3";
-var friendly = Address.Parse(raw).ToString();
-Console.WriteLine($"Friendly: {friendly}");
+// Create wallet
+var wallet = WalletV5R1.Create(0, keyPair.PublicKey);
+Console.WriteLine($"Address: {wallet.Address}");
 
-// Validate addresses
-bool isFriendly = Address.IsFriendly("EQAs9VlT...");
-bool isRaw = Address.IsRaw("0:2cf55953...");
+// Connect to blockchain
+var client = new TonClient(new TonClientParameters 
+{ 
+    Endpoint = "https://toncenter.com/api/v2/jsonRPC" 
+});
+
+var opened = client.Open(wallet);
+
+// Get balance
+var balance = await opened.Contract.GetBalanceAsync(opened.Provider);
+Console.WriteLine($"Balance: {balance} nanotons");
+
+// Send transfer
+var transfer = wallet.CreateTransfer(
+    seqno: await opened.Contract.GetSeqnoAsync(opened.Provider),
+    secretKey: keyPair.SecretKey,
+    messages: new[] { 
+        new MessageRelaxed(/* ... */) 
+    },
+    sendMode: SendMode.PayFeesSeparately
+);
+
+await opened.Contract.SendAsync(opened.Provider, transfer);
 ```
 
-## Features
+## 📋 Implementation Status
 
-### ✅ Ton.Core (v0.0.1)
+### ✅ Completed
 
-- ✅ Address type (immutable, full compatibility with JS)
-- ✅ CRC-16 checksum
-- ⏳ BitString, BitReader, BitBuilder
-- ⏳ Cell, Builder, Slice
-- ⏳ Dictionary
-- ⏳ Tuple types
-- ⏳ TL-B schemas (Message, Transaction, Account, etc.)
+- **Core Primitives**: Cell, BOC serialization, Address, BitString, Dictionary
+- **TL-B Types**: All 37 types (Message, Transaction, Account, StateInit, etc.)
+- **Cryptography**: Ed25519, BIP39 mnemonics, SHA-256/512, HMAC, PBKDF2
+- **HTTP Clients**: Toncenter API v2 and v4
+- **Wallets**: V5R1 (transfers, extensions, auth modes)
+- **Contract System**: IContract, IContractProvider, OpenedContract
 
-### ⏳ Ton.Crypto (v0.0.1 - Coming Soon)
+### 🚧 In Progress
 
-- ⏳ Mnemonic (BIP39)
-- ⏳ Ed25519 signing
-- ⏳ SHA-256/512, HMAC, PBKDF2
-- ⏳ HD wallets
+- **Wallets**: V1R1, V1R2, V1R3, V2R1, V2R2, V3R1, V3R2, V4R1, V4R2
+- **Jettons**: JettonMaster, JettonWallet
+- **NFTs**: NFTCollection, NFTItem
+- **ADNL**: Lite client for direct node communication
 
-### ⏳ Ton.HttpClient (v0.1.0 - Coming Soon)
+## 🧪 Testing
 
-- ⏳ HTTP API clients (Toncenter v2/v4)
-- ⏳ Wallet contracts (V1-V5)
-- ⏳ Jetton support
-- ⏳ Multisig
-- ⏳ Fee computation
+```bash
+dotnet test
+```
 
-## API Compatibility
+**Test Coverage:**
+- 327 tests in Ton.Core.Tests
+- 18 tests in Ton.Crypto.Tests  
+- 41 tests in Ton.Contracts.Tests (including integration tests)
+- 15 tests in Ton.HttpClient.Tests
 
-This SDK maintains 1:1 API compatibility with official TON JavaScript SDKs:
+Total: **401 passing tests**
 
-- [@ton/core](https://github.com/ton-org/ton-core) → **Ton.Core**
-- [@ton/crypto](https://github.com/ton-org/ton-crypto) → **Ton.Crypto**
-- [@ton/ton](https://github.com/ton-org/ton) → **Ton.HttpClient**
+## 📚 Documentation
 
-API naming follows C# conventions (PascalCase) while preserving the same method signatures and behavior.
+- **TON Documentation**: https://docs.ton.org/
+- **TON JavaScript SDK**: https://github.com/ton-org/ton
+- **TL-B Schemas**: https://github.com/ton-blockchain/ton/tree/master/crypto/block
 
-## Development Status
+## 🏗️ Architecture
 
-🚧 **Early Development** - Currently implementing Phase 1 (Core types). API may change before 1.0.0 release.
+```
+Ton.Core          → Core blockchain primitives (Cell, Address, BOC, etc.)
+Ton.Crypto        → Cryptographic operations (Ed25519, Mnemonics)
+Ton.Contracts     → Smart contract implementations (Wallets, Jettons, NFTs)
+Ton.HttpClient    → HTTP API clients (Toncenter v2/v4)
+```
 
-See [API_INVENTORY.md](API_INVENTORY.md) for detailed implementation roadmap.
+## 🤝 Contributing
 
-## Requirements
+Contributions are welcome! This project aims for API compatibility with the TON JavaScript SDK.
 
-- .NET 9.0 or later
+## 📄 License
 
-## License
+MIT License - see [LICENSE](LICENSE) file for details.
 
-MIT License - see LICENSE file for details.
+## 🔗 Links
 
-## Contributing
-
-Contributions welcome! This is a ground-up rewrite focused on:
-
-- Clean, modern C# code
-- Full test coverage
-- Complete API compatibility with JS SDKs
-- Comprehensive documentation
-
-## Links
-
-- [TON Documentation](https://docs.ton.org/)
-- [JavaScript SDKs](https://github.com/ton-org)
-- [Issue Tracker](https://github.com/Dzeta-tech/Ton.Net/issues)
-
+- [TON Official Website](https://ton.org/)
+- [TON GitHub](https://github.com/ton-blockchain/ton)
+- [TON Community](https://t.me/tondev_eng)
