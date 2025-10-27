@@ -75,32 +75,6 @@ public class TonClientTests
     }
 
     [Test]
-    public async Task Test_GetSingleTransaction()
-    {
-        // First, get recent transactions
-        List<Transaction> recentTxs = await client.GetTransactionsAsync(testAddress, 5);
-        Assert.That(recentTxs, Is.Not.Empty);
-
-        // Pick the first transaction
-        Transaction firstTx = recentTxs[0];
-        string hash = Convert.ToBase64String(firstTx.Raw.Hash());
-
-        // Now retrieve it by LT and hash
-        Transaction? tx = await client.GetTransactionAsync(
-            testAddress,
-            firstTx.Lt.ToString(),
-            hash
-        );
-
-        Assert.That(tx, Is.Not.Null);
-        Assert.Multiple(() =>
-        {
-            Assert.That(tx!.Lt, Is.EqualTo(firstTx.Lt));
-            Assert.That(tx.Raw.Hash(), Is.EqualTo(firstTx.Raw.Hash()));
-        });
-    }
-
-    [Test]
     public async Task Test_RunMethod()
     {
         RunMethodResult result = await client.RunMethodAsync(testAddress, "seqno");

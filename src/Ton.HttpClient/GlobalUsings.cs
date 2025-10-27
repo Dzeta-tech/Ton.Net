@@ -1,6 +1,10 @@
 global using System;
 global using System.Net.Http;
 global using System.Threading.Tasks;
+global using Ton.Core;
 global using Ton.Core.Addresses;
 global using Ton.Core.Boc;
 global using Ton.Core.Contracts;
+global using Ton.Core.Tuple;
+global using Ton.Core.Types;
+global using TonDict = Ton.Core.Dict;

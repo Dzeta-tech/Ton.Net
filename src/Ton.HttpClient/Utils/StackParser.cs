@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Numerics;
 using System.Text.Json;
-using Ton.Core.Tuple;
 
 namespace Ton.HttpClient.Utils;
 
@@ -15,7 +14,7 @@ public static class StackParser
     /// </summary>
     public static TupleReader ParseStack(List<object> stack)
     {
-        List<TupleItem> items = new();
+        List<TupleItem> items = [];
 
         foreach (object item in stack) items.Add(ParseStackItem(item));
 
@@ -25,7 +24,7 @@ public static class StackParser
     static TupleItem ParseStackItem(object item)
     {
         // Stack items come as arrays: [type, value]
-        if (item is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Array)
+        if (item is JsonElement { ValueKind: JsonValueKind.Array } jsonElement)
         {
             JsonElement[] array = jsonElement.EnumerateArray().ToArray();
             if (array.Length == 0) throw new InvalidOperationException("Empty stack item");
@@ -102,7 +101,7 @@ public static class StackParser
         if (array.Length < 2) throw new InvalidOperationException("Invalid tuple format");
 
         List<JsonElement> elements = array[1].GetProperty("elements").EnumerateArray().ToList();
-        List<TupleItem> items = new();
+        List<TupleItem> items = [];
 
         foreach (JsonElement element in elements) items.Add(ParseStackItem(element));
 

@@ -1,6 +1,4 @@
 using System.Numerics;
-using Ton.Core.Tuple;
-using Ton.Core.Types;
 
 namespace Ton.HttpClient;
 

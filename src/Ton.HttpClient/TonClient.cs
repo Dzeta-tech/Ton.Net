@@ -1,10 +1,7 @@
 using System.Numerics;
-using Ton.Core.Tuple;
-using Ton.Core.Types;
 using Ton.HttpClient.Api;
 using Ton.HttpClient.Api.Models;
 using Ton.HttpClient.Utils;
-using TonDict = Ton.Core.Dict;
 
 namespace Ton.HttpClient;
 
@@ -86,7 +83,7 @@ public class TonClient : IDisposable
         List<RawTransaction> rawTransactions =
             await api.GetTransactionsAsync(address, actualLimit, lt, hash, toLt, archival);
 
-        List<Transaction> transactions = new();
+        List<Transaction> transactions = [];
         foreach (RawTransaction raw in rawTransactions)
         {
             byte[] boc = Convert.FromBase64String(raw.Data);
@@ -192,7 +189,7 @@ public class TonClient : IDisposable
 
         // Parse extra currencies
         TonDict.Dictionary<TonDict.DictKeyUint, BigInteger>? extraCurrencies = null;
-        if (info.ExtraCurrencies != null && info.ExtraCurrencies.Count > 0)
+        if (info.ExtraCurrencies is { Count: > 0 })
         {
             Dictionary<uint, BigInteger> ecDict = new();
             foreach (ExtraCurrencyInfo ec in info.ExtraCurrencies) ecDict[(uint)ec.Id] = BigInteger.Parse(ec.Amount);
@@ -223,7 +220,7 @@ public class TonClient : IDisposable
                 info.Data != "" ? Convert.FromBase64String(info.Data) : null
             ),
             "uninitialized" => new ContractState.AccountStateInfo.Uninit(),
-            "frozen" => new ContractState.AccountStateInfo.Frozen(new byte[0]),
+            "frozen" => new ContractState.AccountStateInfo.Frozen([]),
             _ => throw new NotSupportedException($"Unknown state: {info.State}")
         };
 

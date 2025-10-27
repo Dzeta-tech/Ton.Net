@@ -1,6 +1,5 @@
 using System.Text;
 using System.Text.Json;
-using Ton.Core.Tuple;
 using Ton.HttpClient.Api.Models;
 
 namespace Ton.HttpClient.Api;
@@ -200,7 +199,7 @@ public class HttpApi : IDisposable
 
     static List<List<object>> SerializeStack(TupleItem[] items)
     {
-        List<List<object>> result = new();
+        List<List<object>> result = [];
         foreach (TupleItem item in items) result.Add(SerializeTupleItem(item));
         return result;
     }
@@ -209,13 +208,12 @@ public class HttpApi : IDisposable
     {
         return item switch
         {
-            TupleItemInt intItem => new List<object> { "num", intItem.Value.ToString() },
-            TupleItemCell cellItem => new List<object> { "cell", Convert.ToBase64String(cellItem.Cell.ToBoc()) },
-            TupleItemSlice sliceItem => new List<object> { "slice", Convert.ToBase64String(sliceItem.Cell.ToBoc()) },
-            TupleItemBuilder builderItem => new List<object>
-                { "builder", Convert.ToBase64String(builderItem.Cell.ToBoc()) },
-            TupleItemNaN => new List<object> { "nan" },
-            TupleItemNull => new List<object> { "null" },
+            TupleItemInt intItem => ["num", intItem.Value.ToString()],
+            TupleItemCell cellItem => ["cell", Convert.ToBase64String(cellItem.Cell.ToBoc())],
+            TupleItemSlice sliceItem => ["slice", Convert.ToBase64String(sliceItem.Cell.ToBoc())],
+            TupleItemBuilder builderItem => ["builder", Convert.ToBase64String(builderItem.Cell.ToBoc())],
+            TupleItemNaN => ["nan"],
+            TupleItemNull => ["null"],
             _ => throw new NotSupportedException($"Tuple item type {item.GetType().Name} not supported")
         };
     }
