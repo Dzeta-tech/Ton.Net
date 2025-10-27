@@ -32,10 +32,10 @@ public class BitStringTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(a.Equals(b), Is.True);
-            Assert.That(b.Equals(a), Is.True);
-            Assert.That(a.Equals(c), Is.True);
-            Assert.That(c.Equals(a), Is.True);
+            Assert.That(a, Is.EqualTo(b));
+            Assert.That(b, Is.EqualTo(a));
+            Assert.That(a, Is.EqualTo(c));
+            Assert.That(c, Is.EqualTo(a));
             Assert.That(a.ToString(), Is.EqualTo("AA"));
             Assert.That(b.ToString(), Is.EqualTo("AA"));
             Assert.That(c.ToString(), Is.EqualTo("AA"));

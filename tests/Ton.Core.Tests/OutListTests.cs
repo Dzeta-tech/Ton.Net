@@ -311,7 +311,7 @@ public class OutListTests
 
         List<OutAction> actual = OutList.Load(rawList.BeginParse());
 
-        Assert.That(actual.Count, Is.EqualTo(5));
+        Assert.That(actual, Has.Count.EqualTo(5));
 
         Assert.That(actual[0], Is.InstanceOf<OutAction.SendMsg>());
         OutAction.SendMsg sendMsg1 = (OutAction.SendMsg)actual[0];

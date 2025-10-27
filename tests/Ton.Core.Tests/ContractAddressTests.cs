@@ -22,7 +22,7 @@ public class ContractAddressTests
         Assert.Multiple(() =>
         {
             Assert.That(addr.ToString(), Is.EqualTo(expected.ToString()));
-            Assert.That(addr.WorkChain, Is.EqualTo(0));
+            Assert.That(addr.Workchain, Is.EqualTo(0));
         });
     }
 
@@ -52,8 +52,8 @@ public class ContractAddressTests
         Assert.Multiple(() =>
         {
             // Different workchains should produce different addresses
-            Assert.That(addr0.WorkChain, Is.EqualTo(0));
-            Assert.That(addrMaster.WorkChain, Is.EqualTo(-1));
+            Assert.That(addr0.Workchain, Is.EqualTo(0));
+            Assert.That(addrMaster.Workchain, Is.EqualTo(-1));
             Assert.That(addr0.ToString(), Is.Not.EqualTo(addrMaster.ToString()));
         });
     }
@@ -126,7 +126,7 @@ public class ContractAddressTests
         Assert.That(addr, Is.Not.Null);
         Assert.Multiple(() =>
         {
-            Assert.That(addr.WorkChain, Is.EqualTo(0));
+            Assert.That(addr.Workchain, Is.EqualTo(0));
             Assert.That(addr.Hash.Length, Is.EqualTo(32));
         });
     }

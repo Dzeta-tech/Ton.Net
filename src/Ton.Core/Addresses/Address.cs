@@ -16,22 +16,22 @@ public partial class Address : IEquatable<Address>
     /// <summary>
     ///     Creates a new TON address with the specified workchain and hash.
     /// </summary>
-    /// <param name="workChain">The workchain ID.</param>
+    /// <param name="workchain">The workchain ID.</param>
     /// <param name="hash">The 32-byte address hash.</param>
     /// <exception cref="ArgumentException">Thrown when hash length is not 32 bytes.</exception>
-    public Address(int workChain, byte[] hash)
+    public Address(int workchain, byte[] hash)
     {
         if (hash.Length != 32)
             throw new ArgumentException($"Invalid address hash length: {hash.Length}", nameof(hash));
 
-        WorkChain = workChain;
+        Workchain = workchain;
         Hash = hash;
     }
 
     /// <summary>
     ///     The workchain ID. Typically 0 for basechain or -1 for masterchain.
     /// </summary>
-    public int WorkChain { get; }
+    public int Workchain { get; }
 
     /// <summary>
     ///     The 32-byte address hash.
@@ -50,7 +50,7 @@ public partial class Address : IEquatable<Address>
         if (other == null)
             return false;
 
-        if (WorkChain != other.WorkChain)
+        if (Workchain != other.Workchain)
             return false;
 
         return Hash.SequenceEqual(other.Hash);
@@ -253,7 +253,7 @@ public partial class Address : IEquatable<Address>
     /// <returns>The address in raw string format (e.g., "0:e4d954ef...").</returns>
     public string ToRawString()
     {
-        return $"{WorkChain}:{Convert.ToHexString(Hash).ToLower()}";
+        return $"{Workchain}:{Convert.ToHexString(Hash).ToLower()}";
     }
 
     /// <summary>
@@ -264,10 +264,10 @@ public partial class Address : IEquatable<Address>
     {
         byte[] addressWithChecksum = new byte[36];
         Array.Copy(Hash, addressWithChecksum, 32);
-        addressWithChecksum[32] = (byte)WorkChain;
-        addressWithChecksum[33] = (byte)WorkChain;
-        addressWithChecksum[34] = (byte)WorkChain;
-        addressWithChecksum[35] = (byte)WorkChain;
+        addressWithChecksum[32] = (byte)Workchain;
+        addressWithChecksum[33] = (byte)Workchain;
+        addressWithChecksum[34] = (byte)Workchain;
+        addressWithChecksum[35] = (byte)Workchain;
         return addressWithChecksum;
     }
 
@@ -285,7 +285,7 @@ public partial class Address : IEquatable<Address>
 
         byte[] addr = new byte[34];
         addr[0] = tag;
-        addr[1] = (byte)WorkChain;
+        addr[1] = (byte)Workchain;
         Array.Copy(Hash, 0, addr, 2, 32);
 
         byte[] addressWithChecksum = new byte[36];
@@ -330,7 +330,7 @@ public partial class Address : IEquatable<Address>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(WorkChain, Hash.Length > 0 ? Hash[0] : 0);
+        return HashCode.Combine(Workchain, Hash.Length > 0 ? Hash[0] : 0);
     }
 
     public static bool operator ==(Address? left, Address? right)

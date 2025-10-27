@@ -37,7 +37,7 @@ public class RelaxedTypesTests
         Assert.Multiple(() =>
         {
             Assert.That(@internal.Src, Is.Null);
-            Assert.That(@internal.Dest.Equals(destAddr), Is.True);
+            Assert.That(@internal.Dest, Is.EqualTo(destAddr));
             Assert.That(@internal.Value.Coins, Is.EqualTo((BigInteger)1000000000));
         });
     }
@@ -73,7 +73,7 @@ public class RelaxedTypesTests
         Assert.Multiple(() =>
         {
             Assert.That(@internal.Src, Is.Not.Null);
-            Assert.That(@internal.Src!.Equals(srcAddr), Is.True);
+            Assert.That(@internal.Src!, Is.EqualTo(srcAddr));
             Assert.That(@internal.CreatedLt, Is.EqualTo((BigInteger)99999));
         });
     }
@@ -103,7 +103,7 @@ public class RelaxedTypesTests
         Assert.Multiple(() =>
         {
             Assert.That(eo.Src, Is.Not.Null);
-            Assert.That(eo.Src!.Equals(srcAddr), Is.True);
+            Assert.That(eo.Src!, Is.EqualTo(srcAddr));
             Assert.That(eo.Dest, Is.Not.Null);
             Assert.That(eo.Dest!.Value, Is.EqualTo((BigInteger)12345));
         });
@@ -242,7 +242,7 @@ public class RelaxedTypesTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(loaded.Addr.WorkChain, Is.EqualTo(0));
+            Assert.That(loaded.Addr.Workchain, Is.EqualTo(0));
             Assert.That(loaded.StorageStats.LastPaid, Is.EqualTo(1234567890U));
             Assert.That(loaded.Storage.Balance.Coins, Is.EqualTo((BigInteger)1000000000));
             Assert.That(loaded.Storage.State, Is.InstanceOf<AccountState.Active>());

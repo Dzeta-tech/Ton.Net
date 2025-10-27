@@ -92,8 +92,8 @@ public class CommonMessageInfoTests
             Assert.That(im.IhrDisabled, Is.True);
             Assert.That(im.Bounce, Is.True);
             Assert.That(im.Bounced, Is.False);
-            Assert.That(im.Src.Equals(srcAddr), Is.True);
-            Assert.That(im.Dest.Equals(destAddr), Is.True);
+            Assert.That(im.Src, Is.EqualTo(srcAddr));
+            Assert.That(im.Dest, Is.EqualTo(destAddr));
             Assert.That(im.Value.Coins, Is.EqualTo((BigInteger)1000000000));
             Assert.That(im.IhrFee, Is.EqualTo((BigInteger)0));
             Assert.That(im.ForwardFee, Is.EqualTo((BigInteger)1000));
@@ -139,7 +139,7 @@ public class CommonMessageInfoTests
         CommonMessageInfo.ExternalOut eo = (CommonMessageInfo.ExternalOut)msg2;
         Assert.Multiple(() =>
         {
-            Assert.That(eo.Src.Equals(srcAddr), Is.True);
+            Assert.That(eo.Src, Is.EqualTo(srcAddr));
             Assert.That(eo.Dest, Is.Not.Null);
             Assert.That(eo.Dest!.Value, Is.EqualTo((BigInteger)0xDEADBEEF));
             Assert.That(eo.CreatedLt, Is.EqualTo((BigInteger)99999));

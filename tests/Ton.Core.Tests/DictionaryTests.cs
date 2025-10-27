@@ -447,7 +447,7 @@ public class DictionaryTests
         List<KeyValuePair<TonDict.DictKeyUint, ulong>> items = [];
         foreach (KeyValuePair<TonDict.DictKeyUint, ulong> item in dict) items.Add(item);
 
-        Assert.That(items.Count, Is.EqualTo(3));
+        Assert.That(items, Has.Count.EqualTo(3));
         Assert.Multiple(() =>
         {
             Assert.That(items.Any(kv => kv.Key == 13 && kv.Value == 169), Is.True);

@@ -22,6 +22,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\Ton.Core\Ton.Core.csproj"/>
+        <ProjectReference Include="..\..\src\Ton.Contracts\Ton.Contracts.csproj"/>
     </ItemGroup>
 
 </Project>

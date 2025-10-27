@@ -298,7 +298,7 @@ public class BitBuilder
         // Internal address
         WriteUint(2, 2); // Address type
         WriteUint(0, 1); // No anycast
-        WriteInt(address.WorkChain, 8);
+        WriteInt(address.Workchain, 8);
         WriteBuffer(address.Hash);
     }
 
@@ -319,7 +319,7 @@ public class BitBuilder
         {
             WriteUint(2, 2); // Internal address type
             WriteUint(0, 1); // No anycast
-            WriteInt(internalAddr.WorkChain, 8);
+            WriteInt(internalAddr.Workchain, 8);
             WriteBuffer(internalAddr.Hash);
             return;
         }

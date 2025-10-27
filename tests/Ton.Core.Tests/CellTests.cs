@@ -12,7 +12,7 @@ public class CellTests
         Assert.Multiple(() =>
         {
             Assert.That(cell.Type, Is.EqualTo(CellType.Ordinary));
-            Assert.That(cell.Bits.Equals(BitString.Empty), Is.True);
+            Assert.That(cell.Bits, Is.EqualTo(BitString.Empty));
             Assert.That(cell.Refs.Length, Is.EqualTo(0));
             Assert.That(cell.IsExotic, Is.False);
         });
@@ -28,7 +28,7 @@ public class CellTests
         Cell cell = new(bits);
         Assert.Multiple(() =>
         {
-            Assert.That(cell.Bits.Equals(bits), Is.True);
+            Assert.That(cell.Bits, Is.EqualTo(bits));
             Assert.That(cell.Refs.Length, Is.EqualTo(0));
         });
     }

@@ -61,7 +61,7 @@ public class TonClientTests
         List<Transaction> transactions = await client.GetTransactionsAsync(testAddress, 3, archival: true);
 
         Assert.That(transactions, Is.Not.Empty);
-        Assert.That(transactions.Count, Is.LessThanOrEqualTo(3));
+        Assert.That(transactions, Has.Count.LessThanOrEqualTo(3));
 
         foreach (Transaction tx in transactions) Console.WriteLine($"Transaction LT: {tx.Lt}");
     }

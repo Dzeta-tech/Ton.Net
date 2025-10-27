@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Ton.HttpClient.Utils;
 
 namespace Ton.HttpClient.Api.Models;
 
@@ -11,6 +12,7 @@ public record AddressInformation
     ///     Account balance in nanotons (as string to handle large numbers).
     /// </summary>
     [JsonPropertyName("balance")]
+    [JsonConverter(typeof(StringOrNumberConverter))]
     public required string Balance { get; init; }
 
     /// <summary>

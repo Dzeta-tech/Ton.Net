@@ -55,6 +55,12 @@ jobs:
         dotnet build src/Ton.Crypto/Ton.Crypto.csproj --no-restore --configuration Release
         dotnet pack src/Ton.Crypto/Ton.Crypto.csproj --no-build --configuration Release --output ./artifacts
     
+    - name: Build and Pack Ton.Contracts
+      run: |
+        dotnet restore src/Ton.Contracts/Ton.Contracts.csproj
+        dotnet build src/Ton.Contracts/Ton.Contracts.csproj --no-restore --configuration Release
+        dotnet pack src/Ton.Contracts/Ton.Contracts.csproj --no-build --configuration Release --output ./artifacts
+    
     - name: Build and Pack Ton.HttpClient
       run: |
         dotnet restore src/Ton.HttpClient/Ton.HttpClient.csproj

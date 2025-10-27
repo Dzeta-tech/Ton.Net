@@ -65,31 +65,31 @@
 
 ### @ton - Client & Contracts
 
-| Module                 | Priority  | Status  | Notes                          |
-| ---------------------- | --------- | ------- | ------------------------------ |
-| **HTTP API Client**    | 🔴 High   | Partial | v2 complete, v4 pending        |
-| └─ `HttpApi`           | High      | ✅      | Low-level JSON-RPC client      |
-| └─ `TonClient` (v2)    | High      | ✅      | Toncenter API v2 + provider    |
-| └─ `TonClient4` (v4)   | High      | ❌      | Toncenter API v4               |
-| **Wallet Contracts**   | 🔴 High   | ❌      | 5-7 days                       |
-| └─ WalletV1R1-V1R3     | High      | ❌      | Legacy wallets                 |
-| └─ WalletV2R1-V2R2     | High      | ❌      | V2 wallets                     |
-| └─ WalletV3R1-V3R2     | High      | ❌      | V3 wallets                     |
-| └─ WalletV4            | High      | ❌      | V4 with plugins                |
-| └─ WalletV5Beta, V5R1  | High      | ❌      | Latest wallets                 |
-| **Jetton Contracts**   | 🟡 Medium | ❌      | 2-3 days                       |
-| └─ `JettonMaster`      | Medium    | ❌      | Jetton master contract         |
-| └─ `JettonWallet`      | Medium    | ❌      | Jetton wallet contract         |
-| **Advanced Contracts** | 🟢 Low    | ❌      | 3-5 days                       |
-| └─ `MultisigWallet`    | Low       | ❌      | Multisig contract              |
-| └─ `ElectorContract`   | Low       | ❌      | Validator elector              |
-| **Config Parser**      | 🟢 Low    | ❌      | 2-3 days                       |
-| └─ Parse config params | Low       | ❌      | Config params 5-40             |
-| └─ `ParseFullConfig()` | Low       | ❌      | Complete config parser         |
-| **Fee Computation**    | 🟢 Low    | ❌      | 2-3 days                       |
-| └─ Message fees        | Low       | ❌      | External/internal message fees |
-| └─ Gas prices          | Low       | ❌      | Compute gas costs              |
-| └─ Storage fees        | Low       | ❌      | Storage fee calculation        |
+| Module                 | Priority  | Status      | Notes                          |
+| ---------------------- | --------- | ----------- | ------------------------------ |
+| **HTTP API Client**    | 🔴 High   | ✅ Complete | Both v2 and v4 implemented     |
+| └─ `HttpApi`           | High      | ✅          | Low-level JSON-RPC client      |
+| └─ `TonClient` (v2)    | High      | ✅          | Toncenter API v2 + provider    |
+| └─ `TonClient4` (v4)   | High      | ✅          | Toncenter API v4 + provider    |
+| **Wallet Contracts**   | 🔴 High   | ❌          | 5-7 days                       |
+| └─ WalletV1R1-V1R3     | High      | ❌          | Legacy wallets                 |
+| └─ WalletV2R1-V2R2     | High      | ❌          | V2 wallets                     |
+| └─ WalletV3R1-V3R2     | High      | ❌          | V3 wallets                     |
+| └─ WalletV4            | High      | ❌          | V4 with plugins                |
+| └─ WalletV5Beta, V5R1  | High      | ❌          | Latest wallets                 |
+| **Jetton Contracts**   | 🟡 Medium | ❌          | 2-3 days                       |
+| └─ `JettonMaster`      | Medium    | ❌          | Jetton master contract         |
+| └─ `JettonWallet`      | Medium    | ❌          | Jetton wallet contract         |
+| **Advanced Contracts** | 🟢 Low    | ❌          | 3-5 days                       |
+| └─ `MultisigWallet`    | Low       | ❌          | Multisig contract              |
+| └─ `ElectorContract`   | Low       | ❌          | Validator elector              |
+| **Config Parser**      | 🟢 Low    | ❌          | 2-3 days                       |
+| └─ Parse config params | Low       | ❌          | Config params 5-40             |
+| └─ `ParseFullConfig()` | Low       | ❌          | Complete config parser         |
+| **Fee Computation**    | 🟢 Low    | ❌          | 2-3 days                       |
+| └─ Message fees        | Low       | ❌          | External/internal message fees |
+| └─ Gas prices          | Low       | ❌          | Compute gas costs              |
+| └─ Storage fees        | Low       | ❌          | Storage fee calculation        |
 
 ---
 
@@ -145,10 +145,10 @@
 | ----------------------------- | ----------- | ---------- | -------- |
 | **@ton/core Foundation**      | 7/7 modules | 3 features | 🟢 98%   |
 | **@ton/crypto**               | 3/5 modules | 2 features | 🟢 85%   |
-| **@ton (Client & Contracts)** | 1/6 modules | 5 modules  | 🟡 20%   |
-| **Overall**                   | Core + HTTP | Wallets    | 🟡 65%   |
+| **@ton (Client & Contracts)** | 2/6 modules | 4 modules  | 🟡 35%   |
+| **Overall**                   | Core + HTTP | Wallets    | 🟡 70%   |
 
-**Key Takeaway:** Foundation + HTTP Client complete! Next priority: Wallets → Jettons
+**Key Takeaway:** Foundation + HTTP Client (v2 & v4) complete! Next priority: Wallets → Jettons
 
 ---
 

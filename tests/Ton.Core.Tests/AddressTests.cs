@@ -20,19 +20,19 @@ public class AddressTests
             // Check address1 (non-bounceable, testOnly)
             Assert.That(address1.IsBounceable, Is.False);
             Assert.That(address1.IsTestOnly, Is.True);
-            Assert.That(address1.Address.WorkChain, Is.EqualTo(0));
+            Assert.That(address1.Address.Workchain, Is.EqualTo(0));
             Assert.That(Convert.ToHexString(address1.Address.Hash).ToLower(),
                 Is.EqualTo("2cf55953e92efbeadab7ba725c3f93a0b23f842cbba72d7b8e6f510a70e422e3"));
 
             // Check address2 (bounceable, testOnly)
             Assert.That(address2.IsBounceable, Is.True);
             Assert.That(address2.IsTestOnly, Is.True);
-            Assert.That(address2.Address.WorkChain, Is.EqualTo(0));
+            Assert.That(address2.Address.Workchain, Is.EqualTo(0));
             Assert.That(Convert.ToHexString(address2.Address.Hash).ToLower(),
                 Is.EqualTo("2cf55953e92efbeadab7ba725c3f93a0b23f842cbba72d7b8e6f510a70e422e3"));
 
             // Check address3 (raw)
-            Assert.That(address3.WorkChain, Is.EqualTo(0));
+            Assert.That(address3.Workchain, Is.EqualTo(0));
             Assert.That(Convert.ToHexString(address3.Hash).ToLower(),
                 Is.EqualTo("2cf55953e92efbeadab7ba725c3f93a0b23f842cbba72d7b8e6f510a70e422e3"));
 
@@ -45,7 +45,7 @@ public class AddressTests
                 Is.EqualTo("0:2cf55953e92efbeadab7ba725c3f93a0b23f842cbba72d7b8e6f510a70e422e3"));
 
             // Check address4 (workchain -1)
-            Assert.That(address4.WorkChain, Is.EqualTo(-1));
+            Assert.That(address4.Workchain, Is.EqualTo(-1));
             Assert.That(Convert.ToHexString(address4.Hash).ToLower(),
                 Is.EqualTo("3333333333333333333333333333333333333333333333333333333333333333"));
         });
@@ -90,8 +90,8 @@ public class AddressTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(address1.Equals(address2), Is.True);
-            Assert.That(address2.Equals(address1), Is.True);
+            Assert.That(address1, Is.EqualTo(address2));
+            Assert.That(address2, Is.EqualTo(address1));
             Assert.That(address2.Equals(address4), Is.False);
             Assert.That(address2.Equals(address3), Is.False);
             Assert.That(address4.Equals(address3), Is.False);
