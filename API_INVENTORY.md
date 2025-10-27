@@ -8,16 +8,17 @@
 
 | Module         | Features                                                              | Version | Tests        |
 | -------------- | --------------------------------------------------------------------- | ------- | ------------ |
-| **Address**    | Address, ExternalAddress                                              | v0.1.0  | ✅           |
+| **Address**    | Address, ExternalAddress, ContractAddress                             | v0.1.0  | ✅           |
 | **BOC**        | BitString, BitReader, BitBuilder, Builder, Slice, Cell, serialization | v0.0.8  | ✅ 15 tests  |
 | **Dictionary** | Full hashmap implementation, all key/value types                      | v0.0.7  | ✅ 16 tests  |
 | **Tuple**      | TupleReader, TupleBuilder, all item types                             | v0.0.7  | ✅ 25 tests  |
 | **TL-B Types** | All 37 types (Messages, Accounts, Transactions, Shards)               | v0.1.0  | ✅ 267 tests |
 | **Contracts**  | IContract, Provider, State, Sender, OpenedContract, ABI               | v0.1.0  | ✅ 24 tests  |
+| **HttpClient** | HttpApi, TonClient, TonClientProvider, Stack Parser                   | v0.1.0  | ✅ 9 tests   |
 | **Utils**      | ToNano, FromNano, CRC16, CRC32C, Base32, GetMethodId                  | v0.0.2  | ✅           |
 | **Crypto**     | SHA256, SHA512, PBKDF2, HMAC, Ed25519, Mnemonic                       | v0.0.7  | ✅ 47 tests  |
 
-**Total:** 345 tests passing | 100% JS SDK parity for implemented features
+**Total:** 354 tests passing | 100% JS SDK parity for implemented features
 
 ---
 
@@ -60,14 +61,14 @@
 | └─ `NewSecureWords()`      | Low       | ❌          | Generate word passphrase   |
 | └─ `NewSecurePassphrase()` | Low       | ❌          | Generate secure passphrase |
 
-### @ton - Client & Contracts (Not Started)
+### @ton - Client & Contracts
 
-| Module                 | Priority  | Status | Estimated Effort               |
-| ---------------------- | --------- | ------ | ------------------------------ |
-| **HTTP API Client**    | 🔴 High   | ❌     | 3-5 days                       |
-| └─ `HttpApi`           | High      | ❌     | Low-level HTTP client          |
-| └─ `TonClient` (v2)    | High      | ❌     | Toncenter API v2               |
-| └─ `TonClient4` (v4)   | High      | ❌     | Toncenter API v4               |
+| Module                 | Priority  | Status   | Notes                          |
+| ---------------------- | --------- | -------- | ------------------------------ |
+| **HTTP API Client**    | 🔴 High   | Partial  | v2 complete, v4 pending        |
+| └─ `HttpApi`           | High      | ✅       | Low-level JSON-RPC client      |
+| └─ `TonClient` (v2)    | High      | ✅       | Toncenter API v2 + provider    |
+| └─ `TonClient4` (v4)   | High      | ❌       | Toncenter API v4               |
 | **Wallet Contracts**   | 🔴 High   | ❌     | 5-7 days                       |
 | └─ WalletV1R1-V1R3     | High      | ❌     | Legacy wallets                 |
 | └─ WalletV2R1-V2R2     | High      | ❌     | V2 wallets                     |
@@ -100,12 +101,12 @@
 - [x] Add ContractAddress utility
 - [ ] Add ADNLAddress support
 
-### Phase 2: HTTP Client (1 week)
+### Phase 2: HTTP Client ✅ v2 COMPLETE
 
 **Goal:** Connect to TON network
 
-- [ ] HttpApi low-level client
-- [ ] TonClient v2 wrapper
+- [x] HttpApi low-level client
+- [x] TonClient v2 wrapper (IContractProvider)
 - [ ] TonClient4 v4 wrapper
 
 ### Phase 3: Wallet Contracts (2 weeks)
@@ -142,10 +143,10 @@
 | ----------------------------- | ----------- | ----------- | -------- |
 | **@ton/core Foundation**      | 7/7 modules | 3 features  | 🟢 98%   |
 | **@ton/crypto**               | 3/5 modules | 2 features  | 🟢 85%   |
-| **@ton (Client & Contracts)** | 0/6 modules | All         | 🔴 0%    |
-| **Overall**                   | Core ready  | Client next | 🟡 55%   |
+| **@ton (Client & Contracts)** | 1/6 modules | 5 modules   | 🟡 20%   |
+| **Overall**                   | Core + HTTP | Wallets     | 🟡 65%   |
 
-**Key Takeaway:** Foundation complete with contracts! Next priority: HTTP Client → Wallets
+**Key Takeaway:** Foundation + HTTP Client complete! Next priority: Wallets → Jettons
 
 ---
 

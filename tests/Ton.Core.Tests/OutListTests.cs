@@ -122,8 +122,11 @@ public class OutListTests
 
         Assert.That(actual, Is.InstanceOf<OutAction.SendMsg>());
         OutAction.SendMsg sendMsg = (OutAction.SendMsg)actual;
-        Assert.That(sendMsg.Mode, Is.EqualTo(mode));
-        Assert.That(sendMsg.OutMsg.Body.Equals(MockMessageRelaxed1.Body), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(sendMsg.Mode, Is.EqualTo(mode));
+            Assert.That(sendMsg.OutMsg.Body.Equals(MockMessageRelaxed1.Body), Is.True);
+        });
     }
 
     [Test]
@@ -157,8 +160,11 @@ public class OutListTests
 
         Assert.That(actual, Is.InstanceOf<OutAction.Reserve>());
         OutAction.Reserve reserve = (OutAction.Reserve)actual;
-        Assert.That(reserve.Mode, Is.EqualTo(mode));
-        Assert.That(reserve.Currency.Coins, Is.EqualTo(currency.Coins));
+        Assert.Multiple(() =>
+        {
+            Assert.That(reserve.Mode, Is.EqualTo(mode));
+            Assert.That(reserve.Currency.Coins, Is.EqualTo(currency.Coins));
+        });
     }
 
     [Test]
@@ -178,8 +184,11 @@ public class OutListTests
 
         Assert.That(actual, Is.InstanceOf<OutAction.ChangeLibrary>());
         OutAction.ChangeLibrary changeLib = (OutAction.ChangeLibrary)actual;
-        Assert.That(changeLib.Mode, Is.EqualTo(mode));
-        Assert.That(changeLib.LibRef, Is.InstanceOf<LibRef.Hash>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(changeLib.Mode, Is.EqualTo(mode));
+            Assert.That(changeLib.LibRef, Is.InstanceOf<LibRef.Hash>());
+        });
     }
 
     [Test]
@@ -306,22 +315,34 @@ public class OutListTests
 
         Assert.That(actual[0], Is.InstanceOf<OutAction.SendMsg>());
         OutAction.SendMsg sendMsg1 = (OutAction.SendMsg)actual[0];
-        Assert.That(sendMsg1.Mode, Is.EqualTo(sendMode1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(sendMsg1.Mode, Is.EqualTo(sendMode1));
 
-        Assert.That(actual[1], Is.InstanceOf<OutAction.SendMsg>());
+            Assert.That(actual[1], Is.InstanceOf<OutAction.SendMsg>());
+        });
         OutAction.SendMsg sendMsg2 = (OutAction.SendMsg)actual[1];
-        Assert.That(sendMsg2.Mode, Is.EqualTo(sendMode2));
+        Assert.Multiple(() =>
+        {
+            Assert.That(sendMsg2.Mode, Is.EqualTo(sendMode2));
 
-        Assert.That(actual[2], Is.InstanceOf<OutAction.SetCode>());
+            Assert.That(actual[2], Is.InstanceOf<OutAction.SetCode>());
+        });
         OutAction.SetCode setCode = (OutAction.SetCode)actual[2];
-        Assert.That(setCode.NewCode.Equals(MockSetCodeCell), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(setCode.NewCode.Equals(MockSetCodeCell), Is.True);
 
-        Assert.That(actual[3], Is.InstanceOf<OutAction.Reserve>());
+            Assert.That(actual[3], Is.InstanceOf<OutAction.Reserve>());
+        });
         OutAction.Reserve reserve = (OutAction.Reserve)actual[3];
-        Assert.That(reserve.Mode, Is.EqualTo(reserveMode));
-        Assert.That(reserve.Currency.Coins, Is.EqualTo(BigInteger.Parse("3000000")));
+        Assert.Multiple(() =>
+        {
+            Assert.That(reserve.Mode, Is.EqualTo(reserveMode));
+            Assert.That(reserve.Currency.Coins, Is.EqualTo(BigInteger.Parse("3000000")));
 
-        Assert.That(actual[4], Is.InstanceOf<OutAction.ChangeLibrary>());
+            Assert.That(actual[4], Is.InstanceOf<OutAction.ChangeLibrary>());
+        });
         OutAction.ChangeLibrary changeLib = (OutAction.ChangeLibrary)actual[4];
         Assert.That(changeLib.Mode, Is.EqualTo(changeLibraryMode));
     }

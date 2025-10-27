@@ -20,9 +20,12 @@ public class ContractTests
             State = new ContractState.AccountStateInfo.Uninit()
         };
 
-        Assert.That(state.Balance, Is.EqualTo(new BigInteger(0)));
-        Assert.That(state.State, Is.InstanceOf<ContractState.AccountStateInfo.Uninit>());
-        Assert.That(state.Last, Is.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(state.Balance, Is.EqualTo(new BigInteger(0)));
+            Assert.That(state.State, Is.InstanceOf<ContractState.AccountStateInfo.Uninit>());
+            Assert.That(state.Last, Is.Null);
+        });
     }
 
     [Test]
@@ -38,8 +41,11 @@ public class ContractTests
             Last = new ContractState.LastTransaction(12345, [0xAA, 0xBB])
         };
 
-        Assert.That(state.Balance, Is.EqualTo(new BigInteger(1000000000)));
-        Assert.That(state.State, Is.InstanceOf<ContractState.AccountStateInfo.Active>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(state.Balance, Is.EqualTo(new BigInteger(1000000000)));
+            Assert.That(state.State, Is.InstanceOf<ContractState.AccountStateInfo.Active>());
+        });
 
         ContractState.AccountStateInfo.Active active = (ContractState.AccountStateInfo.Active)state.State;
         Assert.That(active.Code, Is.Not.Null);
@@ -48,8 +54,11 @@ public class ContractTests
         Assert.That(active.Data, Is.EquivalentTo(data));
 
         Assert.That(state.Last, Is.Not.Null);
-        Assert.That(state.Last!.Lt, Is.EqualTo(new BigInteger(12345)));
-        Assert.That(state.Last.Hash, Is.EquivalentTo(new byte[] { 0xAA, 0xBB }));
+        Assert.Multiple(() =>
+        {
+            Assert.That(state.Last!.Lt, Is.EqualTo(new BigInteger(12345)));
+            Assert.That(state.Last.Hash, Is.EquivalentTo(new byte[] { 0xAA, 0xBB }));
+        });
     }
 
     [Test]
@@ -79,11 +88,14 @@ public class ContractTests
             To = Address.Parse("EQCtW_zzk6n82ebaVQFq8P_04wOemYhtwqMd3NuArmPODRvD")
         };
 
-        Assert.That(args.Value, Is.EqualTo(new BigInteger(1000000)));
-        Assert.That(args.To.ToString(), Is.EqualTo("EQCtW_zzk6n82ebaVQFq8P_04wOemYhtwqMd3NuArmPODRvD"));
-        Assert.That(args.Body, Is.Null);
-        Assert.That(args.Bounce, Is.Null);
-        Assert.That(args.SendMode, Is.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(args.Value, Is.EqualTo(new BigInteger(1000000)));
+            Assert.That(args.To.ToString(), Is.EqualTo("EQCtW_zzk6n82ebaVQFq8P_04wOemYhtwqMd3NuArmPODRvD"));
+            Assert.That(args.Body, Is.Null);
+            Assert.That(args.Bounce, Is.Null);
+            Assert.That(args.SendMode, Is.Null);
+        });
     }
 
     [Test]
@@ -105,11 +117,14 @@ public class ContractTests
             Init = init
         };
 
-        Assert.That(args.Value, Is.EqualTo(new BigInteger(2000000)));
-        Assert.That(args.Body, Is.Not.Null);
-        Assert.That(args.Bounce, Is.True);
-        Assert.That(args.SendMode, Is.EqualTo(SendMode.PayFeesSeparately));
-        Assert.That(args.Init, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(args.Value, Is.EqualTo(new BigInteger(2000000)));
+            Assert.That(args.Body, Is.Not.Null);
+            Assert.That(args.Bounce, Is.True);
+            Assert.That(args.SendMode, Is.EqualTo(SendMode.PayFeesSeparately));
+            Assert.That(args.Init, Is.Not.Null);
+        });
     }
 
     [Test]
@@ -126,9 +141,12 @@ public class ContractTests
             Logs = "Test logs"
         };
 
-        Assert.That(result.Stack.ReadNumber(), Is.EqualTo(123));
-        Assert.That(result.GasUsed, Is.EqualTo(new BigInteger(5000)));
-        Assert.That(result.Logs, Is.EqualTo("Test logs"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Stack.ReadNumber(), Is.EqualTo(123));
+            Assert.That(result.GasUsed, Is.EqualTo(new BigInteger(5000)));
+            Assert.That(result.Logs, Is.EqualTo("Test logs"));
+        });
     }
 
     [Test]
@@ -141,9 +159,12 @@ public class ContractTests
             SendMode = SendMode.IgnoreErrors
         };
 
-        Assert.That(args.Value, Is.EqualTo(new BigInteger(100000)));
-        Assert.That(args.Bounce, Is.False);
-        Assert.That(args.SendMode, Is.EqualTo(SendMode.IgnoreErrors));
+        Assert.Multiple(() =>
+        {
+            Assert.That(args.Value, Is.EqualTo(new BigInteger(100000)));
+            Assert.That(args.Bounce, Is.False);
+            Assert.That(args.SendMode, Is.EqualTo(SendMode.IgnoreErrors));
+        });
     }
 
     [Test]
@@ -151,18 +172,24 @@ public class ContractTests
     {
         ComputeError error = new("Out of gas", 13, "debug logs", "execution logs");
 
-        Assert.That(error.Message, Is.EqualTo("Out of gas"));
-        Assert.That(error.ExitCode, Is.EqualTo(13));
-        Assert.That(error.DebugLogs, Is.EqualTo("debug logs"));
-        Assert.That(error.Logs, Is.EqualTo("execution logs"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(error.Message, Is.EqualTo("Out of gas"));
+            Assert.That(error.ExitCode, Is.EqualTo(13));
+            Assert.That(error.DebugLogs, Is.EqualTo("debug logs"));
+            Assert.That(error.Logs, Is.EqualTo("execution logs"));
+        });
     }
 
     [Test]
     public void Test_ComputeError_FromExitCode()
     {
         ComputeError error = ComputeError.FromExitCode(13);
-        Assert.That(error.Message, Is.EqualTo("Out of gas"));
-        Assert.That(error.ExitCode, Is.EqualTo(13));
+        Assert.Multiple(() =>
+        {
+            Assert.That(error.Message, Is.EqualTo("Out of gas"));
+            Assert.That(error.ExitCode, Is.EqualTo(13));
+        });
 
         error = ComputeError.FromExitCode(2);
         Assert.That(error.Message, Is.EqualTo("Stack underflow"));
@@ -193,10 +220,16 @@ public class ContractTests
             ]
         };
 
-        Assert.That(abi.Name, Is.EqualTo("TestContract"));
-        Assert.That(abi.Getters, Has.Length.EqualTo(1));
-        Assert.That(abi.Getters![0].Name, Is.EqualTo("get_balance"));
-        Assert.That(abi.Getters[0].MethodId, Is.EqualTo(123));
+        Assert.Multiple(() =>
+        {
+            Assert.That(abi.Name, Is.EqualTo("TestContract"));
+            Assert.That(abi.Getters, Has.Length.EqualTo(1));
+        });
+        Assert.Multiple(() =>
+        {
+            Assert.That(abi.Getters![0].Name, Is.EqualTo("get_balance"));
+            Assert.That(abi.Getters[0].MethodId, Is.EqualTo(123));
+        });
     }
 
     [Test]
@@ -204,9 +237,12 @@ public class ContractTests
     {
         ABITypeRef.Simple typeRef = new("int", true, 257);
 
-        Assert.That(typeRef.Type, Is.EqualTo("int"));
-        Assert.That(typeRef.Optional, Is.True);
-        Assert.That(typeRef.Format, Is.EqualTo(257));
+        Assert.Multiple(() =>
+        {
+            Assert.That(typeRef.Type, Is.EqualTo("int"));
+            Assert.That(typeRef.Optional, Is.True);
+            Assert.That(typeRef.Format, Is.EqualTo(257));
+        });
     }
 
     [Test]
@@ -214,9 +250,12 @@ public class ContractTests
     {
         ABITypeRef.Dict typeRef = new("int", "cell", KeyFormat: 32);
 
-        Assert.That(typeRef.Key, Is.EqualTo("int"));
-        Assert.That(typeRef.Value, Is.EqualTo("cell"));
-        Assert.That(typeRef.KeyFormat, Is.EqualTo(32));
+        Assert.Multiple(() =>
+        {
+            Assert.That(typeRef.Key, Is.EqualTo("int"));
+            Assert.That(typeRef.Value, Is.EqualTo("cell"));
+            Assert.That(typeRef.KeyFormat, Is.EqualTo(32));
+        });
     }
 
     [Test]
@@ -224,8 +263,11 @@ public class ContractTests
     {
         ABIReceiver receiver = new("internal", new ABIReceiverMessage.Typed("Transfer"));
 
-        Assert.That(receiver.Receiver, Is.EqualTo("internal"));
-        Assert.That(receiver.Message, Is.InstanceOf<ABIReceiverMessage.Typed>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(receiver.Receiver, Is.EqualTo("internal"));
+            Assert.That(receiver.Message, Is.InstanceOf<ABIReceiverMessage.Typed>());
+        });
 
         ABIReceiverMessage.Typed typed = (ABIReceiverMessage.Typed)receiver.Message;
         Assert.That(typed.Type, Is.EqualTo("Transfer"));
@@ -288,11 +330,14 @@ public class ContractTests
             ]
         };
 
-        Assert.That(abi.Name, Is.EqualTo("CompleteContract"));
-        Assert.That(abi.Types, Has.Length.EqualTo(1));
-        Assert.That(abi.Errors, Has.Count.EqualTo(2));
-        Assert.That(abi.Getters, Has.Length.EqualTo(1));
-        Assert.That(abi.Receivers, Has.Length.EqualTo(2));
+        Assert.Multiple(() =>
+        {
+            Assert.That(abi.Name, Is.EqualTo("CompleteContract"));
+            Assert.That(abi.Types, Has.Length.EqualTo(1));
+            Assert.That(abi.Errors, Has.Count.EqualTo(2));
+            Assert.That(abi.Getters, Has.Length.EqualTo(1));
+            Assert.That(abi.Receivers, Has.Length.EqualTo(2));
+        });
 
         Assert.That(abi.Errors[100].Message, Is.EqualTo("Insufficient balance"));
         Assert.That(abi.Types![0].Header, Is.EqualTo(0x12345678));

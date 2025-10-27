@@ -1,33 +1,33 @@
 using System.Numerics;
-using Ton.Core.Types;
 using Ton.Core.Tuple;
+using Ton.Core.Types;
 
 namespace Ton.HttpClient;
 
 /// <summary>
-/// Implementation of IContractProvider for TonClient.
+///     Implementation of IContractProvider for TonClient.
 /// </summary>
 internal class TonClientProvider : IContractProvider
 {
-    private readonly TonClient _client;
-    private readonly Address _address;
-    private readonly StateInit? _init;
+    readonly Address address;
+    readonly TonClient client;
+    readonly StateInit? init;
 
     public TonClientProvider(TonClient client, Address address, StateInit? init)
     {
-        _client = client;
-        _address = address;
-        _init = init;
+        this.client = client;
+        this.address = address;
+        this.init = init;
     }
 
     public async Task<ContractState> GetStateAsync()
     {
-        return await _client.GetContractStateAsync(_address);
+        return await client.GetContractStateAsync(address);
     }
 
     public async Task<ContractGetMethodResult> GetAsync(string name, TupleItem[] args)
     {
-        var result = await _client.RunMethodAsync(_address, name, args);
+        RunMethodResult result = await client.RunMethodAsync(address, name, args);
         return new ContractGetMethodResult
         {
             Stack = result.Stack,
@@ -45,36 +45,30 @@ internal class TonClientProvider : IContractProvider
     {
         // Determine if we need to include init
         StateInit? neededInit = null;
-        if (_init != null && !await _client.IsContractDeployedAsync(_address))
-        {
-            neededInit = _init;
-        }
+        if (init != null && !await client.IsContractDeployedAsync(address)) neededInit = init;
 
         // Create external message
-        var externalMsg = new CommonMessageInfo.ExternalIn(
-            Src: null,
-            Dest: _address,
-            ImportFee: 0
+        CommonMessageInfo.ExternalIn externalMsg = new(
+            null,
+            address,
+            0
         );
 
-        var msg = new Message(
+        Message msg = new(
             externalMsg,
             message,
             neededInit
         );
 
         // Send message
-        await _client.SendMessageAsync(msg);
+        await client.SendMessageAsync(msg);
     }
 
     public async Task InternalAsync(ISender via, InternalMessageArgs args)
     {
         // Determine if we need to include init
         StateInit? neededInit = null;
-        if (_init != null && !await _client.IsContractDeployedAsync(_address))
-        {
-            neededInit = _init;
-        }
+        if (init != null && !await client.IsContractDeployedAsync(address)) neededInit = init;
 
         // Resolve bounce
         bool bounce = args.Bounce ?? true;
@@ -85,7 +79,7 @@ internal class TonClientProvider : IContractProvider
         // Send via the sender
         await via.SendAsync(new SenderArguments
         {
-            To = _address,
+            To = address,
             Value = args.Value,
             Bounce = bounce,
             SendMode = args.SendMode,
@@ -97,12 +91,13 @@ internal class TonClientProvider : IContractProvider
 
     public OpenedContract<T> Open<T>(T contract) where T : IContract
     {
-        return _client.Open(contract);
+        return client.Open(contract);
     }
 
-    public async Task<Transaction[]> GetTransactionsAsync(Address address, BigInteger lt, byte[] hash, int? limit = null)
+    public async Task<Transaction[]> GetTransactionsAsync(Address address, BigInteger lt, byte[] hash,
+        int? limit = null)
     {
-        var transactions = await _client.GetTransactionsAsync(
+        List<Transaction> transactions = await client.GetTransactionsAsync(
             address,
             limit ?? 100,
             lt.ToString(),
@@ -112,4 +107,3 @@ internal class TonClientProvider : IContractProvider
         return transactions.ToArray();
     }
 }
-

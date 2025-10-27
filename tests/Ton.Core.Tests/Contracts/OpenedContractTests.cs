@@ -95,8 +95,11 @@ public class OpenedContractTests
         TestContract contract = new(testAddress);
         OpenedContract<TestContract> opened = provider.Open(contract);
 
-        Assert.That(opened.Contract, Is.Not.Null);
-        Assert.That(opened.Provider, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(opened.Contract, Is.Not.Null);
+            Assert.That(opened.Provider, Is.Not.Null);
+        });
     }
 
     [Test]
@@ -156,9 +159,12 @@ public class OpenedContractTests
 
         Assert.That(provider.InternalMessages, Has.Count.EqualTo(1));
         (ISender sender, InternalMessageArgs args) = provider.InternalMessages[0];
-        Assert.That(sender, Is.Not.Null);
-        Assert.That(args.Value, Is.EqualTo(new BigInteger(500000)));
-        Assert.That(args.Body, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(sender, Is.Not.Null);
+            Assert.That(args.Value, Is.EqualTo(new BigInteger(500000)));
+            Assert.That(args.Body, Is.Not.Null);
+        });
     }
 
     [Test]
@@ -199,8 +205,11 @@ public class OpenedContractTests
         OpenedContract<TestContract> opened = provider.Open(contract);
 
         Assert.That(opened.Contract.Init, Is.Not.Null);
-        Assert.That(opened.Contract.Init!.Code, Is.Not.Null);
-        Assert.That(opened.Contract.Init.Data, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(opened.Contract.Init!.Code, Is.Not.Null);
+            Assert.That(opened.Contract.Init.Data, Is.Not.Null);
+        });
     }
 
     class MockSender(Address? address) : ISender

@@ -19,8 +19,11 @@ public class ContractAddressTests
         // Expected address from JS SDK test
         Address expected = Address.Parse("EQCSY_vTjwGrlvTvkfwhinJ60T2oiwgGn3U7Tpw24kupIhHz");
 
-        Assert.That(addr.ToString(), Is.EqualTo(expected.ToString()));
-        Assert.That(addr.WorkChain, Is.EqualTo(0));
+        Assert.Multiple(() =>
+        {
+            Assert.That(addr.ToString(), Is.EqualTo(expected.ToString()));
+            Assert.That(addr.WorkChain, Is.EqualTo(0));
+        });
     }
 
     [Test]
@@ -46,10 +49,13 @@ public class ContractAddressTests
         Address addr0 = ContractAddress.From(0, init);
         Address addrMaster = ContractAddress.From(-1, init);
 
-        // Different workchains should produce different addresses
-        Assert.That(addr0.WorkChain, Is.EqualTo(0));
-        Assert.That(addrMaster.WorkChain, Is.EqualTo(-1));
-        Assert.That(addr0.ToString(), Is.Not.EqualTo(addrMaster.ToString()));
+        Assert.Multiple(() =>
+        {
+            // Different workchains should produce different addresses
+            Assert.That(addr0.WorkChain, Is.EqualTo(0));
+            Assert.That(addrMaster.WorkChain, Is.EqualTo(-1));
+            Assert.That(addr0.ToString(), Is.Not.EqualTo(addrMaster.ToString()));
+        });
     }
 
     [Test]
@@ -118,7 +124,10 @@ public class ContractAddressTests
 
         // Should be a valid address
         Assert.That(addr, Is.Not.Null);
-        Assert.That(addr.WorkChain, Is.EqualTo(0));
-        Assert.That(addr.Hash.Length, Is.EqualTo(32));
+        Assert.Multiple(() =>
+        {
+            Assert.That(addr.WorkChain, Is.EqualTo(0));
+            Assert.That(addr.Hash.Length, Is.EqualTo(32));
+        });
     }
 }

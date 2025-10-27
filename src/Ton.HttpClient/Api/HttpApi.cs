@@ -1,4 +1,3 @@
-using System.Numerics;
 using System.Text;
 using System.Text.Json;
 using Ton.Core.Tuple;
@@ -7,26 +6,31 @@ using Ton.HttpClient.Api.Models;
 namespace Ton.HttpClient.Api;
 
 /// <summary>
-/// Low-level HTTP API client for Toncenter v2 API.
+///     Low-level HTTP API client for Toncenter v2 API.
 /// </summary>
 public class HttpApi : IDisposable
 {
-    private readonly System.Net.Http.HttpClient _httpClient;
-    private readonly string _endpoint;
-    private readonly string? _apiKey;
+    readonly string? apiKey;
+    readonly string endpoint;
+    readonly System.Net.Http.HttpClient httpClient;
 
     public HttpApi(string endpoint, int timeout = 30000, string? apiKey = null)
     {
-        _endpoint = endpoint;
-        _apiKey = apiKey;
-        _httpClient = new System.Net.Http.HttpClient
+        this.endpoint = endpoint;
+        this.apiKey = apiKey;
+        httpClient = new System.Net.Http.HttpClient
         {
             Timeout = TimeSpan.FromMilliseconds(timeout)
         };
     }
 
+    public void Dispose()
+    {
+        httpClient.Dispose();
+    }
+
     /// <summary>
-    /// Get address information from the blockchain.
+    ///     Get address information from the blockchain.
     /// </summary>
     public async Task<AddressInformation> GetAddressInformationAsync(Address address)
     {
@@ -34,7 +38,7 @@ public class HttpApi : IDisposable
     }
 
     /// <summary>
-    /// Call a get method on a contract.
+    ///     Call a get method on a contract.
     /// </summary>
     public async Task<CallGetMethodResult> CallGetMethodAsync(Address address, string method, TupleItem[] stack)
     {
@@ -47,7 +51,7 @@ public class HttpApi : IDisposable
     }
 
     /// <summary>
-    /// Send a BOC (Bag of Cells) to the network.
+    ///     Send a BOC (Bag of Cells) to the network.
     /// </summary>
     public async Task SendBocAsync(byte[] boc)
     {
@@ -55,7 +59,7 @@ public class HttpApi : IDisposable
     }
 
     /// <summary>
-    /// Get masterchain info.
+    ///     Get masterchain info.
     /// </summary>
     public async Task<MasterchainInfo> GetMasterchainInfoAsync()
     {
@@ -63,7 +67,7 @@ public class HttpApi : IDisposable
     }
 
     /// <summary>
-    /// Get transactions for an address.
+    ///     Get transactions for an address.
     /// </summary>
     public async Task<List<RawTransaction>> GetTransactionsAsync(
         Address address,
@@ -73,7 +77,7 @@ public class HttpApi : IDisposable
         string? toLt = null,
         bool archival = false)
     {
-        var parameters = new Dictionary<string, object>
+        Dictionary<string, object> parameters = new()
         {
             ["address"] = address.ToString(),
             ["limit"] = limit
@@ -83,46 +87,54 @@ public class HttpApi : IDisposable
         if (hash != null)
         {
             // Convert base64 to hex
-            var hashBytes = Convert.FromBase64String(hash);
+            byte[] hashBytes = Convert.FromBase64String(hash);
             parameters["hash"] = Convert.ToHexString(hashBytes).ToLowerInvariant();
         }
+
         if (toLt != null) parameters["to_lt"] = toLt;
-        if (archival) parameters["archival"] = true;
+        // Only include archival if true
+        if (archival) parameters["archival"] = archival;
 
         return await DoCallAsync<List<RawTransaction>>("getTransactions", parameters);
     }
 
     /// <summary>
-    /// Get single transaction by address, lt, and hash.
+    ///     Get single transaction by address, lt, and hash.
     /// </summary>
-    public async Task<RawTransaction?> GetTransactionAsync(Address address, string lt, string hash)
+    public async Task<RawTransaction?> GetTransactionAsync(Address address, string lt, string hash,
+        bool archival = false)
     {
         // Convert base64 to hex
-        var hashBytes = Convert.FromBase64String(hash);
-        var hashHex = Convert.ToHexString(hashBytes).ToLowerInvariant();
-        
-        var transactions = await DoCallAsync<List<RawTransaction>>("getTransactions", new Dictionary<string, object>
+        byte[] hashBytes = Convert.FromBase64String(hash);
+        string hashHex = Convert.ToHexString(hashBytes).ToLowerInvariant();
+
+        Dictionary<string, object> parameters = new()
         {
             ["address"] = address.ToString(),
             ["lt"] = lt,
             ["hash"] = hashHex,
             ["limit"] = 1
-        });
+        };
+
+        // Old transactions typically require archival access
+        if (archival) parameters["archival"] = archival;
+
+        List<RawTransaction> transactions = await DoCallAsync<List<RawTransaction>>("getTransactions", parameters);
 
         return transactions.FirstOrDefault(t => t.TransactionId.Lt == lt && t.TransactionId.Hash == hash);
     }
 
     /// <summary>
-    /// Get shards for a masterchain block.
+    ///     Get shards for a masterchain block.
     /// </summary>
     public async Task<List<BlockIdExt>> GetShardsAsync(int seqno)
     {
-        var response = await DoCallAsync<ShardResponse>("shards", new { seqno });
+        ShardResponse response = await DoCallAsync<ShardResponse>("shards", new { seqno });
         return response.Shards;
     }
 
     /// <summary>
-    /// Get block transactions.
+    ///     Get block transactions.
     /// </summary>
     public async Task<BlockTransactions> GetBlockTransactionsAsync(int workchain, int seqno, string shard)
     {
@@ -130,7 +142,7 @@ public class HttpApi : IDisposable
     }
 
     /// <summary>
-    /// Try to locate result transaction.
+    ///     Try to locate result transaction.
     /// </summary>
     public async Task<RawTransaction> TryLocateResultTxAsync(Address source, Address destination, string createdLt)
     {
@@ -143,7 +155,7 @@ public class HttpApi : IDisposable
     }
 
     /// <summary>
-    /// Try to locate source transaction.
+    ///     Try to locate source transaction.
     /// </summary>
     public async Task<RawTransaction> TryLocateSourceTxAsync(Address source, Address destination, string createdLt)
     {
@@ -155,7 +167,7 @@ public class HttpApi : IDisposable
         });
     }
 
-    private async Task<T> DoCallAsync<T>(string method, object parameters)
+    async Task<T> DoCallAsync<T>(string method, object parameters)
     {
         var request = new
         {
@@ -165,59 +177,46 @@ public class HttpApi : IDisposable
             @params = parameters
         };
 
-        var content = new StringContent(
+        StringContent content = new(
             JsonSerializer.Serialize(request),
             Encoding.UTF8,
             "application/json");
 
-        if (_apiKey != null)
-        {
-            content.Headers.Add("X-API-Key", _apiKey);
-        }
+        if (apiKey != null) content.Headers.Add("X-API-Key", apiKey);
 
-        var response = await _httpClient.PostAsync(_endpoint, content);
+        HttpResponseMessage response = await httpClient.PostAsync(endpoint, content);
         response.EnsureSuccessStatusCode();
 
-        var responseJson = await response.Content.ReadAsStringAsync();
-        var jsonDoc = JsonDocument.Parse(responseJson);
+        string responseJson = await response.Content.ReadAsStringAsync();
+        JsonDocument jsonDoc = JsonDocument.Parse(responseJson);
 
-        if (!jsonDoc.RootElement.TryGetProperty("ok", out var okElement) || !okElement.GetBoolean())
-        {
+        if (!jsonDoc.RootElement.TryGetProperty("ok", out JsonElement okElement) || !okElement.GetBoolean())
             throw new InvalidOperationException($"API call failed: {responseJson}");
-        }
 
-        var resultElement = jsonDoc.RootElement.GetProperty("result");
+        JsonElement resultElement = jsonDoc.RootElement.GetProperty("result");
         return JsonSerializer.Deserialize<T>(resultElement.GetRawText())
-            ?? throw new InvalidOperationException("Failed to deserialize response");
+               ?? throw new InvalidOperationException("Failed to deserialize response");
     }
 
-    private static List<List<object>> SerializeStack(TupleItem[] items)
+    static List<List<object>> SerializeStack(TupleItem[] items)
     {
-        var result = new List<List<object>>();
-        foreach (var item in items)
-        {
-            result.Add(SerializeTupleItem(item));
-        }
+        List<List<object>> result = new();
+        foreach (TupleItem item in items) result.Add(SerializeTupleItem(item));
         return result;
     }
 
-    private static List<object> SerializeTupleItem(TupleItem item)
+    static List<object> SerializeTupleItem(TupleItem item)
     {
         return item switch
         {
             TupleItemInt intItem => new List<object> { "num", intItem.Value.ToString() },
             TupleItemCell cellItem => new List<object> { "cell", Convert.ToBase64String(cellItem.Cell.ToBoc()) },
             TupleItemSlice sliceItem => new List<object> { "slice", Convert.ToBase64String(sliceItem.Cell.ToBoc()) },
-            TupleItemBuilder builderItem => new List<object> { "builder", Convert.ToBase64String(builderItem.Cell.ToBoc()) },
+            TupleItemBuilder builderItem => new List<object>
+                { "builder", Convert.ToBase64String(builderItem.Cell.ToBoc()) },
             TupleItemNaN => new List<object> { "nan" },
             TupleItemNull => new List<object> { "null" },
             _ => throw new NotSupportedException($"Tuple item type {item.GetType().Name} not supported")
         };
     }
-
-    public void Dispose()
-    {
-        _httpClient.Dispose();
-    }
 }
-

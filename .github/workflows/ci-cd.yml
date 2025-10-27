@@ -55,6 +55,12 @@ jobs:
         dotnet build src/Ton.Crypto/Ton.Crypto.csproj --no-restore --configuration Release
         dotnet pack src/Ton.Crypto/Ton.Crypto.csproj --no-build --configuration Release --output ./artifacts
     
+    - name: Build and Pack Ton.HttpClient
+      run: |
+        dotnet restore src/Ton.HttpClient/Ton.HttpClient.csproj
+        dotnet build src/Ton.HttpClient/Ton.HttpClient.csproj --no-restore --configuration Release
+        dotnet pack src/Ton.HttpClient/Ton.HttpClient.csproj --no-build --configuration Release --output ./artifacts
+    
     - name: Publish to NuGet
       run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 

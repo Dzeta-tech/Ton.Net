@@ -1,50 +1,45 @@
+using System.Net;
 using System.Numerics;
 using Ton.Core.Addresses;
-using Ton.Core.Boc;
+using Ton.Core.Contracts;
 using Ton.Core.Types;
-using NUnit.Framework;
 
 namespace Ton.HttpClient.Tests;
 
 /// <summary>
-/// Integration tests for TonClient.
-/// These tests require a live Toncenter API connection.
+///     Integration tests for TonClient.
+///     These tests require a live Toncenter API connection.
 /// </summary>
 [TestFixture]
 [Category("Integration")]
-[NonParallelizable]
 public class TonClientTests
 {
-    private TonClient _client = null!;
-    private Address _testAddress = null!;
-
     [SetUp]
-    public async Task Setup()
+    public void Setup()
     {
-        // Add delay to avoid rate limiting
-        await Task.Delay(500);
-        
-        _client = new TonClient(new TonClientParameters
+        client = new TonClient(new TonClientParameters
         {
-            Endpoint = "https://toncenter.com/api/v2/jsonRPC"
+            Endpoint =
+                "https://ton.access.orbs.network/4410c0ff5Bd3F8B62C092Ab4D238bEE463E64410/1/mainnet/toncenter-api-v2/jsonRPC"
         });
-        
-        _testAddress = Address.Parse("EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N");
+
+        testAddress = Address.Parse("EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N");
     }
 
     [TearDown]
-    public async Task TearDown()
+    public void TearDown()
     {
-        _client?.Dispose();
-        // Add delay after each test
-        await Task.Delay(1000);
+        client.Dispose();
     }
+
+    TonClient client = null!;
+    Address testAddress = null!;
 
     [Test]
     public async Task Test_GetContractState()
     {
-        var state = await _client.GetContractStateAsync(_testAddress);
-        
+        ContractState state = await client.GetContractStateAsync(testAddress);
+
         Assert.That(state, Is.Not.Null);
         Assert.That(state.Balance, Is.GreaterThan(BigInteger.Zero));
         Console.WriteLine($"Balance: {state.Balance}");
@@ -54,8 +49,8 @@ public class TonClientTests
     [Test]
     public async Task Test_GetBalance()
     {
-        var balance = await _client.GetBalanceAsync(_testAddress);
-        
+        BigInteger balance = await client.GetBalanceAsync(testAddress);
+
         Assert.That(balance, Is.GreaterThan(BigInteger.Zero));
         Console.WriteLine($"Balance: {balance}");
     }
@@ -63,55 +58,67 @@ public class TonClientTests
     [Test]
     public async Task Test_GetTransactions()
     {
-        var transactions = await _client.GetTransactionsAsync(_testAddress, limit: 3);
-        
-        Assert.That(transactions, Is.Not.Empty);
-        Assert.That(transactions.Count, Is.LessThanOrEqualTo(3));
-        
-        foreach (var tx in transactions)
+        try
         {
-            Console.WriteLine($"Transaction LT: {tx.Lt}");
+            List<Transaction> transactions = await client.GetTransactionsAsync(testAddress, 3);
+
+            Assert.That(transactions, Is.Not.Empty);
+            Assert.That(transactions.Count, Is.LessThanOrEqualTo(3));
+
+            foreach (Transaction tx in transactions) Console.WriteLine($"Transaction LT: {tx.Lt}");
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.InternalServerError)
+        {
+            // API 500 error - transaction data might be pruned or unavailable
+            Assert.Inconclusive("API returned 500 error - transaction data might be pruned");
         }
     }
 
     [Test]
     public async Task Test_GetSingleTransaction()
     {
-        var tx = await _client.GetTransactionAsync(
-            _testAddress,
-            "37508996000003",
-            "xiwW9EROcDMWFibmm2YNW/2kTaDW5qwRJxveEf4xUQA="
+        // First, get recent transactions
+        List<Transaction> recentTxs = await client.GetTransactionsAsync(testAddress, 5);
+        Assert.That(recentTxs, Is.Not.Empty);
+
+        // Pick the first transaction
+        Transaction firstTx = recentTxs[0];
+        string hash = Convert.ToBase64String(firstTx.Raw.Hash());
+
+        // Now retrieve it by LT and hash
+        Transaction? tx = await client.GetTransactionAsync(
+            testAddress,
+            firstTx.Lt.ToString(),
+            hash
         );
-        
-        if (tx != null)
+
+        Assert.That(tx, Is.Not.Null);
+        Assert.Multiple(() =>
         {
-            Console.WriteLine($"Transaction found: LT={tx.Lt}");
-        }
-        else
-        {
-            Console.WriteLine("Transaction not found (may have been pruned)");
-        }
+            Assert.That(tx!.Lt, Is.EqualTo(firstTx.Lt));
+            Assert.That(tx.Raw.Hash(), Is.EqualTo(firstTx.Raw.Hash()));
+        });
     }
 
     [Test]
     public async Task Test_RunMethod()
     {
-        var result = await _client.RunMethodAsync(_testAddress, "seqno");
-        
+        RunMethodResult result = await client.RunMethodAsync(testAddress, "seqno");
+
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Stack, Is.Not.Null);
         Console.WriteLine($"Gas used: {result.GasUsed}");
-        
+
         // Try to read seqno
-        var seqno = result.Stack.ReadNumber();
+        long seqno = result.Stack.ReadNumber();
         Console.WriteLine($"Seqno: {seqno}");
     }
 
     [Test]
     public async Task Test_GetMasterchainInfo()
     {
-        var info = await _client.GetMasterchainInfoAsync();
-        
+        MasterchainInfoResult info = await client.GetMasterchainInfoAsync();
+
         Assert.That(info, Is.Not.Null);
         Assert.That(info.LatestSeqno, Is.GreaterThan(0));
         Console.WriteLine($"Workchain: {info.Workchain}");
@@ -119,7 +126,7 @@ public class TonClientTests
         Console.WriteLine($"Shard: {info.Shard}");
 
         // Test shard info
-        var shardInfo = await _client.GetShardTransactionsAsync(
+        List<ShardTransactionInfo> shardInfo = await client.GetShardTransactionsAsync(
             info.Workchain,
             info.LatestSeqno,
             info.Shard
@@ -127,18 +134,21 @@ public class TonClientTests
         Console.WriteLine($"Shard transactions: {shardInfo.Count}");
 
         // Test workchain shards
-        var wcShards = await _client.GetWorkchainShardsAsync(info.LatestSeqno);
+        List<ShardInfo> wcShards = await client.GetWorkchainShardsAsync(info.LatestSeqno);
         Console.WriteLine($"Workchain shards: {wcShards.Count}");
-        
-        Assert.That(shardInfo, Is.Not.Null);
-        Assert.That(wcShards, Is.Not.Null);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(shardInfo, Is.Not.Null);
+            Assert.That(wcShards, Is.Not.Null);
+        });
     }
 
     [Test]
     public async Task Test_IsContractDeployed()
     {
-        var isDeployed = await _client.IsContractDeployedAsync(_testAddress);
-        
+        bool isDeployed = await client.IsContractDeployedAsync(testAddress);
+
         Assert.That(isDeployed, Is.True);
         Console.WriteLine($"Contract deployed: {isDeployed}");
     }
@@ -147,22 +157,23 @@ public class TonClientTests
     public async Task Test_GetExtraCurrencyInfo()
     {
         // Extra currencies are available on testnet
-        var testClient = new TonClient(new TonClientParameters
+        TonClient testClient = new(new TonClientParameters
         {
-            Endpoint = "https://testnet.toncenter.com/api/v2/jsonRPC"
+            Endpoint =
+                "https://ton.access.orbs.network/4410c0ff5Bd3F8B62C092Ab4D238bEE463E64410/1/testnet/toncenter-api-v2/jsonRPC"
         });
 
-        var testAddr = Address.Parse("0:D36CFC9E0C57F43C1A719CB9F540ED87A694693AE1535B7654B645F52814AFD7");
+        Address testAddr = Address.Parse("0:D36CFC9E0C57F43C1A719CB9F540ED87A694693AE1535B7654B645F52814AFD7");
 
         try
         {
-            var state = await testClient.GetContractStateAsync(testAddr);
-            
+            ContractState state = await testClient.GetContractStateAsync(testAddr);
+
             if (state.ExtraCurrency != null)
             {
                 Console.WriteLine("Extra currencies found:");
                 // Try to find currency ID 100
-                var ec100 = state.ExtraCurrency.Get(100);
+                BigInteger? ec100 = state.ExtraCurrency.Get(100);
                 if (ec100 != null)
                 {
                     Console.WriteLine($"Currency 100: {ec100}");
@@ -183,15 +194,15 @@ public class TonClientTests
     [Test]
     public async Task Test_LocateSourceResultTx()
     {
-        var source = Address.Parse("UQDDT0TOC4PMp894jtCo3-d1-8ltSjXMX2EuWww_pCNibsUH");
-        var createdLt = "37508996000002";
+        Address source = Address.Parse("UQDDT0TOC4PMp894jtCo3-d1-8ltSjXMX2EuWww_pCNibsUH");
+        string createdLt = "37508996000002";
 
         try
         {
-            var infoSource = await _client.TryLocateSourceTxAsync(source, _testAddress, createdLt);
+            Transaction infoSource = await client.TryLocateSourceTxAsync(source, testAddress, createdLt);
             Console.WriteLine($"Source tx found: LT={infoSource.Lt}");
 
-            var infoResult = await _client.TryLocateResultTxAsync(source, _testAddress, createdLt);
+            Transaction infoResult = await client.TryLocateResultTxAsync(source, testAddress, createdLt);
             Console.WriteLine($"Result tx found: LT={infoResult.Lt}");
         }
         catch (Exception ex)
@@ -201,4 +212,3 @@ public class TonClientTests
         }
     }
 }
-
