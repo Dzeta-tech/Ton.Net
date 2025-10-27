@@ -13,13 +13,13 @@ namespace Ton.HttpClient;
 /// </summary>
 public class TonClient4 : IDisposable
 {
-    readonly string _endpoint;
-    readonly System.Net.Http.HttpClient _httpClient;
+    readonly string endpoint;
+    readonly System.Net.Http.HttpClient httpClient;
 
     public TonClient4(TonClient4Parameters parameters)
     {
-        _endpoint = parameters.Endpoint.TrimEnd('/');
-        _httpClient = new System.Net.Http.HttpClient
+        endpoint = parameters.Endpoint.TrimEnd('/');
+        httpClient = new System.Net.Http.HttpClient
         {
             Timeout = TimeSpan.FromMilliseconds(parameters.Timeout)
         };
@@ -27,7 +27,7 @@ public class TonClient4 : IDisposable
 
     public void Dispose()
     {
-        _httpClient?.Dispose();
+        httpClient?.Dispose();
     }
 
     /// <summary>
@@ -35,7 +35,7 @@ public class TonClient4 : IDisposable
     /// </summary>
     public async Task<LastBlock> GetLastBlockAsync()
     {
-        HttpResponseMessage response = await _httpClient.GetAsync($"{_endpoint}/block/latest");
+        HttpResponseMessage response = await httpClient.GetAsync($"{endpoint}/block/latest");
         response.EnsureSuccessStatusCode();
 
         LastBlock? lastBlock = await response.Content.ReadFromJsonAsync<LastBlock>();
@@ -52,7 +52,7 @@ public class TonClient4 : IDisposable
     /// <returns>Block information</returns>
     public async Task<BlockDetails> GetBlockAsync(int seqno)
     {
-        HttpResponseMessage response = await _httpClient.GetAsync($"{_endpoint}/block/{seqno}");
+        HttpResponseMessage response = await httpClient.GetAsync($"{endpoint}/block/{seqno}");
         response.EnsureSuccessStatusCode();
 
         Block? block = await response.Content.ReadFromJsonAsync<Block>();
@@ -72,7 +72,7 @@ public class TonClient4 : IDisposable
     /// <returns>Block information</returns>
     public async Task<BlockDetails> GetBlockByUtimeAsync(int timestamp)
     {
-        HttpResponseMessage response = await _httpClient.GetAsync($"{_endpoint}/block/utime/{timestamp}");
+        HttpResponseMessage response = await httpClient.GetAsync($"{endpoint}/block/utime/{timestamp}");
         response.EnsureSuccessStatusCode();
 
         Block? block = await response.Content.ReadFromJsonAsync<Block>();
@@ -94,7 +94,7 @@ public class TonClient4 : IDisposable
     public async Task<AccountInfo> GetAccountAsync(int seqno, Address address)
     {
         string addressStr = address.ToString();
-        HttpResponseMessage response = await _httpClient.GetAsync($"{_endpoint}/block/{seqno}/{addressStr}");
+        HttpResponseMessage response = await httpClient.GetAsync($"{endpoint}/block/{seqno}/{addressStr}");
         response.EnsureSuccessStatusCode();
 
         AccountInfo? account = await response.Content.ReadFromJsonAsync<AccountInfo>();
@@ -113,7 +113,7 @@ public class TonClient4 : IDisposable
     public async Task<AccountLiteInfo> GetAccountLiteAsync(int seqno, Address address)
     {
         string addressStr = address.ToString();
-        HttpResponseMessage response = await _httpClient.GetAsync($"{_endpoint}/block/{seqno}/{addressStr}/lite");
+        HttpResponseMessage response = await httpClient.GetAsync($"{endpoint}/block/{seqno}/{addressStr}/lite");
         response.EnsureSuccessStatusCode();
 
         AccountLiteInfo? account = await response.Content.ReadFromJsonAsync<AccountLiteInfo>();
@@ -146,7 +146,7 @@ public class TonClient4 : IDisposable
     {
         string addressStr = address.ToString();
         HttpResponseMessage response =
-            await _httpClient.GetAsync($"{_endpoint}/block/{seqno}/{addressStr}/changed/{lt}");
+            await httpClient.GetAsync($"{endpoint}/block/{seqno}/{addressStr}/changed/{lt}");
         response.EnsureSuccessStatusCode();
 
         AccountChanged? changed = await response.Content.ReadFromJsonAsync<AccountChanged>();
@@ -172,7 +172,7 @@ public class TonClient4 : IDisposable
         string hashStr = ToUrlSafeBase64(hash);
 
         HttpResponseMessage response =
-            await _httpClient.GetAsync($"{_endpoint}/account/{addressStr}/tx/{lt}/{hashStr}");
+            await httpClient.GetAsync($"{endpoint}/account/{addressStr}/tx/{lt}/{hashStr}");
         response.EnsureSuccessStatusCode();
 
         TransactionsResponse? txResponse = await response.Content.ReadFromJsonAsync<TransactionsResponse>();
@@ -201,7 +201,7 @@ public class TonClient4 : IDisposable
     /// <returns>Configuration response</returns>
     public async Task<ConfigResponse> GetConfigAsync(int seqno, int[]? ids = null)
     {
-        string url = $"{_endpoint}/block/{seqno}/config";
+        string url = $"{endpoint}/block/{seqno}/config";
 
         if (ids is { Length: > 0 })
         {
@@ -209,7 +209,7 @@ public class TonClient4 : IDisposable
             url += $"/{sortedIds}";
         }
 
-        HttpResponseMessage response = await _httpClient.GetAsync(url);
+        HttpResponseMessage response = await httpClient.GetAsync(url);
         response.EnsureSuccessStatusCode();
 
         ConfigResponse? config = await response.Content.ReadFromJsonAsync<ConfigResponse>();
@@ -233,14 +233,14 @@ public class TonClient4 : IDisposable
         string addressStr = address.ToString();
         string encodedMethod = HttpUtility.UrlEncode(methodName);
 
-        string url = $"{_endpoint}/block/{seqno}/{addressStr}/run/{encodedMethod}";
+        string url = $"{endpoint}/block/{seqno}/{addressStr}/run/{encodedMethod}";
 
         // TODO: Add serialized arguments if present
         // Tuple serialization needs proper implementation
         if (args is { Length: > 0 })
             throw new NotImplementedException("TonClient4 does not yet support method arguments");
 
-        HttpResponseMessage response = await _httpClient.GetAsync(url);
+        HttpResponseMessage response = await httpClient.GetAsync(url);
         response.EnsureSuccessStatusCode();
 
         V4RunMethodResult? result = await response.Content.ReadFromJsonAsync<V4RunMethodResult>();
@@ -275,7 +275,7 @@ public class TonClient4 : IDisposable
             "application/json"
         );
 
-        HttpResponseMessage response = await _httpClient.PostAsync($"{_endpoint}/send", content);
+        HttpResponseMessage response = await httpClient.PostAsync($"{endpoint}/send", content);
         response.EnsureSuccessStatusCode();
 
         SendResponse? result = await response.Content.ReadFromJsonAsync<SendResponse>();

@@ -8,31 +8,31 @@ namespace Ton.HttpClient;
 /// </summary>
 internal class TonClient4Provider : IContractProvider
 {
-    readonly Address _address;
-    readonly int? _block;
-    readonly TonClient4 _client;
-    readonly StateInit? _init;
+    readonly Address address;
+    readonly int? block;
+    readonly TonClient4 client;
+    readonly StateInit? init;
 
     public TonClient4Provider(TonClient4 client, int? block, Address address, StateInit? init)
     {
-        _client = client;
-        _block = block;
-        _address = address;
-        _init = init;
+        this.client = client;
+        this.block = block;
+        this.address = address;
+        this.init = init;
     }
 
     public async Task<ContractState> GetStateAsync()
     {
         // Resolve block
-        int? seqno = _block;
+        int? seqno = block;
         if (seqno == null)
         {
-            LastBlock lastBlock = await _client.GetLastBlockAsync();
+            LastBlock lastBlock = await client.GetLastBlockAsync();
             seqno = lastBlock.Last.Seqno;
         }
 
         // Load state
-        AccountInfo accountInfo = await _client.GetAccountAsync(seqno.Value, _address);
+        AccountInfo accountInfo = await client.GetAccountAsync(seqno.Value, address);
 
         // Convert last transaction
         ContractState.LastTransaction? last = null;
@@ -89,15 +89,15 @@ internal class TonClient4Provider : IContractProvider
 
     public async Task<ContractGetMethodResult> GetAsync(string methodName, TupleItem[] args)
     {
-        int? seqno = _block;
+        int? seqno = block;
         if (seqno == null)
         {
-            LastBlock lastBlock = await _client.GetLastBlockAsync();
+            LastBlock lastBlock = await client.GetLastBlockAsync();
             seqno = lastBlock.Last.Seqno;
         }
 
         (int ExitCode, TupleReader Reader, string? ResultRaw, BlockRef Block, BlockRef ShardBlock) result =
-            await _client.RunMethodAsync(seqno.Value, _address, methodName, args);
+            await client.RunMethodAsync(seqno.Value, address, methodName, args);
 
         if (result.ExitCode != 0 && result.ExitCode != 1)
             throw new ComputeError($"Exit code: {result.ExitCode}", result.ExitCode);
@@ -117,20 +117,20 @@ internal class TonClient4Provider : IContractProvider
     public async Task ExternalAsync(Cell message)
     {
         // Resolve last block
-        LastBlock lastBlock = await _client.GetLastBlockAsync();
+        LastBlock lastBlock = await client.GetLastBlockAsync();
 
         // Check if we need to include init
         StateInit? neededInit = null;
-        if (_init != null)
+        if (init != null)
         {
-            AccountLiteInfo account = await _client.GetAccountLiteAsync(lastBlock.Last.Seqno, _address);
-            if (account.Account.State is not AccountStateActive) neededInit = _init;
+            AccountLiteInfo account = await client.GetAccountLiteAsync(lastBlock.Last.Seqno, address);
+            if (account.Account.State is not AccountStateActive) neededInit = init;
         }
 
         // Build external message
         CommonMessageInfo.ExternalIn externalMsg = new(
             null,
-            _address,
+            address,
             BigInteger.Zero
         );
 
@@ -142,20 +142,20 @@ internal class TonClient4Provider : IContractProvider
         Cell cell = builder.EndCell();
         byte[] boc = cell.ToBoc();
 
-        await _client.SendMessageAsync(boc);
+        await client.SendMessageAsync(boc);
     }
 
     public async Task InternalAsync(ISender via, InternalMessageArgs args)
     {
         // Resolve last block
-        LastBlock lastBlock = await _client.GetLastBlockAsync();
+        LastBlock lastBlock = await client.GetLastBlockAsync();
 
         // Check if we need to include init
         StateInit? neededInit = null;
-        if (_init != null)
+        if (init != null)
         {
-            AccountLiteInfo account = await _client.GetAccountLiteAsync(lastBlock.Last.Seqno, _address);
-            if (account.Account.State is not AccountStateActive) neededInit = _init;
+            AccountLiteInfo account = await client.GetAccountLiteAsync(lastBlock.Last.Seqno, address);
+            if (account.Account.State is not AccountStateActive) neededInit = init;
         }
 
         // Resolve bounce
@@ -164,7 +164,7 @@ internal class TonClient4Provider : IContractProvider
         // Send internal message via sender
         await via.SendAsync(new SenderArguments
         {
-            To = _address,
+            To = address,
             Value = args.Value,
             Bounce = bounce,
             SendMode = args.SendMode,
@@ -176,7 +176,7 @@ internal class TonClient4Provider : IContractProvider
 
     public OpenedContract<T> Open<T>(T contract) where T : IContract
     {
-        return ContractExtensions.Open(new TonClient4Provider(_client, _block, contract.Address, contract.Init),
+        return ContractExtensions.Open(new TonClient4Provider(client, block, contract.Address, contract.Init),
             contract);
     }
 
@@ -193,7 +193,7 @@ internal class TonClient4Provider : IContractProvider
         do
         {
             List<(BlockRef Block, Transaction Transaction)> txs =
-                await _client.GetAccountTransactionsAsync(address, currentLt, currentHash);
+                await client.GetAccountTransactionsAsync(address, currentLt, currentHash);
 
             if (txs.Count == 0)
                 break;

@@ -48,12 +48,18 @@ public class ContractTests
         });
 
         ContractState.AccountStateInfo.Active active = (ContractState.AccountStateInfo.Active)state.State;
-        Assert.That(active.Code, Is.Not.Null);
-        Assert.That(active.Data, Is.Not.Null);
-        Assert.That(active.Code, Is.EquivalentTo(code));
-        Assert.That(active.Data, Is.EquivalentTo(data));
+        Assert.Multiple(() =>
+        {
+            Assert.That(active.Code, Is.Not.Null);
+            Assert.That(active.Data, Is.Not.Null);
+        });
+        Assert.Multiple(() =>
+        {
+            Assert.That(active.Code, Is.EquivalentTo(code));
+            Assert.That(active.Data, Is.EquivalentTo(data));
 
-        Assert.That(state.Last, Is.Not.Null);
+            Assert.That(state.Last, Is.Not.Null);
+        });
         Assert.Multiple(() =>
         {
             Assert.That(state.Last!.Lt, Is.EqualTo(new BigInteger(12345)));
@@ -339,8 +345,11 @@ public class ContractTests
             Assert.That(abi.Receivers, Has.Length.EqualTo(2));
         });
 
-        Assert.That(abi.Errors[100].Message, Is.EqualTo("Insufficient balance"));
-        Assert.That(abi.Types![0].Header, Is.EqualTo(0x12345678));
-        Assert.That(abi.Getters![0].Arguments![0].Name, Is.EqualTo("query_id"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(abi.Errors[100].Message, Is.EqualTo("Insufficient balance"));
+            Assert.That(abi.Types![0].Header, Is.EqualTo(0x12345678));
+            Assert.That(abi.Getters![0].Arguments![0].Name, Is.EqualTo("query_id"));
+        });
     }
 }
