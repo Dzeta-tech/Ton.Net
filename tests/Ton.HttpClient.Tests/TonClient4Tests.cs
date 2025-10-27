@@ -51,7 +51,7 @@ public class TonClient4Tests
             Assert.That(account, Is.Not.Null);
             Assert.That(accountLite, Is.Not.Null);
         });
-        
+
         // Check that both return similar data
         Assert.That(account.Account.Balance.Coins, Is.EqualTo(accountLite.Account.Balance.Coins));
 
@@ -89,13 +89,11 @@ public class TonClient4Tests
             Assert.That(transactions, Is.Not.Null);
 
             if (transactions.Count > 0)
-            {
                 Assert.Multiple(() =>
                 {
                     Assert.That(transactions[0].Transaction, Is.Not.Null);
                     Assert.That(transactions[0].Block, Is.Not.Null);
                 });
-            }
         }
     }
 

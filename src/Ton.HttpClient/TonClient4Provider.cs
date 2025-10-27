@@ -6,21 +6,9 @@ namespace Ton.HttpClient;
 /// <summary>
 ///     Implementation of IContractProvider for TonClient4.
 /// </summary>
-internal class TonClient4Provider : IContractProvider
+internal class TonClient4Provider(TonClient4 client, int? block, Address address, StateInit? init)
+    : IContractProvider
 {
-    readonly Address address;
-    readonly int? block;
-    readonly TonClient4 client;
-    readonly StateInit? init;
-
-    public TonClient4Provider(TonClient4 client, int? block, Address address, StateInit? init)
-    {
-        this.client = client;
-        this.block = block;
-        this.address = address;
-        this.init = init;
-    }
-
     public async Task<ContractState> GetStateAsync()
     {
         // Resolve block

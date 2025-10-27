@@ -7,21 +7,13 @@ namespace Ton.HttpClient.Api;
 /// <summary>
 ///     Low-level HTTP API client for Toncenter v2 API.
 /// </summary>
-public class HttpApi : IDisposable
+public class HttpApi(string endpoint, int timeout = 30000, string? apiKey = null)
+    : IDisposable
 {
-    readonly string? apiKey;
-    readonly string endpoint;
-    readonly System.Net.Http.HttpClient httpClient;
-
-    public HttpApi(string endpoint, int timeout = 30000, string? apiKey = null)
+    readonly System.Net.Http.HttpClient httpClient = new()
     {
-        this.endpoint = endpoint;
-        this.apiKey = apiKey;
-        httpClient = new System.Net.Http.HttpClient
-        {
-            Timeout = TimeSpan.FromMilliseconds(timeout)
-        };
-    }
+        Timeout = TimeSpan.FromMilliseconds(timeout)
+    };
 
     public void Dispose()
     {

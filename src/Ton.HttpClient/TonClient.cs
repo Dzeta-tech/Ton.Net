@@ -9,21 +9,15 @@ namespace Ton.HttpClient;
 ///     TON blockchain client using Toncenter v2 API.
 ///     Implements IContractProvider for contract interaction.
 /// </summary>
-public class TonClient : IDisposable
+public class TonClient(TonClientParameters parameters) : IDisposable
 {
-    readonly HttpApi api;
+    readonly HttpApi api = new(
+        parameters.Endpoint,
+        parameters.Timeout,
+        parameters.ApiKey
+    );
 
-    public TonClient(TonClientParameters parameters)
-    {
-        Parameters = parameters;
-        api = new HttpApi(
-            parameters.Endpoint,
-            parameters.Timeout,
-            parameters.ApiKey
-        );
-    }
-
-    public TonClientParameters Parameters { get; }
+    public TonClientParameters Parameters { get; } = parameters;
 
     public void Dispose()
     {

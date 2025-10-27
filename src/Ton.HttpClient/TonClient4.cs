@@ -11,19 +11,14 @@ namespace Ton.HttpClient;
 ///     High-level TON blockchain HTTP client for Toncenter API v4.
 ///     Uses block seqno for deterministic queries.
 /// </summary>
-public class TonClient4 : IDisposable
+public class TonClient4(TonClient4Parameters parameters) : IDisposable
 {
-    readonly string endpoint;
-    readonly System.Net.Http.HttpClient httpClient;
+    readonly string endpoint = parameters.Endpoint.TrimEnd('/');
 
-    public TonClient4(TonClient4Parameters parameters)
+    readonly System.Net.Http.HttpClient httpClient = new()
     {
-        endpoint = parameters.Endpoint.TrimEnd('/');
-        httpClient = new System.Net.Http.HttpClient
-        {
-            Timeout = TimeSpan.FromMilliseconds(parameters.Timeout)
-        };
-    }
+        Timeout = TimeSpan.FromMilliseconds(parameters.Timeout)
+    };
 
     public void Dispose()
     {
