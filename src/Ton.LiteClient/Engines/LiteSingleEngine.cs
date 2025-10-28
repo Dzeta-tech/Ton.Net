@@ -8,23 +8,23 @@ using Ton.Adnl.TL;
 namespace Ton.LiteClient.Engines;
 
 /// <summary>
-/// Single connection lite engine that uses ADNL client for communication
+///     Single connection lite engine that uses ADNL client for communication
 /// </summary>
 public sealed class LiteSingleEngine : ILiteEngine
 {
     readonly string host;
-    readonly int port;
-    readonly byte[] serverPublicKey;
-    readonly int reconnectTimeoutMs;
     readonly ConcurrentDictionary<string, PendingQuery> pendingQueries = new();
-    
-    AdnlClient? client;
-    bool isReady;
-    bool isClosed = true;
+    readonly int port;
+    readonly int reconnectTimeoutMs;
+    readonly byte[] serverPublicKey;
     readonly object stateLock = new();
 
+    AdnlClient? client;
+    bool isClosed = true;
+    bool isReady;
+
     /// <summary>
-    /// Creates a new lite engine instance
+    ///     Creates a new lite engine instance
     /// </summary>
     /// <param name="host">Server host/IP</param>
     /// <param name="port">Server port</param>
@@ -48,7 +48,7 @@ public sealed class LiteSingleEngine : ILiteEngine
     }
 
     /// <summary>
-    /// Creates a new lite engine from base64-encoded public key
+    ///     Creates a new lite engine from base64-encoded public key
     /// </summary>
     public LiteSingleEngine(string host, int port, string serverPublicKeyBase64, int reconnectTimeoutMs = 10000)
         : this(host, port, Convert.FromBase64String(serverPublicKeyBase64), reconnectTimeoutMs)
@@ -60,7 +60,9 @@ public sealed class LiteSingleEngine : ILiteEngine
         get
         {
             lock (stateLock)
+            {
                 return isReady;
+            }
         }
     }
 
@@ -69,7 +71,9 @@ public sealed class LiteSingleEngine : ILiteEngine
         get
         {
             lock (stateLock)
+            {
                 return isClosed;
+            }
         }
     }
 
@@ -78,6 +82,92 @@ public sealed class LiteSingleEngine : ILiteEngine
     public event EventHandler? Closed;
     public event EventHandler<Exception>? Error;
 
+    /// <summary>
+    ///     Executes a query using a generated request class
+    /// </summary>
+    public async Task<TResponse> QueryAsync<TRequest, TResponse>(
+        TRequest request,
+        Func<TLReadBuffer, TResponse> responseReader,
+        int timeout = 5000,
+        CancellationToken cancellationToken = default)
+        where TRequest : ILiteRequest
+    {
+        lock (stateLock)
+        {
+            if (isClosed)
+                throw new InvalidOperationException("Engine is closed");
+        }
+
+        // Generate random query ID
+        byte[] queryId = AdnlKeys.GenerateRandomBytes(32);
+        string queryIdHex = Convert.ToHexString(queryId);
+
+        // Build the request (request already includes constructor ID)
+        TLWriteBuffer requestBuffer = new();
+        request.WriteTo(requestBuffer);
+        byte[] requestData = requestBuffer.Build();
+
+        // Wrap in liteServer.query
+        TLWriteBuffer liteServerQueryBuffer = new();
+        liteServerQueryBuffer.WriteUInt32(0x798C06DF); // liteServer.query
+        liteServerQueryBuffer.WriteBuffer(requestData);
+        byte[] liteServerQuery = liteServerQueryBuffer.Build();
+
+        // Wrap in adnl.message.query
+        TLWriteBuffer adnlQueryBuffer = new();
+        adnlQueryBuffer.WriteUInt32(0xB48BF97A); // adnl.message.query
+        adnlQueryBuffer.WriteInt256(new BigInteger(queryId));
+        adnlQueryBuffer.WriteBuffer(liteServerQuery);
+        byte[] finalQuery = adnlQueryBuffer.Build();
+
+        // Create completion source (using object to avoid generic type issues with dynamic storage)
+        TaskCompletionSource<object> tcs = new();
+        
+        // Store the response reader with proper function ID extraction
+        // We'll extract the constructor ID from the actual response
+        PendingQuery query = new()
+        {
+            FunctionId = 0, // Not needed anymore - we match by query ID
+            ResponseReader = responseReader,
+            CompletionSource = tcs,
+            Timeout = timeout
+        };
+
+        pendingQueries[queryIdHex] = query;
+
+        // Setup timeout
+        using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(timeout);
+
+        cts.Token.Register(() =>
+        {
+            if (pendingQueries.TryRemove(queryIdHex, out PendingQuery? q))
+                q.CompletionSource.TrySetException(new TimeoutException($"Query timed out after {timeout}ms"));
+        });
+
+        // Send query if ready
+        lock (stateLock)
+        {
+            if (isReady && client != null)
+                _ = client.WriteAsync(finalQuery).ContinueWith(t =>
+                {
+                    if (t.IsFaulted && pendingQueries.TryRemove(queryIdHex, out PendingQuery? q))
+                        q.CompletionSource.TrySetException(t.Exception?.InnerException ??
+                                                           new Exception("Failed to send query"));
+                });
+            else
+                throw new InvalidOperationException("Engine is not ready");
+        }
+
+        // Wait for response
+        object result = await tcs.Task;
+        return (TResponse)result;
+    }
+
+    /// <summary>
+    ///     Legacy query method for manual serialization (deprecated, use generated request classes instead)
+    /// </summary>
+    [Obsolete("Use the QueryAsync overload that accepts a generated request class instead")]
     public async Task<TResponse> QueryAsync<TRequest, TResponse>(
         uint functionId,
         Action<TLWriteBuffer, TRequest> requestWriter,
@@ -96,27 +186,28 @@ public sealed class LiteSingleEngine : ILiteEngine
         byte[] queryId = AdnlKeys.GenerateRandomBytes(32);
         string queryIdHex = Convert.ToHexString(queryId);
 
-        // Build the request
-        var requestBuffer = new TLWriteBuffer();
-        requestWriter(requestBuffer, request);
+        // Build the request with function ID
+        TLWriteBuffer requestBuffer = new();
+        requestBuffer.WriteUInt32(functionId); // Write function constructor ID first
+        requestWriter(requestBuffer, request); // Then write request parameters
         byte[] requestData = requestBuffer.Build();
 
         // Wrap in liteServer.query
-        var liteServerQueryBuffer = new TLWriteBuffer();
+        TLWriteBuffer liteServerQueryBuffer = new();
         liteServerQueryBuffer.WriteUInt32(0x798C06DF); // liteServer.query
         liteServerQueryBuffer.WriteBuffer(requestData);
         byte[] liteServerQuery = liteServerQueryBuffer.Build();
 
         // Wrap in adnl.message.query
-        var adnlQueryBuffer = new TLWriteBuffer();
+        TLWriteBuffer adnlQueryBuffer = new();
         adnlQueryBuffer.WriteUInt32(0xB48BF97A); // adnl.message.query
         adnlQueryBuffer.WriteInt256(new BigInteger(queryId));
         adnlQueryBuffer.WriteBuffer(liteServerQuery);
         byte[] finalQuery = adnlQueryBuffer.Build();
 
-        // Create completion source
-        var tcs = new TaskCompletionSource<TResponse>();
-        var query = new PendingQuery
+        // Create completion source (using object to avoid generic type issues with dynamic storage)
+        TaskCompletionSource<object> tcs = new();
+        PendingQuery query = new()
         {
             FunctionId = functionId,
             ResponseReader = responseReader,
@@ -127,39 +218,35 @@ public sealed class LiteSingleEngine : ILiteEngine
         pendingQueries[queryIdHex] = query;
 
         // Setup timeout
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(timeout);
-        
+
         cts.Token.Register(() =>
         {
-            if (pendingQueries.TryRemove(queryIdHex, out var q))
-            {
+            if (pendingQueries.TryRemove(queryIdHex, out PendingQuery? q))
                 q.CompletionSource.TrySetException(new TimeoutException($"Query timed out after {timeout}ms"));
-            }
         });
 
         // Send query if ready
         lock (stateLock)
         {
             if (isReady && client != null)
-            {
                 _ = client.WriteAsync(finalQuery).ContinueWith(t =>
                 {
-                    if (t.IsFaulted && pendingQueries.TryRemove(queryIdHex, out var q))
-                    {
+                    if (t.IsFaulted && pendingQueries.TryRemove(queryIdHex, out PendingQuery? q))
                         q.CompletionSource.TrySetException(t.Exception!.InnerException ?? t.Exception);
-                    }
                 });
-            }
         }
 
-        return await tcs.Task;
+        // Wait for result and cast to expected type
+        object result = await tcs.Task;
+        return (TResponse)result;
     }
 
     public async Task CloseAsync()
     {
         AdnlClient? clientToClose;
-        
+
         lock (stateLock)
         {
             if (isClosed)
@@ -172,16 +259,11 @@ public sealed class LiteSingleEngine : ILiteEngine
         }
 
         // Cancel all pending queries
-        foreach (var query in pendingQueries.Values)
-        {
+        foreach (PendingQuery query in pendingQueries.Values)
             query.CompletionSource.TrySetException(new OperationCanceledException("Engine closed"));
-        }
         pendingQueries.Clear();
 
-        if (clientToClose != null)
-        {
-            await clientToClose.CloseAsync();
-        }
+        if (clientToClose != null) await clientToClose.CloseAsync();
     }
 
     public void Dispose()
@@ -200,7 +282,7 @@ public sealed class LiteSingleEngine : ILiteEngine
         }
 
         // Create new client
-        var newClient = new AdnlClient(host, port, serverPublicKey);
+        AdnlClient newClient = new(host, port, serverPublicKey);
 
         // Subscribe to events
         newClient.Connected += OnClientConnected;
@@ -218,9 +300,7 @@ public sealed class LiteSingleEngine : ILiteEngine
         _ = newClient.ConnectAsync().ContinueWith(t =>
         {
             if (t.IsFaulted)
-            {
                 Error?.Invoke(this, t.Exception?.InnerException ?? t.Exception ?? new Exception("Connection failed"));
-            }
         });
     }
 
@@ -244,7 +324,7 @@ public sealed class LiteSingleEngine : ILiteEngine
             if (client == null)
                 return;
 
-            foreach (var kvp in pendingQueries)
+            foreach (KeyValuePair<string, PendingQuery> kvp in pendingQueries)
             {
                 // Rebuild query for this queryId
                 byte[] queryId = Convert.FromHexString(kvp.Key);
@@ -269,18 +349,13 @@ public sealed class LiteSingleEngine : ILiteEngine
 
         // Schedule reconnection
         if (shouldReconnect)
-        {
             _ = Task.Delay(reconnectTimeoutMs).ContinueWith(_ =>
             {
                 lock (stateLock)
                 {
-                    if (!isClosed)
-                    {
-                        Connect();
-                    }
+                    if (!isClosed) Connect();
                 }
             });
-        }
     }
 
     void OnClientError(Exception error)
@@ -292,14 +367,12 @@ public sealed class LiteSingleEngine : ILiteEngine
     {
         try
         {
-            var reader = new TLReadBuffer(data);
+            TLReadBuffer reader = new(data);
             uint messageType = reader.ReadUInt32();
 
             if (messageType == 0xDC69FB03) // tcp.pong
-            {
                 // Ignore heartbeat pongs
                 return;
-            }
 
             if (messageType == 0x0FAC8416) // adnl.message.answer
             {
@@ -311,20 +384,18 @@ public sealed class LiteSingleEngine : ILiteEngine
                 byte[] liteServerResponse = reader.ReadBuffer();
 
                 // Find pending query
-                if (!pendingQueries.TryRemove(queryIdHex, out var query))
-                {
+                if (!pendingQueries.TryRemove(queryIdHex, out PendingQuery? query))
                     // Unknown query ID - possibly already timed out
                     return;
-                }
 
                 // Parse lite server response
-                var liteReader = new TLReadBuffer(liteServerResponse);
+                TLReadBuffer liteReader = new(liteServerResponse);
                 uint constructorId = liteReader.ReadUInt32();
 
                 // Check for liteServer.error
                 if (constructorId == LiteServerError.Constructor)
                 {
-                    var error = LiteServerError.ReadFrom(liteReader);
+                    LiteServerError? error = LiteServerError.ReadFrom(liteReader);
                     query.CompletionSource.TrySetException(
                         new LiteServerException(error.Code, error.Message));
                     return;
@@ -342,8 +413,13 @@ public sealed class LiteSingleEngine : ILiteEngine
                 }
                 catch (Exception ex)
                 {
+                    string errorDetails = $"Failed to deserialize response with constructor 0x{constructorId:X8}. " +
+                                          $"Inner exception: {ex.Message}";
+                    if (ex.InnerException != null)
+                        errorDetails += $" | Inner: {ex.InnerException.Message}";
+
                     query.CompletionSource.TrySetException(
-                        new InvalidOperationException($"Failed to deserialize response with constructor 0x{constructorId:X8}", ex));
+                        new InvalidOperationException(errorDetails, ex));
                 }
             }
         }
@@ -357,22 +433,21 @@ public sealed class LiteSingleEngine : ILiteEngine
     {
         public required uint FunctionId { get; init; }
         public required Delegate ResponseReader { get; init; }
-        public required dynamic CompletionSource { get; init; }
+        public required TaskCompletionSource<object> CompletionSource { get; init; }
         public required int Timeout { get; init; }
     }
 }
 
 /// <summary>
-/// Exception thrown when lite server returns an error
+///     Exception thrown when lite server returns an error
 /// </summary>
 public sealed class LiteServerException : Exception
 {
-    public int ErrorCode { get; }
-
     public LiteServerException(int errorCode, string message)
         : base($"LiteServer error {errorCode}: {message}")
     {
         ErrorCode = errorCode;
     }
-}
 
+    public int ErrorCode { get; }
+}

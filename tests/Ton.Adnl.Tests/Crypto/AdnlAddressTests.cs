@@ -57,7 +57,7 @@ public class AdnlAddressTests
     {
         byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
         AdnlAddress address = new(publicKey);
-        
+
         // Hash should be SHA256(pub.ed25519_constructor + public_key)
         // pub.ed25519 constructor = 0xC6B41348
         byte[] data = new byte[36];

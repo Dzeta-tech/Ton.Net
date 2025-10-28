@@ -7,7 +7,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        
+
         <!-- NuGet Package Information -->
         <PackageId>Ton.LiteClient</PackageId>
         <Version>0.1.5</Version>
@@ -22,12 +22,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+        <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Ton.Adnl\Ton.Adnl.csproj" />
-        <ProjectReference Include="..\Ton.Core\Ton.Core.csproj" />
+        <ProjectReference Include="..\Ton.Adnl\Ton.Adnl.csproj"/>
+        <ProjectReference Include="..\Ton.Core\Ton.Core.csproj"/>
     </ItemGroup>
 
 </Project>

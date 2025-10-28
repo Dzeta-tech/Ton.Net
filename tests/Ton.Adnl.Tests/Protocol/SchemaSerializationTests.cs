@@ -9,11 +9,12 @@ public class SchemaSerializationTests
     [Fact]
     public void TonNodeBlockId_ShouldSerializeAndDeserialize()
     {
-        TonNodeBlockId original = new(
-            -1,
-            -9223372036854775808,
-            12345
-        );
+        TonNodeBlockId original = new()
+        {
+            Workchain = -1,
+            Shard = -9223372036854775808,
+            Seqno = 12345
+        };
 
         TLWriteBuffer writer = new();
         original.WriteTo(writer);
@@ -33,13 +34,14 @@ public class SchemaSerializationTests
         byte[] rootHash = AdnlKeys.GenerateRandomBytes(32);
         byte[] fileHash = AdnlKeys.GenerateRandomBytes(32);
 
-        TonNodeBlockIdExt original = new(
-            0,
-            1000000000,
-            54321,
-            rootHash,
-            fileHash
-        );
+        TonNodeBlockIdExt original = new()
+        {
+            Workchain = 0,
+            Shard = 1000000000,
+            Seqno = 54321,
+            RootHash = rootHash,
+            FileHash = fileHash
+        };
 
         TLWriteBuffer writer = new();
         original.WriteTo(writer);
@@ -61,11 +63,12 @@ public class SchemaSerializationTests
         byte[] rootHash = AdnlKeys.GenerateRandomBytes(32);
         byte[] fileHash = AdnlKeys.GenerateRandomBytes(32);
 
-        TonNodeZeroStateIdExt original = new(
-            -1,
-            rootHash,
-            fileHash
-        );
+        TonNodeZeroStateIdExt original = new()
+        {
+            Workchain = -1,
+            RootHash = rootHash,
+            FileHash = fileHash
+        };
 
         TLWriteBuffer writer = new();
         original.WriteTo(writer);
@@ -104,19 +107,21 @@ public class SchemaSerializationTests
     [Fact]
     public void LiteServerMasterchainInfo_ShouldSerializeAndDeserialize()
     {
-        TonNodeBlockIdExt last = new(
-            -1,
-            -9223372036854775808,
-            100,
-            AdnlKeys.GenerateRandomBytes(32),
-            AdnlKeys.GenerateRandomBytes(32)
-        );
+        TonNodeBlockIdExt last = new()
+        {
+            Workchain = -1,
+            Shard = -9223372036854775808,
+            Seqno = 100,
+            RootHash = AdnlKeys.GenerateRandomBytes(32),
+            FileHash = AdnlKeys.GenerateRandomBytes(32)
+        };
 
-        TonNodeZeroStateIdExt init = new(
-            -1,
-            AdnlKeys.GenerateRandomBytes(32),
-            AdnlKeys.GenerateRandomBytes(32)
-        );
+        TonNodeZeroStateIdExt init = new()
+        {
+            Workchain = -1,
+            RootHash = AdnlKeys.GenerateRandomBytes(32),
+            FileHash = AdnlKeys.GenerateRandomBytes(32)
+        };
 
         LiteServerMasterchainInfo original = new()
         {
@@ -140,19 +145,21 @@ public class SchemaSerializationTests
     [Fact]
     public void LiteServerMasterchainInfoExt_ShouldSerializeAndDeserialize()
     {
-        TonNodeBlockIdExt last = new(
-            -1,
-            -9223372036854775808,
-            200,
-            AdnlKeys.GenerateRandomBytes(32),
-            AdnlKeys.GenerateRandomBytes(32)
-        );
+        TonNodeBlockIdExt last = new()
+        {
+            Workchain = -1,
+            Shard = -9223372036854775808,
+            Seqno = 200,
+            RootHash = AdnlKeys.GenerateRandomBytes(32),
+            FileHash = AdnlKeys.GenerateRandomBytes(32)
+        };
 
-        TonNodeZeroStateIdExt init = new(
-            -1,
-            AdnlKeys.GenerateRandomBytes(32),
-            AdnlKeys.GenerateRandomBytes(32)
-        );
+        TonNodeZeroStateIdExt init = new()
+        {
+            Workchain = -1,
+            RootHash = AdnlKeys.GenerateRandomBytes(32),
+            FileHash = AdnlKeys.GenerateRandomBytes(32)
+        };
 
         LiteServerMasterchainInfoExt original = new()
         {
@@ -225,13 +232,14 @@ public class SchemaSerializationTests
     [Fact]
     public void LiteServerBlockData_ShouldSerializeAndDeserialize()
     {
-        TonNodeBlockIdExt blockId = new(
-            0,
-            1000,
-            100,
-            AdnlKeys.GenerateRandomBytes(32),
-            AdnlKeys.GenerateRandomBytes(32)
-        );
+        TonNodeBlockIdExt blockId = new()
+        {
+            Workchain = 0,
+            Shard = 1000,
+            Seqno = 100,
+            RootHash = AdnlKeys.GenerateRandomBytes(32),
+            FileHash = AdnlKeys.GenerateRandomBytes(32)
+        };
 
         byte[] data = AdnlKeys.GenerateRandomBytes(256);
 

@@ -46,18 +46,13 @@ namespace Ton.Adnl.Protocol
     /// <summary>
     /// tonNode.blockId = tonNode.BlockId
     /// </summary>
-    public readonly struct TonNodeBlockId
+    public class TonNodeBlockId
     {
-        public readonly int Workchain;
-        public readonly long Shard;
-        public readonly int Seqno;
+        public const uint Constructor = 0xB7CDB167;
 
-        public TonNodeBlockId(int workchain, long shard, int seqno)
-        {
-            Workchain = workchain;
-            Shard = shard;
-            Seqno = seqno;
-        }
+        public int Workchain { get; set; }
+        public long Shard { get; set; }
+        public int Seqno { get; set; }
 
         public  void WriteTo(TLWriteBuffer writer)
         {
@@ -68,33 +63,27 @@ namespace Ton.Adnl.Protocol
 
         public static TonNodeBlockId ReadFrom(TLReadBuffer reader)
         {
-            return new TonNodeBlockId(
-                reader.ReadInt32(),
-                reader.ReadInt64(),
-                reader.ReadInt32()
-            );
+            return new TonNodeBlockId
+            {
+                Workchain = reader.ReadInt32(),
+                Shard = reader.ReadInt64(),
+                Seqno = reader.ReadInt32(),
+            };
         }
     }
 
     /// <summary>
     /// tonNode.blockIdExt = tonNode.BlockIdExt
     /// </summary>
-    public readonly struct TonNodeBlockIdExt
+    public class TonNodeBlockIdExt
     {
-        public readonly int Workchain;
-        public readonly long Shard;
-        public readonly int Seqno;
-        public readonly byte[] RootHash;
-        public readonly byte[] FileHash;
+        public const uint Constructor = 0x6752EB78;
 
-        public TonNodeBlockIdExt(int workchain, long shard, int seqno, byte[] rootHash, byte[] fileHash)
-        {
-            Workchain = workchain;
-            Shard = shard;
-            Seqno = seqno;
-            RootHash = rootHash;
-            FileHash = fileHash;
-        }
+        public int Workchain { get; set; }
+        public long Shard { get; set; }
+        public int Seqno { get; set; }
+        public byte[] RootHash { get; set; } = Array.Empty<byte>();
+        public byte[] FileHash { get; set; } = Array.Empty<byte>();
 
         public  void WriteTo(TLWriteBuffer writer)
         {
@@ -107,31 +96,27 @@ namespace Ton.Adnl.Protocol
 
         public static TonNodeBlockIdExt ReadFrom(TLReadBuffer reader)
         {
-            return new TonNodeBlockIdExt(
-                reader.ReadInt32(),
-                reader.ReadInt64(),
-                reader.ReadInt32(),
-                reader.ReadInt256(),
-                reader.ReadInt256()
-            );
+            return new TonNodeBlockIdExt
+            {
+                Workchain = reader.ReadInt32(),
+                Shard = reader.ReadInt64(),
+                Seqno = reader.ReadInt32(),
+                RootHash = reader.ReadInt256(),
+                FileHash = reader.ReadInt256(),
+            };
         }
     }
 
     /// <summary>
     /// tonNode.zeroStateIdExt = tonNode.ZeroStateIdExt
     /// </summary>
-    public readonly struct TonNodeZeroStateIdExt
+    public class TonNodeZeroStateIdExt
     {
-        public readonly int Workchain;
-        public readonly byte[] RootHash;
-        public readonly byte[] FileHash;
+        public const uint Constructor = 0x1D7235AE;
 
-        public TonNodeZeroStateIdExt(int workchain, byte[] rootHash, byte[] fileHash)
-        {
-            Workchain = workchain;
-            RootHash = rootHash;
-            FileHash = fileHash;
-        }
+        public int Workchain { get; set; }
+        public byte[] RootHash { get; set; } = Array.Empty<byte>();
+        public byte[] FileHash { get; set; } = Array.Empty<byte>();
 
         public  void WriteTo(TLWriteBuffer writer)
         {
@@ -142,11 +127,12 @@ namespace Ton.Adnl.Protocol
 
         public static TonNodeZeroStateIdExt ReadFrom(TLReadBuffer reader)
         {
-            return new TonNodeZeroStateIdExt(
-                reader.ReadInt32(),
-                reader.ReadInt256(),
-                reader.ReadInt256()
-            );
+            return new TonNodeZeroStateIdExt
+            {
+                Workchain = reader.ReadInt32(),
+                RootHash = reader.ReadInt256(),
+                FileHash = reader.ReadInt256(),
+            };
         }
     }
 
@@ -1527,6 +1513,55 @@ namespace Ton.Adnl.Protocol
     }
 
     /// <summary>
+    /// liteServer.dispatchQueueMessages = liteServer.DispatchQueueMessages
+    /// </summary>
+    public class LiteServerDispatchQueueMessages
+    {
+        public const uint Constructor = 0x93B42D0B;
+
+        public uint Mode { get; set; }
+        public TonNodeBlockIdExt Id { get; set; }
+        public LiteServerDispatchQueueMessage[] Messages { get; set; } = Array.Empty<LiteServerDispatchQueueMessage>();
+        public bool Complete { get; set; }
+        public byte[] Proof { get; set; } = Array.Empty<byte>();
+        public byte[] MessagesBoc { get; set; } = Array.Empty<byte>();
+
+        public  void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(Mode);
+            Id.WriteTo(writer);
+            writer.WriteUInt32((uint)Messages.Length);
+                foreach (var item in Messages)
+                {
+                    item.WriteTo(writer);
+                }
+            writer.WriteBool(Complete);
+            if ((Mode & (1u << 0)) != 0)
+            {
+                writer.WriteBuffer(Proof);
+            }
+            if ((Mode & (1u << 2)) != 0)
+            {
+                writer.WriteBuffer(MessagesBoc);
+            }
+        }
+
+        public static LiteServerDispatchQueueMessages ReadFrom(TLReadBuffer reader)
+        {
+            var result = new LiteServerDispatchQueueMessages();
+            result.Mode = reader.ReadUInt32();
+            result.Id = TonNodeBlockIdExt.ReadFrom(reader);
+            result.Messages = Array.Empty<LiteServerDispatchQueueMessage>();
+            result.Complete = reader.ReadBool();
+            if ((result.Mode & (1u << 0)) != 0)
+                result.Proof = reader.ReadBuffer();
+            if ((result.Mode & (1u << 2)) != 0)
+                result.MessagesBoc = reader.ReadBuffer();
+            return result;
+        }
+    }
+
+    /// <summary>
     /// liteServer.debug.verbosity = liteServer.debug.Verbosity
     /// </summary>
     public class LiteServerDebugVerbosity
@@ -1723,6 +1758,987 @@ namespace Ton.Adnl.Protocol
     }
 
     // ============================================================================
+    // Request Classes (auto mode flag handling)
+    // ============================================================================
+
+    /// <summary>
+    /// Request: liteServer.getMasterchainInfo = liteServer.MasterchainInfo
+    /// Constructor: 0x89B5E62E
+    /// </summary>
+    public sealed class GetMasterchainInfoRequest : ILiteRequest
+    {
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x89B5E62E); // liteServer.getMasterchainInfo
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getMasterchainInfoExt = liteServer.MasterchainInfoExt
+    /// Constructor: 0x70A671DF
+    /// </summary>
+    public sealed class GetMasterchainInfoExtRequest : ILiteRequest
+    {
+
+        public GetMasterchainInfoExtRequest() { }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x70A671DF); // liteServer.getMasterchainInfoExt
+
+            // Compute mode flags automatically
+            uint mode = 0;
+            writer.WriteUInt32(mode);
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getTime = liteServer.CurrentTime
+    /// Constructor: 0x16AD5A34
+    /// </summary>
+    public sealed class GetTimeRequest : ILiteRequest
+    {
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x16AD5A34); // liteServer.getTime
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getVersion = liteServer.Version
+    /// Constructor: 0x232B940B
+    /// </summary>
+    public sealed class GetVersionRequest : ILiteRequest
+    {
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x232B940B); // liteServer.getVersion
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getBlock = liteServer.BlockData
+    /// Constructor: 0x6377CF0D
+    /// </summary>
+    public sealed class GetBlockRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+
+        public GetBlockRequest(TonNodeBlockIdExt id)
+        {
+            Id = id;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x6377CF0D); // liteServer.getBlock
+            Id.WriteTo(writer);
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getState = liteServer.BlockState
+    /// Constructor: 0xBA6E2EB6
+    /// </summary>
+    public sealed class GetStateRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+
+        public GetStateRequest(TonNodeBlockIdExt id)
+        {
+            Id = id;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0xBA6E2EB6); // liteServer.getState
+            Id.WriteTo(writer);
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getBlockHeader = liteServer.BlockHeader
+    /// Constructor: 0x21EC069E
+    /// </summary>
+    public sealed class GetBlockHeaderRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+
+        public GetBlockHeaderRequest(TonNodeBlockIdExt id)
+        {
+            Id = id;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x21EC069E); // liteServer.getBlockHeader
+
+            // Compute mode flags automatically
+            uint mode = 0;
+            Id.WriteTo(writer);
+            writer.WriteUInt32(mode);
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.sendMessage = liteServer.SendMsgStatus
+    /// Constructor: 0x690AD482
+    /// </summary>
+    public sealed class SendMessageRequest : ILiteRequest
+    {
+        public byte[] Body { get; set; } = Array.Empty<byte>();
+
+        public SendMessageRequest(byte[] body)
+        {
+            Body = body;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x690AD482); // liteServer.sendMessage
+            writer.WriteBuffer(Body);
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getAccountState = liteServer.AccountState
+    /// Constructor: 0x6B890E25
+    /// </summary>
+    public sealed class GetAccountStateRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+        public LiteServerAccountId Account { get; set; }
+
+        public GetAccountStateRequest(TonNodeBlockIdExt id, LiteServerAccountId account)
+        {
+            Id = id;
+            Account = account;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x6B890E25); // liteServer.getAccountState
+            Id.WriteTo(writer);
+            Account.WriteTo(writer);
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getAccountStatePrunned = liteServer.AccountState
+    /// Constructor: 0x5A698507
+    /// </summary>
+    public sealed class GetAccountStatePrunnedRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+        public LiteServerAccountId Account { get; set; }
+
+        public GetAccountStatePrunnedRequest(TonNodeBlockIdExt id, LiteServerAccountId account)
+        {
+            Id = id;
+            Account = account;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x5A698507); // liteServer.getAccountStatePrunned
+            Id.WriteTo(writer);
+            Account.WriteTo(writer);
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.runSmcMethod = liteServer.RunMethodResult
+    /// Constructor: 0x5CC65DD2
+    /// </summary>
+    public sealed class RunSmcMethodRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+        public LiteServerAccountId Account { get; set; }
+        public long MethodId { get; set; }
+        public byte[] @Params { get; set; } = Array.Empty<byte>();
+
+        public RunSmcMethodRequest(TonNodeBlockIdExt id, LiteServerAccountId account, long methodId, byte[] @params)
+        {
+            Id = id;
+            Account = account;
+            MethodId = methodId;
+            @Params = @params;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x5CC65DD2); // liteServer.runSmcMethod
+
+            // Compute mode flags automatically
+            uint mode = 0;
+            writer.WriteUInt32(mode);
+            Id.WriteTo(writer);
+            Account.WriteTo(writer);
+            writer.WriteInt64(MethodId);
+            writer.WriteBuffer(@Params);
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getShardInfo = liteServer.ShardInfo
+    /// Constructor: 0x46A2F425
+    /// </summary>
+    public sealed class GetShardInfoRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+        public int Workchain { get; set; }
+        public long Shard { get; set; }
+        public bool Exact { get; set; }
+
+        public GetShardInfoRequest(TonNodeBlockIdExt id, int workchain, long shard, bool exact)
+        {
+            Id = id;
+            Workchain = workchain;
+            Shard = shard;
+            Exact = exact;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x46A2F425); // liteServer.getShardInfo
+            Id.WriteTo(writer);
+            writer.WriteInt32(Workchain);
+            writer.WriteInt64(Shard);
+            writer.WriteBool(Exact);
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getAllShardsInfo = liteServer.AllShardsInfo
+    /// Constructor: 0x74D3FD6B
+    /// </summary>
+    public sealed class GetAllShardsInfoRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+
+        public GetAllShardsInfoRequest(TonNodeBlockIdExt id)
+        {
+            Id = id;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x74D3FD6B); // liteServer.getAllShardsInfo
+            Id.WriteTo(writer);
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getOneTransaction = liteServer.TransactionInfo
+    /// Constructor: 0xD40F24EA
+    /// </summary>
+    public sealed class GetOneTransactionRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+        public LiteServerAccountId Account { get; set; }
+        public long Lt { get; set; }
+
+        public GetOneTransactionRequest(TonNodeBlockIdExt id, LiteServerAccountId account, long lt)
+        {
+            Id = id;
+            Account = account;
+            Lt = lt;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0xD40F24EA); // liteServer.getOneTransaction
+            Id.WriteTo(writer);
+            Account.WriteTo(writer);
+            writer.WriteInt64(Lt);
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getTransactions = liteServer.TransactionList
+    /// Constructor: 0x1C40E7A1
+    /// </summary>
+    public sealed class GetTransactionsRequest : ILiteRequest
+    {
+        public uint Count { get; set; }
+        public LiteServerAccountId Account { get; set; }
+        public long Lt { get; set; }
+        public byte[] Hash { get; set; } = Array.Empty<byte>();
+
+        public GetTransactionsRequest(uint count, LiteServerAccountId account, long lt, byte[] hash)
+        {
+            Count = count;
+            Account = account;
+            Lt = lt;
+            Hash = hash;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x1C40E7A1); // liteServer.getTransactions
+            writer.WriteUInt32(Count);
+            Account.WriteTo(writer);
+            writer.WriteInt64(Lt);
+            writer.WriteBytes(Hash, 32);
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.lookupBlock = liteServer.BlockHeader
+    /// Constructor: 0xFAC8F71E
+    /// </summary>
+    public sealed class LookupBlockRequest : ILiteRequest
+    {
+        public TonNodeBlockId Id { get; set; }
+        public long? Lt { get; set; }
+        public int? Utime { get; set; }
+
+        public LookupBlockRequest(TonNodeBlockId id, long? lt = null, int? utime = null)
+        {
+            Id = id;
+            Lt = lt;
+            Utime = utime;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0xFAC8F71E); // liteServer.lookupBlock
+
+            // Compute mode flags automatically
+            // Bit 0 is set by default for basic lookup (by seqno)
+            uint mode = 1;
+            if (Lt.HasValue) { mode |= (1u << 1); }
+            if (Utime.HasValue) { mode |= (1u << 2); }
+            writer.WriteUInt32(mode);
+            Id.WriteTo(writer);
+            if ((mode & (1u << 1)) != 0)
+            {
+                writer.WriteInt64(Lt.Value);
+            }
+            if ((mode & (1u << 2)) != 0)
+            {
+                writer.WriteInt32(Utime.Value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.lookupBlockWithProof = liteServer.LookupBlockResult
+    /// Constructor: 0x9C045FF8
+    /// </summary>
+    public sealed class LookupBlockWithProofRequest : ILiteRequest
+    {
+        public TonNodeBlockId Id { get; set; }
+        public TonNodeBlockIdExt McBlockId { get; set; }
+        public long? Lt { get; set; }
+        public int? Utime { get; set; }
+
+        public LookupBlockWithProofRequest(TonNodeBlockId id, TonNodeBlockIdExt mcBlockId, long? lt = null, int? utime = null)
+        {
+            Id = id;
+            McBlockId = mcBlockId;
+            Lt = lt;
+            Utime = utime;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x9C045FF8); // liteServer.lookupBlockWithProof
+
+            // Compute mode flags automatically
+            // Bit 0 is set by default for basic lookup (by seqno)
+            uint mode = 1;
+            if (Lt.HasValue) { mode |= (1u << 1); }
+            if (Utime.HasValue) { mode |= (1u << 2); }
+            writer.WriteUInt32(mode);
+            Id.WriteTo(writer);
+            McBlockId.WriteTo(writer);
+            if ((mode & (1u << 1)) != 0)
+            {
+                writer.WriteInt64(Lt.Value);
+            }
+            if ((mode & (1u << 2)) != 0)
+            {
+                writer.WriteInt32(Utime.Value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.listBlockTransactions = liteServer.BlockTransactions
+    /// Constructor: 0xADFCC7DA
+    /// </summary>
+    public sealed class ListBlockTransactionsRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+        public uint Count { get; set; }
+        public LiteServerTransactionId3 After { get; set; }
+        public bool? ReverseOrder { get; set; }
+        public bool? WantProof { get; set; }
+
+        public ListBlockTransactionsRequest(TonNodeBlockIdExt id, uint count, LiteServerTransactionId3 after = null, bool? reverseOrder = null, bool? wantProof = null)
+        {
+            Id = id;
+            Count = count;
+            After = after;
+            ReverseOrder = reverseOrder;
+            WantProof = wantProof;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0xADFCC7DA); // liteServer.listBlockTransactions
+
+            // Compute mode flags automatically
+            // Bits 0-2 must be set for listBlockTransactions
+            uint mode = 7;
+            if (After != null) { mode |= (1u << 7); }
+            if (ReverseOrder.HasValue) { mode |= (1u << 6); }
+            if (WantProof.HasValue) { mode |= (1u << 5); }
+            Id.WriteTo(writer);
+            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Count);
+            if ((mode & (1u << 7)) != 0)
+            {
+                After.WriteTo(writer);
+            }
+            if ((mode & (1u << 6)) != 0)
+            {
+                writer.WriteBool(ReverseOrder.Value);
+            }
+            if ((mode & (1u << 5)) != 0)
+            {
+                writer.WriteBool(WantProof.Value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.listBlockTransactionsExt = liteServer.BlockTransactionsExt
+    /// Constructor: 0x0079DD5C
+    /// </summary>
+    public sealed class ListBlockTransactionsExtRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+        public uint Count { get; set; }
+        public LiteServerTransactionId3 After { get; set; }
+        public bool? ReverseOrder { get; set; }
+        public bool? WantProof { get; set; }
+
+        public ListBlockTransactionsExtRequest(TonNodeBlockIdExt id, uint count, LiteServerTransactionId3 after = null, bool? reverseOrder = null, bool? wantProof = null)
+        {
+            Id = id;
+            Count = count;
+            After = after;
+            ReverseOrder = reverseOrder;
+            WantProof = wantProof;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x0079DD5C); // liteServer.listBlockTransactionsExt
+
+            // Compute mode flags automatically
+            uint mode = 0;
+            if (After != null) { mode |= (1u << 7); }
+            if (ReverseOrder.HasValue) { mode |= (1u << 6); }
+            if (WantProof.HasValue) { mode |= (1u << 5); }
+            Id.WriteTo(writer);
+            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Count);
+            if ((mode & (1u << 7)) != 0)
+            {
+                After.WriteTo(writer);
+            }
+            if ((mode & (1u << 6)) != 0)
+            {
+                writer.WriteBool(ReverseOrder.Value);
+            }
+            if ((mode & (1u << 5)) != 0)
+            {
+                writer.WriteBool(WantProof.Value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getBlockProof = liteServer.PartialBlockProof
+    /// Constructor: 0x8AEA9C44
+    /// </summary>
+    public sealed class GetBlockProofRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt KnownBlock { get; set; }
+        public TonNodeBlockIdExt TargetBlock { get; set; }
+
+        public GetBlockProofRequest(TonNodeBlockIdExt knownBlock, TonNodeBlockIdExt targetBlock = null)
+        {
+            KnownBlock = knownBlock;
+            TargetBlock = targetBlock;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x8AEA9C44); // liteServer.getBlockProof
+
+            // Compute mode flags automatically
+            uint mode = 0;
+            if (TargetBlock != null) { mode |= (1u << 0); }
+            writer.WriteUInt32(mode);
+            KnownBlock.WriteTo(writer);
+            if ((mode & (1u << 0)) != 0)
+            {
+                TargetBlock.WriteTo(writer);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getConfigAll = liteServer.ConfigInfo
+    /// Constructor: 0x911B26B7
+    /// </summary>
+    public sealed class GetConfigAllRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+
+        public GetConfigAllRequest(TonNodeBlockIdExt id)
+        {
+            Id = id;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x911B26B7); // liteServer.getConfigAll
+
+            // Compute mode flags automatically
+            uint mode = 0;
+            writer.WriteUInt32(mode);
+            Id.WriteTo(writer);
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getConfigParams = liteServer.ConfigInfo
+    /// Constructor: 0x9EF88D63
+    /// </summary>
+    public sealed class GetConfigParamsRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+        public int[] ParamList { get; set; } = Array.Empty<int>();
+
+        public GetConfigParamsRequest(TonNodeBlockIdExt id, int[] paramList)
+        {
+            Id = id;
+            ParamList = paramList;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x9EF88D63); // liteServer.getConfigParams
+
+            // Compute mode flags automatically
+            uint mode = 0;
+            writer.WriteUInt32(mode);
+            Id.WriteTo(writer);
+            writer.WriteUInt32((uint)ParamList.Length);
+                foreach (var item in ParamList)
+                {
+                    writer.WriteInt32(item);
+                }
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getValidatorStats = liteServer.ValidatorStats
+    /// Constructor: 0xE7253699
+    /// </summary>
+    public sealed class GetValidatorStatsRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+        public int Limit { get; set; }
+        public byte[] StartAfter { get; set; }
+        public int? ModifiedAfter { get; set; }
+
+        public GetValidatorStatsRequest(TonNodeBlockIdExt id, int limit, byte[] startAfter = null, int? modifiedAfter = null)
+        {
+            Id = id;
+            Limit = limit;
+            StartAfter = startAfter;
+            ModifiedAfter = modifiedAfter;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0xE7253699); // liteServer.getValidatorStats
+
+            // Compute mode flags automatically
+            uint mode = 0;
+            if (StartAfter != null && StartAfter.Length > 0) { mode |= (1u << 0); }
+            if (ModifiedAfter.HasValue) { mode |= (1u << 2); }
+            writer.WriteUInt32(mode);
+            Id.WriteTo(writer);
+            writer.WriteInt32(Limit);
+            if ((mode & (1u << 0)) != 0)
+            {
+                writer.WriteBuffer(StartAfter);
+            }
+            if ((mode & (1u << 2)) != 0)
+            {
+                writer.WriteInt32(ModifiedAfter.Value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getLibraries = liteServer.LibraryResult
+    /// Constructor: 0x7E1E1899
+    /// </summary>
+    public sealed class GetLibrariesRequest : ILiteRequest
+    {
+        public byte[][] LibraryList { get; set; } = Array.Empty<byte[]>();
+
+        public GetLibrariesRequest(byte[][] libraryList)
+        {
+            LibraryList = libraryList;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x7E1E1899); // liteServer.getLibraries
+            writer.WriteUInt32((uint)LibraryList.Length);
+                foreach (var item in LibraryList)
+                {
+                    writer.WriteBytes(item, 32);
+                }
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getLibrariesWithProof = liteServer.LibraryResultWithProof
+    /// Constructor: 0x8C026C31
+    /// </summary>
+    public sealed class GetLibrariesWithProofRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+        public byte[][] LibraryList { get; set; } = Array.Empty<byte[]>();
+
+        public GetLibrariesWithProofRequest(TonNodeBlockIdExt id, byte[][] libraryList)
+        {
+            Id = id;
+            LibraryList = libraryList;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x8C026C31); // liteServer.getLibrariesWithProof
+
+            // Compute mode flags automatically
+            uint mode = 0;
+            Id.WriteTo(writer);
+            writer.WriteUInt32(mode);
+            writer.WriteUInt32((uint)LibraryList.Length);
+                foreach (var item in LibraryList)
+                {
+                    writer.WriteBytes(item, 32);
+                }
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getShardBlockProof = liteServer.ShardBlockProof
+    /// Constructor: 0x4CA60350
+    /// </summary>
+    public sealed class GetShardBlockProofRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+
+        public GetShardBlockProofRequest(TonNodeBlockIdExt id)
+        {
+            Id = id;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x4CA60350); // liteServer.getShardBlockProof
+            Id.WriteTo(writer);
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getOutMsgQueueSizes = liteServer.OutMsgQueueSizes
+    /// Constructor: 0x7BC19C36
+    /// </summary>
+    public sealed class GetOutMsgQueueSizesRequest : ILiteRequest
+    {
+        public int? Wc { get; set; }
+        public long? Shard { get; set; }
+
+        public GetOutMsgQueueSizesRequest(int? wc = null, long? shard = null)
+        {
+            Wc = wc;
+            Shard = shard;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x7BC19C36); // liteServer.getOutMsgQueueSizes
+
+            // Compute mode flags automatically
+            uint mode = 0;
+            if (Wc.HasValue) { mode |= (1u << 0); }
+            if (Shard.HasValue) { mode |= (1u << 0); }
+            writer.WriteUInt32(mode);
+            if ((mode & (1u << 0)) != 0)
+            {
+                writer.WriteInt32(Wc.Value);
+            }
+            if ((mode & (1u << 0)) != 0)
+            {
+                writer.WriteInt64(Shard.Value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getBlockOutMsgQueueSize = liteServer.BlockOutMsgQueueSize
+    /// Constructor: 0x8F6C7779
+    /// </summary>
+    public sealed class GetBlockOutMsgQueueSizeRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+        public bool? WantProof { get; set; }
+
+        public GetBlockOutMsgQueueSizeRequest(TonNodeBlockIdExt id, bool? wantProof = null)
+        {
+            Id = id;
+            WantProof = wantProof;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x8F6C7779); // liteServer.getBlockOutMsgQueueSize
+
+            // Compute mode flags automatically
+            uint mode = 0;
+            if (WantProof.HasValue) { mode |= (1u << 0); }
+            writer.WriteUInt32(mode);
+            Id.WriteTo(writer);
+            if ((mode & (1u << 0)) != 0)
+            {
+                writer.WriteBool(WantProof.Value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getDispatchQueueInfo = liteServer.DispatchQueueInfo
+    /// Constructor: 0x01E66BF3
+    /// </summary>
+    public sealed class GetDispatchQueueInfoRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+        public byte[] AfterAddr { get; set; }
+        public int MaxAccounts { get; set; }
+        public bool? WantProof { get; set; }
+
+        public GetDispatchQueueInfoRequest(TonNodeBlockIdExt id, int maxAccounts, byte[] afterAddr = null, bool? wantProof = null)
+        {
+            Id = id;
+            MaxAccounts = maxAccounts;
+            AfterAddr = afterAddr;
+            WantProof = wantProof;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x01E66BF3); // liteServer.getDispatchQueueInfo
+
+            // Compute mode flags automatically
+            uint mode = 0;
+            if (AfterAddr != null && AfterAddr.Length > 0) { mode |= (1u << 1); }
+            if (WantProof.HasValue) { mode |= (1u << 0); }
+            writer.WriteUInt32(mode);
+            Id.WriteTo(writer);
+            if ((mode & (1u << 1)) != 0)
+            {
+                writer.WriteBuffer(AfterAddr);
+            }
+            writer.WriteInt32(MaxAccounts);
+            if ((mode & (1u << 0)) != 0)
+            {
+                writer.WriteBool(WantProof.Value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.getDispatchQueueMessages = liteServer.DispatchQueueMessages
+    /// Constructor: 0xBBFD6439
+    /// </summary>
+    public sealed class GetDispatchQueueMessagesRequest : ILiteRequest
+    {
+        public TonNodeBlockIdExt Id { get; set; }
+        public byte[] Addr { get; set; } = Array.Empty<byte>();
+        public long AfterLt { get; set; }
+        public int MaxMessages { get; set; }
+        public bool? WantProof { get; set; }
+        public bool? OneAccount { get; set; }
+        public bool? MessagesBoc { get; set; }
+
+        public GetDispatchQueueMessagesRequest(TonNodeBlockIdExt id, byte[] addr, long afterLt, int maxMessages, bool? wantProof = null, bool? oneAccount = null, bool? messagesBoc = null)
+        {
+            Id = id;
+            Addr = addr;
+            AfterLt = afterLt;
+            MaxMessages = maxMessages;
+            WantProof = wantProof;
+            OneAccount = oneAccount;
+            MessagesBoc = messagesBoc;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0xBBFD6439); // liteServer.getDispatchQueueMessages
+
+            // Compute mode flags automatically
+            uint mode = 0;
+            if (WantProof.HasValue) { mode |= (1u << 0); }
+            if (OneAccount.HasValue) { mode |= (1u << 1); }
+            if (MessagesBoc.HasValue) { mode |= (1u << 2); }
+            writer.WriteUInt32(mode);
+            Id.WriteTo(writer);
+            writer.WriteBuffer(Addr);
+            writer.WriteInt64(AfterLt);
+            writer.WriteInt32(MaxMessages);
+            if ((mode & (1u << 0)) != 0)
+            {
+                writer.WriteBool(WantProof.Value);
+            }
+            if ((mode & (1u << 1)) != 0)
+            {
+                writer.WriteBool(OneAccount.Value);
+            }
+            if ((mode & (1u << 2)) != 0)
+            {
+                writer.WriteBool(MessagesBoc.Value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.nonfinal.getValidatorGroups = liteServer.nonfinal.ValidatorGroups
+    /// Constructor: 0xA59915E3
+    /// </summary>
+    public sealed class NonfinalGetValidatorGroupsRequest : ILiteRequest
+    {
+        public int? Wc { get; set; }
+        public long? Shard { get; set; }
+
+        public NonfinalGetValidatorGroupsRequest(int? wc = null, long? shard = null)
+        {
+            Wc = wc;
+            Shard = shard;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0xA59915E3); // liteServer.nonfinal.getValidatorGroups
+
+            // Compute mode flags automatically
+            uint mode = 0;
+            if (Wc.HasValue) { mode |= (1u << 0); }
+            if (Shard.HasValue) { mode |= (1u << 0); }
+            writer.WriteUInt32(mode);
+            if ((mode & (1u << 0)) != 0)
+            {
+                writer.WriteInt32(Wc.Value);
+            }
+            if ((mode & (1u << 0)) != 0)
+            {
+                writer.WriteInt64(Shard.Value);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.nonfinal.getCandidate = liteServer.nonfinal.Candidate
+    /// Constructor: 0x300794DE
+    /// </summary>
+    public sealed class NonfinalGetCandidateRequest : ILiteRequest
+    {
+        public LiteServerNonfinalCandidateId Id { get; set; }
+
+        public NonfinalGetCandidateRequest(LiteServerNonfinalCandidateId id)
+        {
+            Id = id;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x300794DE); // liteServer.nonfinal.getCandidate
+            Id.WriteTo(writer);
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.queryPrefix = Object
+    /// Constructor: 0x72D3E686
+    /// </summary>
+    public sealed class QueryPrefixRequest : ILiteRequest
+    {
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x72D3E686); // liteServer.queryPrefix
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.query = Object
+    /// Constructor: 0x798C06DF
+    /// </summary>
+    public sealed class QueryRequest : ILiteRequest
+    {
+        public byte[] Data { get; set; } = Array.Empty<byte>();
+
+        public QueryRequest(byte[] data)
+        {
+            Data = data;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0x798C06DF); // liteServer.query
+            writer.WriteBuffer(Data);
+        }
+    }
+
+    /// <summary>
+    /// Request: liteServer.waitMasterchainSeqno = Object
+    /// Constructor: 0xBAEAB892
+    /// </summary>
+    public sealed class WaitMasterchainSeqnoRequest : ILiteRequest
+    {
+        public int Seqno { get; set; }
+        public int TimeoutMs { get; set; }
+
+        public WaitMasterchainSeqnoRequest(int seqno, int timeoutMs)
+        {
+            Seqno = seqno;
+            TimeoutMs = timeoutMs;
+        }
+
+        public void WriteTo(TLWriteBuffer writer)
+        {
+            writer.WriteUInt32(0xBAEAB892); // liteServer.waitMasterchainSeqno
+            writer.WriteInt32(Seqno);
+            writer.WriteInt32(TimeoutMs);
+        }
+    }
+
+    // ============================================================================
     // Function Constructors
     // ============================================================================
 
@@ -1757,7 +2773,7 @@ namespace Ton.Adnl.Protocol
         public const uint GetOutMsgQueueSizes = 0x7BC19C36;
         public const uint GetBlockOutMsgQueueSize = 0x8F6C7779;
         public const uint GetDispatchQueueInfo = 0x01E66BF3;
-        public const uint WantProofMode0True = 0xAAE4FB1C;
+        public const uint GetDispatchQueueMessages = 0xBBFD6439;
         public const uint NonfinalGetValidatorGroups = 0xA59915E3;
         public const uint NonfinalGetCandidate = 0x300794DE;
         public const uint QueryPrefix = 0x72D3E686;

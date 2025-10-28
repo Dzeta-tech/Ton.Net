@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\Ton.Adnl\Ton.Adnl.csproj"/>
+        <ProjectReference Include="..\..\src\Ton.LiteClient\Ton.LiteClient.csproj"/>
     </ItemGroup>
 
     <PropertyGroup>

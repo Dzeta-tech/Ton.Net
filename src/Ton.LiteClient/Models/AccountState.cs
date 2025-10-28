@@ -5,92 +5,93 @@ using Ton.Core.Boc;
 namespace Ton.LiteClient.Models;
 
 /// <summary>
-/// Represents the state of an account in TON blockchain
+///     Represents the state of an account in TON blockchain
 /// </summary>
 public sealed class AccountState
 {
     /// <summary>
-    /// Account address
+    ///     Account address
     /// </summary>
     public required Address Address { get; init; }
 
     /// <summary>
-    /// Account balance in nanotons
+    ///     Account balance in nanotons
     /// </summary>
     public required BigInteger Balance { get; init; }
 
     /// <summary>
-    /// Last transaction information (if any)
+    ///     Last transaction information (if any)
     /// </summary>
     public TransactionId? LastTransaction { get; init; }
 
     /// <summary>
-    /// Account storage state (Active, Frozen, Uninitialized, NonExist)
+    ///     Account storage state (Active, Frozen, Uninitialized, NonExist)
     /// </summary>
     public required AccountStorageState State { get; init; }
 
     /// <summary>
-    /// Account data (contract storage) if available
+    ///     Account data (contract storage) if available
     /// </summary>
     public Cell? Data { get; init; }
 
     /// <summary>
-    /// Account code (smart contract code) if available
+    ///     Account code (smart contract code) if available
     /// </summary>
     public Cell? Code { get; init; }
 
     /// <summary>
-    /// Block in which this state was observed
+    ///     Block in which this state was observed
     /// </summary>
     public required BlockId Block { get; init; }
 
     /// <summary>
-    /// Shard block in which this account resides
+    ///     Shard block in which this account resides
     /// </summary>
     public required BlockId ShardBlock { get; init; }
 
     /// <summary>
-    /// Returns true if the account exists and is initialized
+    ///     Returns true if the account exists and is initialized
     /// </summary>
     public bool IsActive => State == AccountStorageState.Active;
 
     /// <summary>
-    /// Returns true if the account has contract code
+    ///     Returns true if the account has contract code
     /// </summary>
     public bool IsContract => Code != null;
 
     /// <summary>
-    /// Balance in TON (formatted as decimal)
+    ///     Balance in TON (formatted as decimal)
     /// </summary>
     public decimal BalanceInTon => (decimal)Balance / 1_000_000_000m;
 
-    public override string ToString() =>
-        $"Account({Address}, balance:{BalanceInTon:F4} TON, state:{State})";
+    public override string ToString()
+    {
+        return $"Account({Address}, balance:{BalanceInTon:F4} TON, state:{State})";
+    }
 }
 
 /// <summary>
-/// Represents account storage state
+///     Represents account storage state
 /// </summary>
 public enum AccountStorageState
 {
     /// <summary>
-    /// Account is active with initialized contract
+    ///     Account is active with initialized contract
     /// </summary>
     Active,
 
     /// <summary>
-    /// Account is frozen (suspended)
+    ///     Account is frozen (suspended)
     /// </summary>
     Frozen,
 
     /// <summary>
-    /// Account exists but is not initialized
+    ///     Account exists but is not initialized
     /// </summary>
     Uninitialized,
 
     /// <summary>
-    /// Account does not exist
+    ///     Account does not exist
     /// </summary>
     NonExist
 }
-

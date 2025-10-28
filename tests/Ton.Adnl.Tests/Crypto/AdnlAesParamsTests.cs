@@ -72,7 +72,7 @@ public class AdnlAesParamsTests
     {
         AdnlAesParams aesParams = new();
         // RxKey is now at bytes 0-32
-        byte[] expected = aesParams.Bytes[0..32];
+        byte[] expected = aesParams.Bytes[..32];
         Assert.Equal(expected, aesParams.RxKey);
     }
 

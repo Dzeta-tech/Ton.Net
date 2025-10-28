@@ -1,72 +1,74 @@
 using System.Numerics;
 using Ton.Adnl.Protocol;
-using Ton.Adnl.TL;
-using Ton.Core.Addresses;
 using Ton.Core.Boc;
 using Ton.LiteClient.Engines;
 using Ton.LiteClient.Models;
 using Ton.LiteClient.Parsers;
+using LiteServerTransactionId3 = Ton.Adnl.Protocol.LiteServerTransactionId3;
 
 namespace Ton.LiteClient;
 
 /// <summary>
-/// High-level TON Lite Client for interacting with TON blockchain
+///     High-level TON Lite Client for interacting with TON blockchain
 /// </summary>
 public sealed class LiteClient : IDisposable
 {
-    readonly ILiteEngine engine;
     readonly bool ownsEngine;
 
     /// <summary>
-    /// Creates a new lite client with the specified engine
+    ///     Creates a new lite client with the specified engine
     /// </summary>
     /// <param name="engine">Lite engine instance</param>
     /// <param name="ownsEngine">Whether this client should dispose the engine when disposed</param>
     public LiteClient(ILiteEngine engine, bool ownsEngine = true)
     {
         ArgumentNullException.ThrowIfNull(engine);
-        this.engine = engine;
+        Engine = engine;
         this.ownsEngine = ownsEngine;
     }
 
     /// <summary>
-    /// Creates a new lite client with a single server connection
+    ///     Gets the underlying engine
+    /// </summary>
+    public ILiteEngine Engine { get; }
+
+    public void Dispose()
+    {
+        if (ownsEngine) Engine.Dispose();
+    }
+
+    /// <summary>
+    ///     Creates a new lite client with a single server connection
     /// </summary>
     /// <param name="host">Server host/IP</param>
     /// <param name="port">Server port</param>
     /// <param name="serverPublicKey">Server's Ed25519 public key (32 bytes or base64 string)</param>
     public static LiteClient Create(string host, int port, byte[] serverPublicKey)
     {
-        var engine = new LiteSingleEngine(host, port, serverPublicKey);
-        return new LiteClient(engine, ownsEngine: true);
+        LiteSingleEngine engine = new(host, port, serverPublicKey);
+        return new LiteClient(engine);
     }
 
     /// <summary>
-    /// Creates a new lite client with a single server connection (base64 public key)
+    ///     Creates a new lite client with a single server connection (base64 public key)
     /// </summary>
     public static LiteClient Create(string host, int port, string serverPublicKeyBase64)
     {
-        var engine = new LiteSingleEngine(host, port, serverPublicKeyBase64);
-        return new LiteClient(engine, ownsEngine: true);
+        LiteSingleEngine engine = new(host, port, serverPublicKeyBase64);
+        return new LiteClient(engine);
     }
 
     /// <summary>
-    /// Gets the underlying engine
-    /// </summary>
-    public ILiteEngine Engine => engine;
-
-    /// <summary>
-    /// Gets current server time
+    ///     Gets current server time
     /// </summary>
     public async Task<DateTimeOffset> GetTimeAsync(
         int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
-        var response = await engine.QueryAsync(
-            Functions.GetTime,
-            static (w, _) => { }, // Empty request
+        var request = new GetTimeRequest();
+        LiteServerCurrentTime response = await Engine.QueryAsync(
+            request,
             static r => LiteServerCurrentTime.ReadFrom(r),
-            Unit.Default,
             timeout,
             cancellationToken);
 
@@ -74,17 +76,16 @@ public sealed class LiteClient : IDisposable
     }
 
     /// <summary>
-    /// Gets masterchain information including latest block
+    ///     Gets masterchain information including latest block
     /// </summary>
     public async Task<MasterchainInfo> GetMasterchainInfoAsync(
         int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
-        var response = await engine.QueryAsync(
-            Functions.GetMasterchainInfo,
-            static (w, _) => { }, // Empty request
+        var request = new GetMasterchainInfoRequest();
+        LiteServerMasterchainInfo response = await Engine.QueryAsync(
+            request,
             static r => LiteServerMasterchainInfo.ReadFrom(r),
-            Unit.Default,
             timeout,
             cancellationToken);
 
@@ -93,30 +94,28 @@ public sealed class LiteClient : IDisposable
             Last = new BlockId(
                 response.Last.Workchain,
                 response.Last.Shard,
-                response.Last.Seqno,
+                unchecked((uint)response.Last.Seqno),
                 response.Last.RootHash,
                 response.Last.FileHash),
             StateRootHash = response.StateRootHash,
             Init = new ZeroStateId(
                 response.Init.Workchain,
                 response.Init.RootHash,
-                response.Init.FileHash),
-            Now = response.Last.Seqno // Using seqno as placeholder for now field
+                response.Init.FileHash)
         };
     }
 
     /// <summary>
-    /// Gets version information from the lite server
+    ///     Gets version information from the lite server
     /// </summary>
     public async Task<(int Version, long Capabilities, int Now)> GetVersionAsync(
         int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
-        var response = await engine.QueryAsync(
-            Functions.GetVersion,
-            static (w, _) => { }, // Empty request
+        var request = new GetVersionRequest();
+        LiteServerVersion response = await Engine.QueryAsync(
+            request,
             static r => LiteServerVersion.ReadFrom(r),
-            Unit.Default,
             timeout,
             cancellationToken);
 
@@ -124,101 +123,65 @@ public sealed class LiteClient : IDisposable
     }
 
     /// <summary>
-    /// Looks up a block by workchain, shard, and seqno
+    ///     Looks up a block by workchain, shard, and seqno
     /// </summary>
     public async Task<BlockId> LookupBlockAsync(
         int workchain,
         long shard,
-        int seqno,
+        uint seqno,
         int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
-        var blockId = new TonNodeBlockId(workchain, shard, seqno);
-        var request = new LiteServerLookupBlockRequest
+        var blockId = new TonNodeBlockId
         {
-            Mode = 1, // By ID
-            Id = blockId,
-            Lt = null,
-            Utime = null
+            Workchain = workchain,
+            Shard = shard,
+            Seqno = unchecked((int)seqno)
         };
+        var request = new LookupBlockRequest(blockId); // Mode flags handled automatically
 
-        var response = await engine.QueryAsync(
-            Functions.LookupBlock,
-            static (w, req) =>
-            {
-                w.WriteInt32(req.Mode);
-                req.Id.WriteTo(w); // Use built-in WriteTo method
-                // Write optional Lt
-                if (req.Lt.HasValue)
-                {
-                    w.WriteBool(true);
-                    w.WriteInt64((long)req.Lt.Value);
-                }
-                else
-                {
-                    w.WriteBool(false);
-                }
-                // Write optional Utime
-                if (req.Utime.HasValue)
-                {
-                    w.WriteBool(true);
-                    w.WriteInt32(req.Utime.Value);
-                }
-                else
-                {
-                    w.WriteBool(false);
-                }
-            },
-            static r => LiteServerBlockHeader.ReadFrom(r),
+        LiteServerBlockHeader response = await Engine.QueryAsync(
             request,
+            static r => LiteServerBlockHeader.ReadFrom(r),
             timeout,
             cancellationToken);
 
         return new BlockId(
             response.Id.Workchain,
             response.Id.Shard,
-            response.Id.Seqno,
+            unchecked((uint)response.Id.Seqno),
             response.Id.RootHash,
             response.Id.FileHash);
     }
 
     /// <summary>
-    /// Gets block header information
+    ///     Gets block header information
     /// </summary>
     public async Task<BlockHeader> GetBlockHeaderAsync(
         BlockId blockId,
-        int mode = 0,
         int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
-        var blockIdExt = new TonNodeBlockIdExt(
-            blockId.Workchain,
-            blockId.Shard,
-            blockId.Seqno,
-            blockId.RootHash,
-            blockId.FileHash);
-
-        var request = new LiteServerGetBlockHeaderRequest
+        var blockIdExt = new TonNodeBlockIdExt
         {
-            Mode = mode,
-            Id = blockIdExt
+            Workchain = blockId.Workchain,
+            Shard = blockId.Shard,
+            Seqno = unchecked((int)blockId.Seqno),
+            RootHash = blockId.RootHash,
+            FileHash = blockId.FileHash
         };
 
-        var response = await engine.QueryAsync(
-            Functions.GetBlockHeader,
-            static (w, req) =>
-            {
-                w.WriteInt32(req.Mode);
-                req.Id.WriteTo(w); // Use built-in WriteTo method
-            },
-            static r => LiteServerBlockHeader.ReadFrom(r),
+        var request = new GetBlockHeaderRequest(blockIdExt); // Mode handled automatically
+
+        LiteServerBlockHeader response = await Engine.QueryAsync(
             request,
+            static r => LiteServerBlockHeader.ReadFrom(r),
             timeout,
             cancellationToken);
 
         // Parse block header from data
-        var headerCell = Cell.FromBoc(response.HeaderProof)[0];
-        var headerSlice = headerCell.BeginParse();
+        Cell headerCell = Cell.FromBoc(response.HeaderProof)[0];
+        Slice headerSlice = headerCell.BeginParse();
 
         // Read block header fields (simplified - full parsing would be more complex)
         return new BlockHeader
@@ -226,7 +189,7 @@ public sealed class LiteClient : IDisposable
             Id = new BlockId(
                 response.Id.Workchain,
                 response.Id.Shard,
-                response.Id.Seqno,
+                unchecked((uint)response.Id.Seqno),
                 response.Id.RootHash,
                 response.Id.FileHash),
             GlobalId = 0, // Would need to parse from cell
@@ -249,84 +212,91 @@ public sealed class LiteClient : IDisposable
     }
 
     /// <summary>
-    /// Gets all shard information for a given block
+    ///     Gets all shard block IDs for a given block
     /// </summary>
-    public async Task<ShardInfo> GetAllShardsInfoAsync(
+    public async Task<BlockId[]> GetAllShardsInfoAsync(
         BlockId blockId,
         int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
-        var blockIdExt = new TonNodeBlockIdExt(
-            blockId.Workchain,
-            blockId.Shard,
-            blockId.Seqno,
-            blockId.RootHash,
-            blockId.FileHash);
-
-        var request = new LiteServerGetAllShardsInfoRequest
+        var blockIdExt = new TonNodeBlockIdExt
         {
-            Id = blockIdExt
+            Workchain = blockId.Workchain,
+            Shard = blockId.Shard,
+            Seqno = unchecked((int)blockId.Seqno),
+            RootHash = blockId.RootHash,
+            FileHash = blockId.FileHash
         };
 
-        var response = await engine.QueryAsync(
-            Functions.GetAllShardsInfo,
-            static (w, req) =>
-            {
-                req.Id.WriteTo(w); // Use built-in WriteTo method
-            },
-            static r => LiteServerAllShardsInfo.ReadFrom(r),
+        var request = new GetAllShardsInfoRequest(blockIdExt);
+
+        LiteServerAllShardsInfo response = await Engine.QueryAsync(
             request,
+            static r => LiteServerAllShardsInfo.ReadFrom(r),
             timeout,
             cancellationToken);
 
-        // Parse shard data from BOC
-        var shardCollection = ShardParser.ParseShards(response.Data);
+        // Parse shard data from BOC and return as BlockId array
+        return ShardParser.ParseShards(response.Data);
+    }
 
-        return new ShardInfo
+    /// <summary>
+    ///     Lists transactions in a specific block.
+    /// </summary>
+    /// <param name="blockId">The block identifier</param>
+    /// <param name="count">Maximum number of transactions to return</param>
+    /// <param name="after">Optional transaction ID to start after (for pagination)</param>
+    /// <param name="timeout">Optional timeout in milliseconds</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Block transactions information</returns>
+    public async Task<BlockTransactions> ListBlockTransactionsAsync(
+        BlockId blockId,
+        uint count = 40,
+        LiteServerTransactionId3? after = null,
+        int timeout = 10000,
+        CancellationToken cancellationToken = default)
+    {
+        var blockIdExt = new TonNodeBlockIdExt
         {
-            Block = new BlockId(
+            Workchain = blockId.Workchain,
+            Shard = blockId.Shard,
+            Seqno = unchecked((int)blockId.Seqno),
+            RootHash = blockId.RootHash,
+            FileHash = blockId.FileHash
+        };
+
+        var request = new ListBlockTransactionsRequest(blockIdExt, count, after);
+
+        LiteServerBlockTransactions response = await Engine.QueryAsync(
+            request,
+            static r => LiteServerBlockTransactions.ReadFrom(r),
+            timeout,
+            cancellationToken);
+
+        // Convert to user-friendly model
+        var transactions = new List<BlockTransaction>();
+        foreach (var txId in response.Ids)
+        {
+            transactions.Add(new BlockTransaction
+            {
+                Account = txId.Account,
+                Lt = txId.Lt,
+                Hash = txId.Hash
+            });
+        }
+
+        return new BlockTransactions
+        {
+            BlockId = new BlockId(
                 response.Id.Workchain,
                 response.Id.Shard,
-                response.Id.Seqno,
+                unchecked((uint)response.Id.Seqno),
                 response.Id.RootHash,
                 response.Id.FileHash),
-            Shards = shardCollection,
-            Proof = response.Proof,
-            Data = response.Data
+            RequestedCount = count,
+            Transactions = transactions,
+            Incomplete = response.Incomplete
         };
     }
 
-    public void Dispose()
-    {
-        if (ownsEngine)
-        {
-            engine.Dispose();
-        }
-    }
-
-    // Helper types for requests
-    struct LiteServerLookupBlockRequest
-    {
-        public int Mode;
-        public TonNodeBlockId Id;
-        public BigInteger? Lt;
-        public int? Utime;
-    }
-
-    struct LiteServerGetBlockHeaderRequest
-    {
-        public int Mode;
-        public TonNodeBlockIdExt Id;
-    }
-
-    struct LiteServerGetAllShardsInfoRequest
-    {
-        public TonNodeBlockIdExt Id;
-    }
-
-    struct Unit
-    {
-        public static readonly Unit Default = new();
-    }
 }
-

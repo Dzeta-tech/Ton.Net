@@ -129,6 +129,27 @@ public class BitString : IEquatable<BitString>
     }
 
     /// <summary>
+    ///     Converts the bit string to a byte array.
+    ///     Works for any bit string, regardless of alignment.
+    ///     If the length is not a multiple of 8, remaining bits in the last byte are set to 0.
+    /// </summary>
+    /// <returns>A byte array containing the bit string data.</returns>
+    public byte[] ToBytes()
+    {
+        if (Length == 0)
+            return [];
+
+        int numBytes = (Length + 7) / 8;
+        byte[] result = new byte[numBytes];
+
+        for (int i = 0; i < Length; i++)
+            if (At(i))
+                result[i >> 3] |= (byte)(1 << (7 - i % 8));
+
+        return result;
+    }
+
+    /// <summary>
     ///     Formats the bit string as a hexadecimal string with padding indicators.
     /// </summary>
     /// <returns>Hex string representation.</returns>

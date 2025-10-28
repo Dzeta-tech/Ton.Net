@@ -19,6 +19,7 @@ dotnet run <host> <port> <publicKeyBase64>
 ```
 
 Example:
+
 ```bash
 dotnet run 135.181.140.212 13206 "aF91CuUHuuOv9rm2W5+O/4h38M3sRm40DtSdRxQhmtQ="
 ```
@@ -31,6 +32,7 @@ You can get lite server configurations from the official TON global configs:
 - **Testnet**: https://ton.org/testnet-global.config.json
 
 Look for the `liteservers` array in the JSON. Each lite server has:
+
 - `ip` (needs to be converted from int to IP address format)
 - `port`
 - `id.key` (base64-encoded public key)
@@ -49,9 +51,11 @@ Look for the `liteservers` array in the JSON. Each lite server has:
 ```
 
 To convert the IP:
+
 - `2280728268` → `135.181.140.212`
 
 So you would run:
+
 ```bash
 dotnet run 135.181.140.212 13206 "aF91CuUHuuOv9rm2W5+O/4h38M3sRm40DtSdRxQhmtQ="
 ```
@@ -63,9 +67,9 @@ dotnet run 135.181.140.212 13206 "aF91CuUHuuOv9rm2W5+O/4h38M3sRm40DtSdRxQhmtQ="
 3. Performs the ADNL handshake
 4. Sends a `liteServer.getMasterchainInfo` query
 5. Receives and deserializes the response to display:
-   - Last masterchain block (workchain, shard, seqno, hashes)
-   - State root hash
-   - Init (zero state) info
+    - Last masterchain block (workchain, shard, seqno, hashes)
+    - State root hash
+    - Init (zero state) info
 
 ## Example Output
 
@@ -114,11 +118,13 @@ Disconnected.
 ## Next Steps
 
 You can extend this sample to send more queries:
+
 - `liteServer.getTime` - Get current server time
 - `liteServer.getAccountState` - Get account state
 - `liteServer.getTransactions` - Get account transactions
 - `liteServer.sendMessage` - Send external message
 - And many more from the `Functions` class in `Schema.Generated.cs`
 
-All function constructors are available in `Ton.Adnl.Protocol.Functions` and response types can be deserialized using their `ReadFrom` methods.
+All function constructors are available in `Ton.Adnl.Protocol.Functions` and response types can be deserialized using
+their `ReadFrom` methods.
 

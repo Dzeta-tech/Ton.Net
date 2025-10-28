@@ -162,6 +162,22 @@ def parse_tl_line(line: str, is_function: bool = False) -> Optional[TLType]:
         constructor=constructor
     )
 
+def escape_reserved_keyword(name: str) -> str:
+    """Escape C# reserved keywords by prepending @"""
+    reserved = {
+        'abstract', 'as', 'base', 'bool', 'break', 'byte', 'case', 'catch', 'char',
+        'checked', 'class', 'const', 'continue', 'decimal', 'default', 'delegate',
+        'do', 'double', 'else', 'enum', 'event', 'explicit', 'extern', 'false',
+        'finally', 'fixed', 'float', 'for', 'foreach', 'goto', 'if', 'implicit',
+        'in', 'int', 'interface', 'internal', 'is', 'lock', 'long', 'namespace',
+        'new', 'null', 'object', 'operator', 'out', 'override', 'params', 'private',
+        'protected', 'public', 'readonly', 'ref', 'return', 'sbyte', 'sealed',
+        'short', 'sizeof', 'stackalloc', 'static', 'string', 'struct', 'switch',
+        'this', 'throw', 'true', 'try', 'typeof', 'uint', 'ulong', 'unchecked',
+        'unsafe', 'ushort', 'using', 'virtual', 'void', 'volatile', 'while'
+    }
+    return f'@{name}' if name.lower() in reserved else name
+
 def to_pascal_case(name: str) -> str:
     """Convert snake_case or lowerCamelCase to PascalCase, keeping full namespace prefixes"""
     # Handle dots - keep full namespace structure in PascalCase
@@ -173,31 +189,35 @@ def to_pascal_case(name: str) -> str:
             # Split each part by camelCase and underscores
             words = re.findall(r'[A-Z]+(?=[A-Z][a-z]|\b)|[A-Z][a-z]+|[a-z]+|[0-9]+', part)
             result_parts.extend(words)
-        return ''.join(w.capitalize() for w in result_parts)
+        result = ''.join(w.capitalize() for w in result_parts)
+        return escape_reserved_keyword(result)
     
     # Handle underscores first (snake_case)
     if '_' in name or '-' in name:
         parts = name.replace('-', '_').split('_')
-        return ''.join(p.capitalize() for p in parts if p)
+        result = ''.join(p.capitalize() for p in parts if p)
+        return escape_reserved_keyword(result)
     
     # Split camelCase and PascalCase
     # This regex handles: camelCase, PascalCase, numbers
     words = re.findall(r'[A-Z]+(?=[A-Z][a-z]|\b)|[A-Z][a-z]+|[a-z]+|[0-9]+', name)
-    
-    return ''.join(w.capitalize() for w in words)
+    result = ''.join(w.capitalize() for w in words)
+    return escape_reserved_keyword(result)
 
 def to_camel_case(name: str) -> str:
     """Convert snake_case to camelCase"""
     # First handle underscores
     parts = name.replace('-', '_').split('_')
     if len(parts) > 1:
-        return parts[0].lower() + ''.join(p.capitalize() for p in parts[1:])
+        result = parts[0].lower() + ''.join(p.capitalize() for p in parts[1:])
+        return escape_reserved_keyword(result)
     
     # Then handle camelCase splitting
     words = re.findall(r'[A-Z]+(?=[A-Z][a-z]|\b)|[A-Z][a-z]+|[a-z]+|[0-9]+', name)
     if not words:
-        return name
-    return words[0].lower() + ''.join(w.capitalize() for w in words[1:])
+        return escape_reserved_keyword(name)
+    result = words[0].lower() + ''.join(w.capitalize() for w in words[1:])
+    return escape_reserved_keyword(result)
 
 def generate_field_declaration(field: TLField) -> str:
     """Generate C# field declaration (non-nullable, with default values)"""
@@ -459,6 +479,7 @@ def parse_tl_file(content: str) -> Tuple[List[TLType], List[TLType]]:
     types = []
     functions = []
     is_functions_section = False
+    current_line = ""
     
     for line in lines:
         line = line.strip()
@@ -466,10 +487,49 @@ def parse_tl_file(content: str) -> Tuple[List[TLType], List[TLType]]:
             is_functions_section = True
             continue
         
-        if line.startswith('//') or not line or line.startswith('---'):
+        if line.startswith('//') or line.startswith('---'):
             continue
         
-        tl_type = parse_tl_line(line, is_function=is_functions_section)
+        # Handle multi-line definitions (continuation if line doesn't end with ; or =)
+        if current_line:
+            if not line:
+                # Empty line, process accumulated line
+                tl_type = parse_tl_line(current_line, is_function=is_functions_section)
+                if tl_type:
+                    if is_functions_section:
+                        functions.append(tl_type)
+                    else:
+                        types.append(tl_type)
+                current_line = ""
+                continue
+            # Continuation line
+            current_line += " " + line
+            # Check if this line completes the definition
+            if '=' in line and (line.endswith(';') or not line.endswith('\\')):
+                tl_type = parse_tl_line(current_line, is_function=is_functions_section)
+                if tl_type:
+                    if is_functions_section:
+                        functions.append(tl_type)
+                    else:
+                        types.append(tl_type)
+                current_line = ""
+        elif line and not line.startswith('//'):
+            # New definition
+            if '=' in line and (line.endswith(';') or ';' not in line):
+                # Complete definition on single line
+                tl_type = parse_tl_line(line, is_function=is_functions_section)
+                if tl_type:
+                    if is_functions_section:
+                        functions.append(tl_type)
+                    else:
+                        types.append(tl_type)
+            else:
+                # Start of multi-line definition
+                current_line = line
+    
+    # Process any remaining line
+    if current_line:
+        tl_type = parse_tl_line(current_line, is_function=is_functions_section)
         if tl_type:
             if is_functions_section:
                 functions.append(tl_type)
@@ -477,6 +537,226 @@ def parse_tl_file(content: str) -> Tuple[List[TLType], List[TLType]]:
                 types.append(tl_type)
     
     return types, functions
+
+def generate_request_class(func: TLType) -> str:
+    """Generate a request class for a TL function with automatic mode flag handling"""
+    class_name = to_pascal_case(func.name.replace('liteServer.', '')) + 'Request'
+    result_type = to_pascal_case(func.result_type)
+    
+    # Separate fields into required and optional
+    required_fields = [f for f in func.fields if not f.is_optional and f.name != 'mode']
+    optional_fields = [f for f in func.fields if f.is_optional and f.name != 'mode']
+    has_mode = any(f.name == 'mode' for f in func.fields)
+    
+    lines = []
+    lines.append(f'/// <summary>')
+    lines.append(f'/// Request: {func.name} = {func.result_type}')
+    lines.append(f'/// Constructor: 0x{func.constructor:08X}')
+    lines.append(f'/// </summary>')
+    lines.append(f'public sealed class {class_name} : ILiteRequest')
+    lines.append('{')
+    
+    # Generate fields
+    for field in func.fields:
+        if field.name == 'mode':
+            continue  # Mode is computed automatically
+        
+        prop_name = to_pascal_case(field.name)
+        cs_type = field.type
+        
+        if field.is_optional:
+            # Make optional fields nullable
+            if cs_type in ['int', 'uint', 'long', 'bool']:
+                cs_type = f'{cs_type}?'
+            lines.append(f'    public {cs_type} {prop_name} {{ get; set; }}')
+        else:
+            # Required fields
+            if cs_type == 'byte[]':
+                lines.append(f'    public {cs_type} {prop_name} {{ get; set; }} = Array.Empty<byte>();')
+            elif cs_type.endswith('[]'):
+                inner = cs_type[:-2]
+                lines.append(f'    public {cs_type} {prop_name} {{ get; set; }} = Array.Empty<{inner}>();')
+            elif cs_type == 'string':
+                lines.append(f'    public {cs_type} {prop_name} {{ get; set; }} = string.Empty;')
+            else:
+                lines.append(f'    public {cs_type} {prop_name} {{ get; set; }}')
+    
+    # Generate constructor
+    if func.fields:
+        lines.append('')
+        # Build constructor parameters
+        ctor_params = []
+        for field in required_fields:
+            param_name = to_camel_case(field.name)
+            ctor_params.append(f'{field.type} {param_name}')
+        for field in optional_fields:
+            param_name = to_camel_case(field.name)
+            cs_type = field.type
+            # Make optional value types nullable
+            if cs_type in ['int', 'uint', 'long', 'bool']:
+                cs_type = f'{cs_type}?'
+            # Reference types (byte[], string, arrays, custom types) can use null directly
+            ctor_params.append(f'{cs_type} {param_name} = null')
+        
+        if ctor_params:
+            lines.append(f'    public {class_name}({", ".join(ctor_params)})')
+            lines.append('    {')
+            for field in required_fields:
+                prop_name = to_pascal_case(field.name)
+                param_name = to_camel_case(field.name)
+                lines.append(f'        {prop_name} = {param_name};')
+            for field in optional_fields:
+                prop_name = to_pascal_case(field.name)
+                param_name = to_camel_case(field.name)
+                # All types can be directly assigned (nullable value types or reference types)
+                lines.append(f'        {prop_name} = {param_name};')
+            lines.append('    }')
+        else:
+            # Parameterless constructor for requests with no fields (like getMasterchainInfo)
+            lines.append(f'    public {class_name}() {{ }}')
+    
+    # Generate WriteTo method with automatic mode computation
+    lines.append('')
+    lines.append('    public void WriteTo(TLWriteBuffer writer)')
+    lines.append('    {')
+    lines.append(f'        writer.WriteUInt32(0x{func.constructor:08X}); // {func.name}')
+    
+    if has_mode:
+        # Compute mode flags automatically
+        lines.append('')
+        lines.append('        // Compute mode flags automatically')
+        
+        # Check if we have any mode-conditional fields
+        has_mode_conditional = any(
+            field.is_optional and field.condition and 
+            re.match(r'mode\.(\d+)', field.condition) 
+            for field in optional_fields
+        )
+        
+        # For lookupBlock and similar, set bit 0 by default when no optionals are provided
+        # This handles the implicit mode.0 flag for basic lookups
+        if has_mode_conditional and func.name in ['liteServer.lookupBlock', 'liteServer.lookupBlockWithProof']:
+            lines.append('        // Bit 0 is set by default for basic lookup (by seqno)')
+            lines.append('        uint mode = 1;')
+        elif has_mode_conditional and func.name == 'liteServer.listBlockTransactions':
+            lines.append('        // Bits 0-2 must be set for listBlockTransactions')
+            lines.append('        uint mode = 7;')
+        else:
+            lines.append('        uint mode = 0;')
+            
+        for field in optional_fields:
+            if field.condition:
+                condition_match = re.match(r'(\w+)\.(\d+)', field.condition)
+                if condition_match:
+                    mode_field, bit = condition_match.groups()
+                    if mode_field == 'mode':
+                        prop_name = to_pascal_case(field.name)
+                        # Check different nullable types
+                        if field.type in ['int', 'uint', 'long', 'bool']:
+                            lines.append(f'        if ({prop_name}.HasValue) {{ mode |= (1u << {bit}); }}')
+                        elif field.type == 'byte[]':
+                            lines.append(f'        if ({prop_name} != null && {prop_name}.Length > 0) {{ mode |= (1u << {bit}); }}')
+                        elif field.type.endswith('[]'):
+                            lines.append(f'        if ({prop_name} != null && {prop_name}.Length > 0) {{ mode |= (1u << {bit}); }}')
+                        elif field.type == 'string':
+                            lines.append(f'        if (!string.IsNullOrEmpty({prop_name})) {{ mode |= (1u << {bit}); }}')
+                        else:
+                            lines.append(f'        if ({prop_name} != null) {{ mode |= (1u << {bit}); }}')
+    
+    # Write all fields in their TL schema order
+    for field in func.fields:
+        if field.name == 'mode':
+            lines.append('        writer.WriteUInt32(mode);')
+            continue
+        
+        prop_name = to_pascal_case(field.name)
+        
+        if field.is_optional and field.condition:
+            # Write conditionally based on mode bit
+            condition_match = re.match(r'(\w+)\.(\d+)', field.condition)
+            if condition_match:
+                mode_field, bit = condition_match.groups()
+                if mode_field == 'mode':
+                    lines.append(f'        if ((mode & (1u << {bit})) != 0)')
+                    lines.append('        {')
+                    write_stmt = generate_write_statement(field)
+                    lines.append(f'            {write_stmt}')
+                    lines.append('        }')
+                else:
+                    # Conditional on another field
+                    write_stmt = generate_write_statement(field)
+                    lines.append(f'        {write_stmt}')
+            else:
+                write_stmt = generate_write_statement(field)
+                lines.append(f'        {write_stmt}')
+        else:
+            # Write unconditionally
+            write_stmt = generate_write_statement(field)
+            lines.append(f'        {write_stmt}')
+    
+    lines.append('    }')
+    lines.append('}')
+    
+    return '\n'.join(lines)
+
+def generate_write_statement(field: TLField) -> str:
+    """Generate a single write statement for a field"""
+    prop_name = to_pascal_case(field.name)
+    cs_type = field.type
+    
+    # Handle nullable value types
+    if field.is_optional and cs_type in ['int', 'uint', 'long', 'bool']:
+        prop_ref = f'{prop_name}.Value'
+    else:
+        prop_ref = prop_name
+    
+    if cs_type == 'int' or (field.is_optional and cs_type == 'int'):
+        return f'writer.WriteInt32({prop_ref});'
+    elif cs_type == 'uint' or (field.is_optional and cs_type == 'uint') or cs_type == '#':
+        return f'writer.WriteUInt32({prop_ref});'
+    elif cs_type == 'long' or (field.is_optional and cs_type == 'long'):
+        return f'writer.WriteInt64({prop_ref});'
+    elif cs_type == 'bool' or (field.is_optional and cs_type == 'bool'):
+        return f'writer.WriteBool({prop_ref});'
+    elif cs_type == 'string':
+        return f'writer.WriteString({prop_ref});'
+    elif cs_type == 'byte[]':
+        field_lower = field.name.lower()
+        if 'hash' in field_lower or 'id' in field_lower or 'list' in field_lower:
+            # int256 or similar - vector of int256s needs special handling
+            if 'list' in field_lower or 'vector' in field_lower:
+                # Vector of int256s
+                return f'''writer.WriteUInt32((uint){prop_ref}.Length);
+            foreach (var item in {prop_ref})
+            {{
+                writer.WriteBytes(item, 32);
+            }}'''
+            return f'writer.WriteBytes({prop_ref}, 32);'
+        return f'writer.WriteBuffer({prop_ref});'
+    elif cs_type == 'int[]':
+        return f'''writer.WriteUInt32((uint){prop_ref}.Length);
+            foreach (var item in {prop_ref})
+            {{
+                writer.WriteInt32(item);
+            }}'''
+    elif cs_type == 'byte[][]':
+        # Vector of int256
+        return f'''writer.WriteUInt32((uint){prop_ref}.Length);
+            foreach (var item in {prop_ref})
+            {{
+                writer.WriteBytes(item, 32);
+            }}'''
+    elif cs_type.endswith('[]') and cs_type != 'byte[]':
+        element_type = cs_type[:-2]
+        # Custom types with WriteTo
+        return f'''writer.WriteUInt32((uint){prop_ref}.Length);
+            foreach (var item in {prop_ref})
+            {{
+                item.WriteTo(writer);
+            }}'''
+    else:
+        # Custom types with WriteTo
+        return f'{prop_ref}.WriteTo(writer);'
 
 def generate_csharp_code(types: List[TLType], functions: List[TLType]) -> str:
     """Generate complete C# schema file"""
@@ -549,7 +829,7 @@ def generate_csharp_code(types: List[TLType], functions: List[TLType]) -> str:
                 lines.append('    }')
                 lines.append('')
     
-    # Generate basic types (as structs)
+    # Generate basic types (as classes, not structs, for easier null checking)
     basic_types = [t for t in types if t.name.startswith('tonNode.')]
     if basic_types:
         lines.append('    // ============================================================================')
@@ -557,7 +837,7 @@ def generate_csharp_code(types: List[TLType], functions: List[TLType]) -> str:
         lines.append('    // ============================================================================')
         lines.append('')
         for tl_type in basic_types:
-            for line in generate_struct_or_class(tl_type, is_struct=True, union_types=union_types).split('\n'):
+            for line in generate_struct_or_class(tl_type, is_struct=False, union_types=union_types).split('\n'):
                 lines.append('    ' + line if line else '')
             lines.append('')
     
@@ -573,7 +853,18 @@ def generate_csharp_code(types: List[TLType], functions: List[TLType]) -> str:
                 lines.append('    ' + line if line else '')
             lines.append('')
     
-    # Generate function constructors
+    # Generate request classes for functions
+    if functions:
+        lines.append('    // ============================================================================')
+        lines.append('    // Request Classes (auto mode flag handling)')
+        lines.append('    // ============================================================================')
+        lines.append('')
+        for func in functions:
+            for line in generate_request_class(func).split('\n'):
+                lines.append('    ' + line if line else '')
+            lines.append('')
+    
+    # Generate function constructors (keep for backward compatibility)
     if functions:
         lines.append('    // ============================================================================')
         lines.append('    // Function Constructors')
