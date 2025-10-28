@@ -8,7 +8,7 @@ targeting compatibility with the official [TON JavaScript SDK](https://github.co
 - ✨ Modern C# 12 with nullable reference types
 - 🎯 Targeting API compatibility with TON JS SDK
 - 🔒 Type-safe primitives and TL-B structures
-- 🧪 360+ tests with full coverage
+- 🧪 517+ tests with full coverage
 - 📦 Modular architecture
 - 🚀 Production-ready
 
@@ -24,6 +24,7 @@ targeting compatibility with the official [TON JavaScript SDK](https://github.co
 | **Ton.Contracts**  | [![NuGet](https://img.shields.io/nuget/v/Ton.Contracts.svg)](https://www.nuget.org/packages/Ton.Contracts/)   | Smart contracts: Wallets, Jettons, NFTs       |
 | **Ton.HttpClient** | [![NuGet](https://img.shields.io/nuget/v/Ton.HttpClient.svg)](https://www.nuget.org/packages/Ton.HttpClient/) | HTTP API clients (Toncenter v2/v4)            |
 | **Ton.Adnl**       | [![NuGet](https://img.shields.io/nuget/v/Ton.Adnl.svg)](https://www.nuget.org/packages/Ton.Adnl/)             | ADNL protocol for direct node communication   |
+| **Ton.LiteClient** | [![NuGet](https://img.shields.io/nuget/v/Ton.LiteClient.svg)](https://www.nuget.org/packages/Ton.LiteClient/) | High-level Lite Client for TON blockchain     |
 
 ## 🚀 Quick Start
 
@@ -33,6 +34,7 @@ dotnet add package Ton.Crypto
 dotnet add package Ton.Contracts
 dotnet add package Ton.HttpClient
 dotnet add package Ton.Adnl
+dotnet add package Ton.LiteClient
 ```
 
 ### Create and Use a Wallet
