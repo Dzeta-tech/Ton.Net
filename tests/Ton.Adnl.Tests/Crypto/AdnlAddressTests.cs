@@ -57,7 +57,16 @@ public class AdnlAddressTests
     {
         byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
         AdnlAddress address = new(publicKey);
-        byte[] expectedHash = Sha256.Hash(publicKey);
+        
+        // Hash should be SHA256(pub.ed25519_constructor + public_key)
+        // pub.ed25519 constructor = 0xC6B41348
+        byte[] data = new byte[36];
+        data[0] = 0xC6;
+        data[1] = 0xB4;
+        data[2] = 0x13;
+        data[3] = 0x48;
+        Array.Copy(publicKey, 0, data, 4, 32);
+        byte[] expectedHash = Sha256.Hash(data);
 
         Assert.Equal(expectedHash, address.Hash);
     }

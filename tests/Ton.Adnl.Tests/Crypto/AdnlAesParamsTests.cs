@@ -39,7 +39,8 @@ public class AdnlAesParamsTests
     public void TxKey_ShouldBeFirstBytesOfParams()
     {
         AdnlAesParams aesParams = new();
-        byte[] expected = aesParams.Bytes[..32];
+        // TxKey is now at bytes 32-64
+        byte[] expected = aesParams.Bytes[32..64];
         Assert.Equal(expected, aesParams.TxKey);
     }
 
@@ -54,7 +55,8 @@ public class AdnlAesParamsTests
     public void TxNonce_ShouldBeBytes32To48()
     {
         AdnlAesParams aesParams = new();
-        byte[] expected = aesParams.Bytes[32..48];
+        // TxNonce is now at bytes 80-96
+        byte[] expected = aesParams.Bytes[80..96];
         Assert.Equal(expected, aesParams.TxNonce);
     }
 
@@ -69,7 +71,8 @@ public class AdnlAesParamsTests
     public void RxKey_ShouldBeBytes64To96()
     {
         AdnlAesParams aesParams = new();
-        byte[] expected = aesParams.Bytes[64..96];
+        // RxKey is now at bytes 0-32
+        byte[] expected = aesParams.Bytes[0..32];
         Assert.Equal(expected, aesParams.RxKey);
     }
 
@@ -84,7 +87,8 @@ public class AdnlAesParamsTests
     public void RxNonce_ShouldBeBytes96To112()
     {
         AdnlAesParams aesParams = new();
-        byte[] expected = aesParams.Bytes[96..112];
+        // RxNonce is now at bytes 64-80
+        byte[] expected = aesParams.Bytes[64..80];
         Assert.Equal(expected, aesParams.RxNonce);
     }
 

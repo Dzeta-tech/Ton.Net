@@ -295,11 +295,11 @@ public class SchemaSerializationTests
     [Fact]
     public void Functions_ShouldHaveCorrectConstructorIds()
     {
-        // Verify a few known function constructor IDs
-        Assert.Equal(0xBF56BE80u, Functions.GetMasterchainInfo);
-        Assert.Equal(0x75156F9Du, Functions.GetMasterchainInfoExt);
-        Assert.Equal(0x42AB5F46u, Functions.GetTime);
-        Assert.Equal(0xF4F8F4B5u, Functions.GetVersion);
+        // Verify a few known function constructor IDs (computed via CRC32 of TL schema definitions)
+        Assert.Equal(0x89B5E62Eu, Functions.GetMasterchainInfo);
+        Assert.Equal(0x70A671DFu, Functions.GetMasterchainInfoExt);
+        Assert.Equal(0x16AD5A34u, Functions.GetTime);
+        Assert.Equal(0x232B940Bu, Functions.GetVersion);
     }
 
     [Fact]
