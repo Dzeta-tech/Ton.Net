@@ -67,6 +67,12 @@ jobs:
         dotnet build src/Ton.HttpClient/Ton.HttpClient.csproj --no-restore --configuration Release
         dotnet pack src/Ton.HttpClient/Ton.HttpClient.csproj --no-build --configuration Release --output ./artifacts
     
+    - name: Build and Pack Ton.Adnl
+      run: |
+        dotnet restore src/Ton.Adnl/Ton.Adnl.csproj
+        dotnet build src/Ton.Adnl/Ton.Adnl.csproj --no-restore --configuration Release
+        dotnet pack src/Ton.Adnl/Ton.Adnl.csproj --no-build --configuration Release --output ./artifacts
+    
     - name: Publish to NuGet
       run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 

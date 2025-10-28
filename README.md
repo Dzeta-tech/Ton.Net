@@ -23,6 +23,7 @@ targeting compatibility with the official [TON JavaScript SDK](https://github.co
 | **Ton.Crypto**     | [![NuGet](https://img.shields.io/nuget/v/Ton.Crypto.svg)](https://www.nuget.org/packages/Ton.Crypto/)         | Ed25519, Mnemonics (BIP39), SHA, HMAC         |
 | **Ton.Contracts**  | [![NuGet](https://img.shields.io/nuget/v/Ton.Contracts.svg)](https://www.nuget.org/packages/Ton.Contracts/)   | Smart contracts: Wallets, Jettons, NFTs       |
 | **Ton.HttpClient** | [![NuGet](https://img.shields.io/nuget/v/Ton.HttpClient.svg)](https://www.nuget.org/packages/Ton.HttpClient/) | HTTP API clients (Toncenter v2/v4)            |
+| **Ton.Adnl**       | [![NuGet](https://img.shields.io/nuget/v/Ton.Adnl.svg)](https://www.nuget.org/packages/Ton.Adnl/)             | ADNL protocol for direct node communication   |
 
 ## 🚀 Quick Start
 
@@ -31,6 +32,7 @@ dotnet add package Ton.Core
 dotnet add package Ton.Crypto
 dotnet add package Ton.Contracts
 dotnet add package Ton.HttpClient
+dotnet add package Ton.Adnl
 ```
 
 ### Create and Use a Wallet
@@ -196,15 +198,16 @@ details.
 - **TL-B Types**: All 37 types (Message, Transaction, Account, StateInit, etc.)
 - **Cryptography**: Ed25519, BIP39 mnemonics, SHA-256/512, HMAC, PBKDF2
 - **HTTP Clients**: Toncenter API v2 and v4
+- **ADNL Protocol**: TL serialization, AES-CTR encryption, packet framing, TCP client
 - **Wallets**: V5R1 (transfers, extensions, auth modes)
 - **Contract System**: IContract, IContractProvider, OpenedContract
 
 ### 🚧 In Progress
 
+- **Lite Client**: High-level API on top of ADNL for querying TON nodes
 - **Wallets**: V1R1, V1R2, V1R3, V2R1, V2R2, V3R1, V3R2, V4R1, V4R2
 - **Jettons**: JettonMaster, JettonWallet
 - **NFTs**: NFTCollection, NFTItem
-- **ADNL**: Lite client for direct node communication
 
 ## 🧪 Testing
 
@@ -217,8 +220,9 @@ dotnet test
 - 327 tests in Ton.Core.Tests (BOC, TL-B, Dictionaries, Contracts)
 - 18 tests in Ton.Crypto.Tests (Mnemonic, Ed25519, Hashing)
 - 15 tests in Ton.HttpClient.Tests (TonClient v2/v4)
+- 157 tests in Ton.Adnl.Tests (TL serialization, crypto, packets, ADNL client)
 
-Total: **360 passing unit + integration tests**
+Total: **517 passing unit + integration tests**
 
 All tests validate compatibility with the TON JavaScript SDK's behavior.
 
@@ -235,6 +239,7 @@ Ton.Core          → Core blockchain primitives (Cell, Address, BOC, etc.)
 Ton.Crypto        → Cryptographic operations (Ed25519, Mnemonics)
 Ton.Contracts     → Smart contract implementations (Wallets, Jettons, NFTs)
 Ton.HttpClient    → HTTP API clients (Toncenter v2/v4)
+Ton.Adnl          → ADNL protocol for direct node communication
 ```
 
 ### Key Design Principles
