@@ -29,9 +29,9 @@ namespace Ton.Adnl.Protocol
             uint constructor = reader.ReadUInt32();
             switch (constructor)
             {
-                case 0x5353875B:
+                case 0xEF7E1BEF:
                     return LiteServerBlockLinkBack.ReadFrom(reader);
-                case 0x775A5528:
+                case 0x520FCE1C:
                     return LiteServerBlockLinkForward.ReadFrom(reader);
                 default:
                     throw new Exception($"Unknown constructor 0x{constructor:X8} for liteServer.BlockLink");
@@ -159,7 +159,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerError
     {
-        public const uint Constructor = 0x1BB566EA;
+        public const uint Constructor = 0xBBA9E148;
 
         public int Code { get; set; }
         public string Message { get; set; } = string.Empty;
@@ -185,7 +185,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerAccountId
     {
-        public const uint Constructor = 0x88729074;
+        public const uint Constructor = 0x75A0E2C5;
 
         public int Workchain { get; set; }
         public byte[] Id { get; set; } = Array.Empty<byte>();
@@ -211,7 +211,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerLibraryEntry
     {
-        public const uint Constructor = 0xFC3C1D28;
+        public const uint Constructor = 0x8AFF2446;
 
         public byte[] Hash { get; set; } = Array.Empty<byte>();
         public byte[] Data { get; set; } = Array.Empty<byte>();
@@ -237,7 +237,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerMasterchainInfo
     {
-        public const uint Constructor = 0xF9333637;
+        public const uint Constructor = 0x85832881;
 
         public TonNodeBlockIdExt Last { get; set; }
         public byte[] StateRootHash { get; set; } = Array.Empty<byte>();
@@ -266,7 +266,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerMasterchainInfoExt
     {
-        public const uint Constructor = 0xAE76CCDA;
+        public const uint Constructor = 0xA8CCE0F5;
 
         public uint Mode { get; set; }
         public int Version { get; set; }
@@ -310,7 +310,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerCurrentTime
     {
-        public const uint Constructor = 0x1D512914;
+        public const uint Constructor = 0xE953000D;
 
         public int Now { get; set; }
 
@@ -333,7 +333,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerVersion
     {
-        public const uint Constructor = 0xB33314CF;
+        public const uint Constructor = 0x5A0491E5;
 
         public uint Mode { get; set; }
         public int Version { get; set; }
@@ -365,7 +365,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerBlockData
     {
-        public const uint Constructor = 0x27A85F37;
+        public const uint Constructor = 0xA574ED6C;
 
         public TonNodeBlockIdExt Id { get; set; }
         public byte[] Data { get; set; } = Array.Empty<byte>();
@@ -391,7 +391,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerBlockState
     {
-        public const uint Constructor = 0x6A14E75E;
+        public const uint Constructor = 0xABADDC0C;
 
         public TonNodeBlockIdExt Id { get; set; }
         public byte[] RootHash { get; set; } = Array.Empty<byte>();
@@ -423,7 +423,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerBlockHeader
     {
-        public const uint Constructor = 0x071783EB;
+        public const uint Constructor = 0x752D8219;
 
         public TonNodeBlockIdExt Id { get; set; }
         public uint Mode { get; set; }
@@ -452,7 +452,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerSendMsgStatus
     {
-        public const uint Constructor = 0x0D5B50AB;
+        public const uint Constructor = 0x3950E597;
 
         public int Status { get; set; }
 
@@ -475,7 +475,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerAccountState
     {
-        public const uint Constructor = 0x7F151E0C;
+        public const uint Constructor = 0x7079C751;
 
         public TonNodeBlockIdExt Id { get; set; }
         public TonNodeBlockIdExt Shardblk { get; set; }
@@ -510,7 +510,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerRunMethodResult
     {
-        public const uint Constructor = 0xB9CA2418;
+        public const uint Constructor = 0xA39A616B;
 
         public uint Mode { get; set; }
         public TonNodeBlockIdExt Id { get; set; }
@@ -583,7 +583,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerShardInfo
     {
-        public const uint Constructor = 0x8943A75D;
+        public const uint Constructor = 0x9FE6CD84;
 
         public TonNodeBlockIdExt Id { get; set; }
         public TonNodeBlockIdExt Shardblk { get; set; }
@@ -615,7 +615,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerAllShardsInfo
     {
-        public const uint Constructor = 0x26DFD53B;
+        public const uint Constructor = 0x098FE72D;
 
         public TonNodeBlockIdExt Id { get; set; }
         public byte[] Proof { get; set; } = Array.Empty<byte>();
@@ -644,7 +644,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerTransactionInfo
     {
-        public const uint Constructor = 0x8BBF0C77;
+        public const uint Constructor = 0x0EDEED47;
 
         public TonNodeBlockIdExt Id { get; set; }
         public byte[] Proof { get; set; } = Array.Empty<byte>();
@@ -673,7 +673,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerTransactionList
     {
-        public const uint Constructor = 0xED0EC787;
+        public const uint Constructor = 0xB92ED79D;
 
         public TonNodeBlockIdExt[] Ids { get; set; } = Array.Empty<TonNodeBlockIdExt>();
         public byte[] Transactions { get; set; } = Array.Empty<byte>();
@@ -707,7 +707,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerTransactionMetadata
     {
-        public const uint Constructor = 0xFE240165;
+        public const uint Constructor = 0xFF706385;
 
         public uint Mode { get; set; }
         public int Depth { get; set; }
@@ -739,7 +739,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerTransactionId
     {
-        public const uint Constructor = 0xE944EBD2;
+        public const uint Constructor = 0x2824971B;
 
         public uint Mode { get; set; }
         public byte[] Account { get; set; } = Array.Empty<byte>();
@@ -789,7 +789,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerTransactionId3
     {
-        public const uint Constructor = 0xAD4463EC;
+        public const uint Constructor = 0x2C81DA77;
 
         public byte[] Account { get; set; } = Array.Empty<byte>();
         public long Lt { get; set; }
@@ -815,7 +815,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerBlockTransactions
     {
-        public const uint Constructor = 0x01FB4F1A;
+        public const uint Constructor = 0x2F546C5C;
 
         public TonNodeBlockIdExt Id { get; set; }
         public uint ReqCount { get; set; }
@@ -858,7 +858,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerBlockTransactionsExt
     {
-        public const uint Constructor = 0xC495AF34;
+        public const uint Constructor = 0xFB8FFCE4;
 
         public TonNodeBlockIdExt Id { get; set; }
         public uint ReqCount { get; set; }
@@ -893,7 +893,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerSignature
     {
-        public const uint Constructor = 0x78AB7D2A;
+        public const uint Constructor = 0xA3DEF855;
 
         public byte[] NodeIdShort { get; set; } = Array.Empty<byte>();
         public byte[] Signature { get; set; } = Array.Empty<byte>();
@@ -919,7 +919,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerSignatureSet
     {
-        public const uint Constructor = 0x0DF0E11B;
+        public const uint Constructor = 0x92E15597;
 
         public int ValidatorSetHash { get; set; }
         public int CatchainSeqno { get; set; }
@@ -957,7 +957,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerBlockLinkBack : LiteServerBlockLink
     {
-        public override uint Constructor => 0x5353875B;
+        public override uint Constructor => 0xEF7E1BEF;
 
         public bool ToKeyBlock { get; set; }
         public TonNodeBlockIdExt From { get; set; }
@@ -996,7 +996,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerBlockLinkForward : LiteServerBlockLink
     {
-        public override uint Constructor => 0x775A5528;
+        public override uint Constructor => 0x520FCE1C;
 
         public bool ToKeyBlock { get; set; }
         public TonNodeBlockIdExt From { get; set; }
@@ -1034,7 +1034,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerPartialBlockProof
     {
-        public const uint Constructor = 0xF3BB3510;
+        public const uint Constructor = 0x0D2E280F;
 
         public bool Complete { get; set; }
         public TonNodeBlockIdExt From { get; set; }
@@ -1074,7 +1074,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerConfigInfo
     {
-        public const uint Constructor = 0xC87640D7;
+        public const uint Constructor = 0xAE7B272F;
 
         public uint Mode { get; set; }
         public TonNodeBlockIdExt Id { get; set; }
@@ -1106,7 +1106,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerValidatorStats
     {
-        public const uint Constructor = 0xEBB8ABD9;
+        public const uint Constructor = 0xB9F796D8;
 
         public uint Mode { get; set; }
         public TonNodeBlockIdExt Id { get; set; }
@@ -1144,7 +1144,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerLibraryResult
     {
-        public const uint Constructor = 0x6A34CEC1;
+        public const uint Constructor = 0x8B84430C;
 
         public LiteServerLibraryEntry[] Result { get; set; } = Array.Empty<LiteServerLibraryEntry>();
 
@@ -1175,7 +1175,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerLibraryResultWithProof
     {
-        public const uint Constructor = 0xEE983C56;
+        public const uint Constructor = 0x99370A1F;
 
         public TonNodeBlockIdExt Id { get; set; }
         public uint Mode { get; set; }
@@ -1218,7 +1218,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerShardBlockLink
     {
-        public const uint Constructor = 0xDDD11B76;
+        public const uint Constructor = 0xD30DCF72;
 
         public TonNodeBlockIdExt Id { get; set; }
         public byte[] Proof { get; set; } = Array.Empty<byte>();
@@ -1244,7 +1244,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerShardBlockProof
     {
-        public const uint Constructor = 0x330401A1;
+        public const uint Constructor = 0x08763470;
 
         public TonNodeBlockIdExt MasterchainId { get; set; }
         public LiteServerShardBlockLink[] Links { get; set; } = Array.Empty<LiteServerShardBlockLink>();
@@ -1278,7 +1278,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerLookupBlockResult
     {
-        public const uint Constructor = 0x8850F75A;
+        public const uint Constructor = 0x57C7CCC5;
 
         public TonNodeBlockIdExt Id { get; set; }
         public uint Mode { get; set; }
@@ -1330,7 +1330,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerOutMsgQueueSize
     {
-        public const uint Constructor = 0xFE7CB74A;
+        public const uint Constructor = 0xA7C64C85;
 
         public TonNodeBlockIdExt Id { get; set; }
         public int Size { get; set; }
@@ -1356,7 +1356,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerOutMsgQueueSizes
     {
-        public const uint Constructor = 0x2DE458AE;
+        public const uint Constructor = 0xE9DD53E2;
 
         public LiteServerOutMsgQueueSize[] Shards { get; set; } = Array.Empty<LiteServerOutMsgQueueSize>();
         public int ExtMsgQueueSizeLimit { get; set; }
@@ -1390,7 +1390,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerBlockOutMsgQueueSize
     {
-        public const uint Constructor = 0xE9E602FB;
+        public const uint Constructor = 0x8ACDBE1B;
 
         public uint Mode { get; set; }
         public TonNodeBlockIdExt Id { get; set; }
@@ -1425,7 +1425,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerAccountDispatchQueueInfo
     {
-        public const uint Constructor = 0x3F213E07;
+        public const uint Constructor = 0x9B52AABB;
 
         public byte[] Addr { get; set; } = Array.Empty<byte>();
         public long Size { get; set; }
@@ -1457,7 +1457,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerDispatchQueueInfo
     {
-        public const uint Constructor = 0x569404CB;
+        public const uint Constructor = 0x28AA9828;
 
         public uint Mode { get; set; }
         public TonNodeBlockIdExt Id { get; set; }
@@ -1499,7 +1499,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerDispatchQueueMessage
     {
-        public const uint Constructor = 0x2352C9EC;
+        public const uint Constructor = 0x84C423EA;
 
         public byte[] Addr { get; set; } = Array.Empty<byte>();
         public long Lt { get; set; }
@@ -1531,7 +1531,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerDebugVerbosity
     {
-        public const uint Constructor = 0xDC8427F8;
+        public const uint Constructor = 0x5D404733;
 
         public int Value { get; set; }
 
@@ -1554,7 +1554,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerNonfinalCandidateId
     {
-        public const uint Constructor = 0x24EECDA9;
+        public const uint Constructor = 0x55047FEE;
 
         public TonNodeBlockIdExt BlockId { get; set; }
         public byte[] Creator { get; set; } = Array.Empty<byte>();
@@ -1583,7 +1583,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerNonfinalCandidate
     {
-        public const uint Constructor = 0x87870AE4;
+        public const uint Constructor = 0x80C3468C;
 
         public LiteServerNonfinalCandidateId Id { get; set; }
         public byte[] Data { get; set; } = Array.Empty<byte>();
@@ -1612,7 +1612,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerNonfinalCandidateInfo
     {
-        public const uint Constructor = 0x95FDCCF3;
+        public const uint Constructor = 0x4DEC01D5;
 
         public LiteServerNonfinalCandidateId Id { get; set; }
         public bool Available { get; set; }
@@ -1647,7 +1647,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerNonfinalValidatorGroupInfo
     {
-        public const uint Constructor = 0x928BCA39;
+        public const uint Constructor = 0x562ED2D1;
 
         public TonNodeBlockId NextBlockId { get; set; }
         public int CcSeqno { get; set; }
@@ -1696,7 +1696,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public class LiteServerNonfinalValidatorGroups
     {
-        public const uint Constructor = 0xF982422F;
+        public const uint Constructor = 0x34F73081;
 
         public LiteServerNonfinalValidatorGroupInfo[] Groups { get; set; } = Array.Empty<LiteServerNonfinalValidatorGroupInfo>();
 
@@ -1728,40 +1728,40 @@ namespace Ton.Adnl.Protocol
 
     public static class Functions
     {
-        public const uint GetMasterchainInfo = 0xBF56BE80;
-        public const uint GetMasterchainInfoExt = 0x75156F9D;
-        public const uint GetTime = 0x42AB5F46;
-        public const uint GetVersion = 0xF4F8F4B5;
-        public const uint GetBlock = 0x1DDB0DDB;
-        public const uint GetState = 0x41B17E3E;
-        public const uint GetBlockHeader = 0x749F54EC;
-        public const uint SendMessage = 0x60D6EE71;
-        public const uint GetAccountState = 0x28665BE0;
-        public const uint GetAccountStatePrunned = 0xFD37FA8F;
-        public const uint RunSmcMethod = 0x0B88730C;
-        public const uint GetShardInfo = 0x284B701A;
-        public const uint GetAllShardsInfo = 0xB91D6D84;
-        public const uint GetOneTransaction = 0x230202EB;
-        public const uint GetTransactions = 0xC2C4D530;
-        public const uint LookupBlock = 0x99FCF33D;
-        public const uint LookupBlockWithProof = 0xD0F378D8;
-        public const uint ListBlockTransactions = 0x05A2C1A4;
-        public const uint ListBlockTransactionsExt = 0x01D462AB;
-        public const uint GetBlockProof = 0x123269BC;
-        public const uint GetConfigAll = 0x369D3BA0;
-        public const uint GetConfigParams = 0xB72CCEC6;
-        public const uint GetValidatorStats = 0xEA3D087F;
-        public const uint GetLibraries = 0xEAA43351;
-        public const uint GetLibrariesWithProof = 0x325B04FF;
-        public const uint GetShardBlockProof = 0x082EF15E;
-        public const uint GetOutMsgQueueSizes = 0xACC852AC;
-        public const uint GetBlockOutMsgQueueSize = 0x4A5FA346;
-        public const uint GetDispatchQueueInfo = 0x47BC4364;
-        public const uint WantProofMode0True = 0x77A2BE1D;
-        public const uint NonfinalGetValidatorGroups = 0x5AAF2C7E;
-        public const uint NonfinalGetCandidate = 0x0252FEEE;
-        public const uint QueryPrefix = 0x67A0F35A;
-        public const uint Query = 0x751C45EA;
-        public const uint WaitMasterchainSeqno = 0x7DB21E79;
+        public const uint GetMasterchainInfo = 0x89B5E62E;
+        public const uint GetMasterchainInfoExt = 0x70A671DF;
+        public const uint GetTime = 0x16AD5A34;
+        public const uint GetVersion = 0x232B940B;
+        public const uint GetBlock = 0x6377CF0D;
+        public const uint GetState = 0xBA6E2EB6;
+        public const uint GetBlockHeader = 0x21EC069E;
+        public const uint SendMessage = 0x690AD482;
+        public const uint GetAccountState = 0x6B890E25;
+        public const uint GetAccountStatePrunned = 0x5A698507;
+        public const uint RunSmcMethod = 0x5CC65DD2;
+        public const uint GetShardInfo = 0x46A2F425;
+        public const uint GetAllShardsInfo = 0x74D3FD6B;
+        public const uint GetOneTransaction = 0xD40F24EA;
+        public const uint GetTransactions = 0x1C40E7A1;
+        public const uint LookupBlock = 0xFAC8F71E;
+        public const uint LookupBlockWithProof = 0x9C045FF8;
+        public const uint ListBlockTransactions = 0xADFCC7DA;
+        public const uint ListBlockTransactionsExt = 0x0079DD5C;
+        public const uint GetBlockProof = 0x8AEA9C44;
+        public const uint GetConfigAll = 0x911B26B7;
+        public const uint GetConfigParams = 0x9EF88D63;
+        public const uint GetValidatorStats = 0xE7253699;
+        public const uint GetLibraries = 0x7E1E1899;
+        public const uint GetLibrariesWithProof = 0x8C026C31;
+        public const uint GetShardBlockProof = 0x4CA60350;
+        public const uint GetOutMsgQueueSizes = 0x7BC19C36;
+        public const uint GetBlockOutMsgQueueSize = 0x8F6C7779;
+        public const uint GetDispatchQueueInfo = 0x01E66BF3;
+        public const uint WantProofMode0True = 0xAAE4FB1C;
+        public const uint NonfinalGetValidatorGroups = 0xA59915E3;
+        public const uint NonfinalGetCandidate = 0x300794DE;
+        public const uint QueryPrefix = 0x72D3E686;
+        public const uint Query = 0x798C06DF;
+        public const uint WaitMasterchainSeqno = 0xBAEAB892;
     }
 }

@@ -9,7 +9,7 @@
 
         <!-- NuGet Package Metadata -->
         <PackageId>Ton.Adnl</PackageId>
-        <Version>0.1.4</Version>
+        <Version>0.1.5</Version>
         <Authors>Dzeta.Tech Team</Authors>
         <Company>Dzeta.Tech</Company>
         <Description>ADNL (Abstract Datagram Network Layer) client for TON blockchain - Direct node communication with TL serialization, encryption, and auto-generated schema. Enables lite client implementation for TON.</Description>

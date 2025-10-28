@@ -150,14 +150,26 @@ public sealed class AdnlKeys
         if (u < 0)
             u += p;
 
-        // Convert to 32-byte little-endian representation
-        byte[] uBytes = u.ToByteArray(true);
-        byte[] result = new byte[32];
+        // Convert to byte array using old-style ToByteArray() for compatibility
+        // This returns little-endian, signed representation
+        byte[] uBytes = u.ToByteArray();
 
-        // Pad or trim to 32 bytes
-        int copyLength = Math.Min(uBytes.Length, 32);
-        Array.Copy(uBytes, 0, result, 0, copyLength);
+        // Ensure exactly 32 bytes
+        if (uBytes.Length == 32) return uBytes;
 
-        return result;
+        if (uBytes.Length > 32)
+        {
+            // Trim extra bytes (usually sign byte)
+            byte[] result = new byte[32];
+            Array.Copy(uBytes, 0, result, 0, 32);
+            return result;
+        }
+        else
+        {
+            // Pad with zeros
+            byte[] result = new byte[32];
+            Array.Copy(uBytes, 0, result, 0, uBytes.Length);
+            return result;
+        }
     }
 }

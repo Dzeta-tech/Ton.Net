@@ -29,10 +29,10 @@ public sealed class AdnlAesParams
     public byte[] Hash { get; }
 
     /// <summary>
-    ///     Gets the transmission key (32 bytes) derived from the parameters.
-    ///     Used for encrypting outgoing data.
+    ///     Gets the reception key (32 bytes) derived from the parameters.
+    ///     Used for decrypting incoming data.
     /// </summary>
-    public byte[] TxKey
+    public byte[] RxKey
     {
         get
         {
@@ -43,29 +43,15 @@ public sealed class AdnlAesParams
     }
 
     /// <summary>
-    ///     Gets the transmission nonce/IV (16 bytes) derived from the parameters.
-    ///     Used as initial counter for encrypting outgoing data.
+    ///     Gets the transmission key (32 bytes) derived from the parameters.
+    ///     Used for encrypting outgoing data.
     /// </summary>
-    public byte[] TxNonce
-    {
-        get
-        {
-            byte[] nonce = new byte[16];
-            Array.Copy(Bytes, 32, nonce, 0, 16);
-            return nonce;
-        }
-    }
-
-    /// <summary>
-    ///     Gets the reception key (32 bytes) derived from the parameters.
-    ///     Used for decrypting incoming data.
-    /// </summary>
-    public byte[] RxKey
+    public byte[] TxKey
     {
         get
         {
             byte[] key = new byte[32];
-            Array.Copy(Bytes, 64, key, 0, 32);
+            Array.Copy(Bytes, 32, key, 0, 32);
             return key;
         }
     }
@@ -79,7 +65,21 @@ public sealed class AdnlAesParams
         get
         {
             byte[] nonce = new byte[16];
-            Array.Copy(Bytes, 96, nonce, 0, 16);
+            Array.Copy(Bytes, 64, nonce, 0, 16);
+            return nonce;
+        }
+    }
+
+    /// <summary>
+    ///     Gets the transmission nonce/IV (16 bytes) derived from the parameters.
+    ///     Used as initial counter for encrypting outgoing data.
+    /// </summary>
+    public byte[] TxNonce
+    {
+        get
+        {
+            byte[] nonce = new byte[16];
+            Array.Copy(Bytes, 80, nonce, 0, 16);
             return nonce;
         }
     }

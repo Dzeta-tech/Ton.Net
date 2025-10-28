@@ -20,7 +20,15 @@ public sealed class AdnlAddress : IEquatable<AdnlAddress>
         if (publicKey.Length != 32)
             throw new ArgumentException("Public key must be 32 bytes", nameof(publicKey));
 
-        hash = Sha256.Hash(publicKey);
+        // ADNL address = SHA256(pub.ed25519_constructor + public_key)
+        // pub.ed25519 constructor = 0xC6B41348
+        byte[] data = new byte[36];
+        data[0] = 0xC6;
+        data[1] = 0xB4;
+        data[2] = 0x13;
+        data[3] = 0x48;
+        Array.Copy(publicKey, 0, data, 4, 32);
+        hash = Sha256.Hash(data);
     }
 
     /// <summary>
@@ -36,7 +44,15 @@ public sealed class AdnlAddress : IEquatable<AdnlAddress>
         if (publicKey.Length != 32)
             throw new ArgumentException("Public key must be 32 bytes", nameof(publicKeyBase64));
 
-        hash = Sha256.Hash(publicKey);
+        // ADNL address = SHA256(pub.ed25519_constructor + public_key)
+        // pub.ed25519 constructor = 0xC6B41348
+        byte[] data = new byte[36];
+        data[0] = 0xC6;
+        data[1] = 0xB4;
+        data[2] = 0x13;
+        data[3] = 0x48;
+        Array.Copy(publicKey, 0, data, 4, 32);
+        hash = Sha256.Hash(data);
     }
 
     /// <summary>

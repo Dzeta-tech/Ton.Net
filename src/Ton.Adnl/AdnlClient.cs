@@ -21,6 +21,8 @@ public sealed class AdnlClient : IDisposable
     AdnlCipher? decryptCipher;
     bool disposed;
     AdnlCipher? encryptCipher;
+
+    byte[]? handshakePacket;
     AdnlKeys? keys;
     NetworkStream? networkStream;
     Task? receiveTask;
@@ -144,14 +146,14 @@ public sealed class AdnlClient : IDisposable
 
             Connected?.Invoke();
 
-            // Perform ADNL handshake
-            await PerformHandshakeAsync(cancellationToken);
+            // Setup handshake parameters and ciphers BEFORE starting receive loop
+            await PrepareHandshakeAsync(cancellationToken);
 
-            // Start receiving
+            // Start receiving (ciphers are now ready)
             receiveTask = Task.Run(() => ReceiveLoopAsync(disposeCts.Token), disposeCts.Token);
 
-            await SetStateAsync(AdnlClientState.Ready);
-            Ready?.Invoke();
+            // Send handshake (response will be handled by receive loop)
+            await SendHandshakeAsync(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -188,6 +190,7 @@ public sealed class AdnlClient : IDisposable
 
             // Write
             await networkStream.WriteAsync(encrypted, cancellationToken);
+            await networkStream.FlushAsync(cancellationToken);
         }
         finally
         {
@@ -203,7 +206,7 @@ public sealed class AdnlClient : IDisposable
         await CloseInternalAsync();
     }
 
-    async Task PerformHandshakeAsync(CancellationToken cancellationToken)
+    async Task PrepareHandshakeAsync(CancellationToken cancellationToken)
     {
         await SetStateAsync(AdnlClientState.Handshaking);
 
@@ -234,40 +237,33 @@ public sealed class AdnlClient : IDisposable
         // Build handshake packet
         // peer_address(32) + client_public_key(32) + params_hash(32) + encrypted_params(160)
         AdnlAddress peerAddress = new(peerPublicKey);
-        byte[] handshake = new byte[256];
+        handshakePacket = new byte[256];
         int offset = 0;
 
-        Array.Copy(peerAddress.Hash, 0, handshake, offset, 32);
+        Array.Copy(peerAddress.Hash, 0, handshakePacket, offset, 32);
         offset += 32;
-        Array.Copy(keys.PublicKey, 0, handshake, offset, 32);
+        Array.Copy(keys.PublicKey, 0, handshakePacket, offset, 32);
         offset += 32;
-        Array.Copy(paramsHash, 0, handshake, offset, 32);
+        Array.Copy(paramsHash, 0, handshakePacket, offset, 32);
         offset += 32;
-        Array.Copy(encryptedParams, 0, handshake, offset, 160);
+        Array.Copy(encryptedParams, 0, handshakePacket, offset, 160);
 
-        // Send handshake
-        if (networkStream == null)
-            throw new InvalidOperationException("Network stream not available");
+        // Setup ciphers for communication (BEFORE starting receive loop)
 
-        await networkStream.WriteAsync(handshake, cancellationToken);
-
-        // Setup ciphers for communication
         encryptCipher = new AdnlCipher(aesParams.TxKey, aesParams.TxNonce);
         decryptCipher = new AdnlCipher(aesParams.RxKey, aesParams.RxNonce);
+    }
 
-        // Wait for handshake response (empty packet)
-        byte[] responseBuffer = new byte[AdnlPacket.MinimumSize];
-        int read = await networkStream.ReadAsync(responseBuffer, cancellationToken);
+    async Task SendHandshakeAsync(CancellationToken cancellationToken)
+    {
+        if (networkStream == null)
+            throw new InvalidOperationException("Network stream not available");
+        if (handshakePacket == null)
+            throw new InvalidOperationException("Handshake not prepared");
 
-        if (read == 0)
-            throw new IOException("Server closed connection during handshake");
 
-        // Decrypt and verify
-        decryptCipher.ProcessInPlace(responseBuffer.AsSpan(0, read));
-        AdnlPacket? responsePacket = AdnlPacket.TryParse(responseBuffer[..read]);
-
-        if (responsePacket == null || responsePacket.Payload.Length != 0)
-            throw new InvalidOperationException("Invalid handshake response");
+        await networkStream.WriteAsync(handshakePacket, cancellationToken);
+        await networkStream.FlushAsync(cancellationToken);
     }
 
     async Task ReceiveLoopAsync(CancellationToken cancellationToken)
@@ -280,15 +276,19 @@ public sealed class AdnlClient : IDisposable
             while (!cancellationToken.IsCancellationRequested && networkStream != null)
             {
                 int read = await networkStream.ReadAsync(tempBuffer, cancellationToken);
-                if (read == 0)
-                    // Connection closed
-                    break;
+
+                if (read == 0) break;
 
                 // Decrypt
                 if (decryptCipher != null)
                 {
                     byte[] decrypted = decryptCipher.Process(tempBuffer[..read]);
                     buffer.AddRange(decrypted);
+                }
+                else
+                {
+                    Error?.Invoke(new InvalidOperationException("Decrypt cipher not initialized"));
+                    break;
                 }
 
                 // Process complete packets
@@ -301,8 +301,7 @@ public sealed class AdnlClient : IDisposable
                     uint size = BinaryPrimitives.ReadUInt32LittleEndian(buffer.ToArray());
                     int totalSize = (int)(4 + size);
 
-                    if (buffer.Count < totalSize)
-                        break; // Wait for more data
+                    if (buffer.Count < totalSize) break; // Wait for more data
 
                     // Extract packet
                     byte[] packetBytes = buffer.GetRange(0, totalSize).ToArray();
@@ -312,6 +311,23 @@ public sealed class AdnlClient : IDisposable
                     try
                     {
                         AdnlPacket packet = AdnlPacket.Parse(packetBytes);
+
+                        // Handle handshake response
+                        if (state == AdnlClientState.Handshaking)
+                        {
+                            if (packet.Payload.Length != 0)
+                            {
+                                Error?.Invoke(new InvalidOperationException(
+                                    $"Invalid handshake response - expected empty payload, got {packet.Payload.Length} bytes"));
+                                await CloseInternalAsync();
+                                break;
+                            }
+
+                            await SetStateAsync(AdnlClientState.Ready);
+                            Ready?.Invoke();
+                            continue; // Don't emit DataReceived for handshake response
+                        }
+
                         DataReceived?.Invoke(packet.Payload);
                     }
                     catch (Exception ex)
@@ -321,7 +337,12 @@ public sealed class AdnlClient : IDisposable
                 }
             }
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (OperationCanceledException)
+        {
+            // Normal cancellation, don't emit error
+            throw;
+        }
+        catch (Exception ex)
         {
             Error?.Invoke(ex);
         }

@@ -73,10 +73,7 @@ public class AdnlClientTests
         byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
         AdnlClient client = new("127.0.0.1", 12345, publicKey);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-        {
-            await client.WriteAsync([1, 2, 3]);
-        });
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => { await client.WriteAsync([1, 2, 3]); });
     }
 
     [Fact]

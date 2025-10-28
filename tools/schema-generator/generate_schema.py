@@ -96,8 +96,11 @@ def parse_field(field_str: str) -> Optional[TLField]:
 
 def parse_tl_line(line: str, is_function: bool = False) -> Optional[TLType]:
     """Parse a single TL definition line"""
+    # Keep original line for CRC32 computation (without trailing semicolon)
+    original_line = re.sub(r'//.*', '', line).strip().rstrip(';')
+    
     # Remove comments and extra spaces
-    line = re.sub(r'//.*', '', line).strip()
+    line = original_line
     if not line or line.startswith('---'):
         return None
     
@@ -147,8 +150,9 @@ def parse_tl_line(line: str, is_function: bool = False) -> Optional[TLType]:
         if field:
             fields.append(field)
     
-    # Compute constructor CRC32
-    constructor = compute_crc32(line)
+    # Compute constructor CRC32 on the original TL line (without comments)
+    # This preserves the exact TL syntax including field types
+    constructor = compute_crc32(original_line)
     
     return TLType(
         name=name,
