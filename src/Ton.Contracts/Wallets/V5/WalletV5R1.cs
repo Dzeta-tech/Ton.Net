@@ -2,7 +2,6 @@ using System.Numerics;
 using Ton.Core.Addresses;
 using Ton.Core.Boc;
 using Ton.Core.Contracts;
-using Ton.Core.Tuple;
 using Ton.Core.Types;
 using Ton.Crypto.Ed25519;
 using Dict = Ton.Core.Dict;
@@ -320,19 +319,9 @@ public class WalletV5R1 : IContract
         public const uint AuthSignedInternal = 0x73696e74;
     }
 
-    class WalletV5R1Sender : ISender
+    class WalletV5R1Sender(WalletV5R1 wallet, IContractProvider provider, byte[] secretKey)
+        : ISender
     {
-        readonly IContractProvider provider;
-        readonly byte[] secretKey;
-        readonly WalletV5R1 wallet;
-
-        public WalletV5R1Sender(WalletV5R1 wallet, IContractProvider provider, byte[] secretKey)
-        {
-            this.wallet = wallet;
-            this.provider = provider;
-            this.secretKey = secretKey;
-        }
-
         public Address? Address => wallet.Address;
 
         public async Task SendAsync(SenderArguments args)

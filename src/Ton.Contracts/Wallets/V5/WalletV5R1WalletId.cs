@@ -11,42 +11,24 @@ namespace Ton.Contracts.Wallets.V5;
 ///     context_id_client$1 = wc:int8 wallet_version:uint8 counter:uint15
 ///     context_id_backoffice$0 = counter:uint31
 /// </summary>
-public record WalletIdV5R1
+public record WalletIdV5R1(int NetworkGlobalId, object Context)
 {
-    public WalletIdV5R1(int networkGlobalId, object context)
-    {
-        NetworkGlobalId = networkGlobalId;
-        Context = context;
-    }
-
     /// <summary>
     ///     Network global ID
     ///     -239 is mainnet, -3 is testnet
     /// </summary>
-    public int NetworkGlobalId { get; init; }
+    public int NetworkGlobalId { get; init; } = NetworkGlobalId;
 
     /// <summary>
     ///     Context (either client context or custom context)
     /// </summary>
-    public object Context { get; init; }
+    public object Context { get; init; } = Context;
 }
 
 /// <summary>
 ///     Client context for Wallet V5R1
 /// </summary>
-public record WalletIdV5R1ClientContext
-{
-    public WalletIdV5R1ClientContext(string walletVersion, int workchain, int subwalletNumber)
-    {
-        WalletVersion = walletVersion;
-        Workchain = workchain;
-        SubwalletNumber = subwalletNumber;
-    }
-
-    public string WalletVersion { get; init; }
-    public int Workchain { get; init; }
-    public int SubwalletNumber { get; init; }
-}
+public record WalletIdV5R1ClientContext(string WalletVersion, int Workchain, int SubwalletNumber);
 
 /// <summary>
 ///     Custom context for Wallet V5R1 (31-bit unsigned integer)

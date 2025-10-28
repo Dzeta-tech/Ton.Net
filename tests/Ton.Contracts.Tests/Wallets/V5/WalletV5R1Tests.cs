@@ -115,7 +115,7 @@ public class WalletV5R1Tests
 
         List<MessageRelaxed> messages =
         [
-            new MessageRelaxed(
+            new(
                 new CommonMessageInfoRelaxed.Internal(
                     true, false, false,
                     null, dest1,
@@ -124,7 +124,7 @@ public class WalletV5R1Tests
                 Builder.BeginCell().StoreStringTail("Message 1").EndCell()
             ),
 
-            new MessageRelaxed(
+            new(
                 new CommonMessageInfoRelaxed.Internal(
                     true, false, false,
                     null, dest2,

@@ -35,12 +35,14 @@ public enum SendMode : byte
     SendDestroyIfZero = 32,
 
     /// <summary>
-    ///     Carries all the remaining value of the inbound message in addition to the value initially indicated in the new message.
+    ///     Carries all the remaining value of the inbound message in addition to the value initially indicated in the new
+    ///     message.
     /// </summary>
     SendRemainingValue = 64,
 
     /// <summary>
-    ///     Carries all the remaining balance of the current smart contract instead of the value originally indicated in the message.
+    ///     Carries all the remaining balance of the current smart contract instead of the value originally indicated in the
+    ///     message.
     ///     Use with caution as it works with the balance of the entire contract.
     /// </summary>
     SendRemainingBalance = 128

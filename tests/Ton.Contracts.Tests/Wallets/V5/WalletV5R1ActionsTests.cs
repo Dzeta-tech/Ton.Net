@@ -247,7 +247,6 @@ public class WalletV5R1ActionsTests
             Assert.That(item2.Type, Is.EqualTo(item1.Type));
 
             if (item1 is OutActionSendMsg sendMsg1 && item2 is OutActionSendMsg sendMsg2)
-            {
                 Assert.Multiple(() =>
                 {
                     Assert.That(sendMsg2.Mode, Is.EqualTo(sendMsg1.Mode));
@@ -255,7 +254,6 @@ public class WalletV5R1ActionsTests
                     Assert.That(sendMsg2.OutMsg.Info, Is.EqualTo(sendMsg1.OutMsg.Info));
                     Assert.That(sendMsg2.OutMsg.Init, Is.EqualTo(sendMsg1.OutMsg.Init));
                 });
-            }
 
             if (item1 is OutActionAddExtension addExt1 && item2 is OutActionAddExtension addExt2)
                 Assert.That(addExt2.Address, Is.EqualTo(addExt1.Address));

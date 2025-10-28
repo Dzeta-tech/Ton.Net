@@ -1,8 +1,10 @@
 # Ton.NET
 
-A modern, comprehensive .NET SDK for the TON (The Open Network) blockchain. Built from scratch with clean architecture, targeting compatibility with the official [TON JavaScript SDK](https://github.com/ton-org/ton).
+A modern, comprehensive .NET SDK for the TON (The Open Network) blockchain. Built from scratch with clean architecture,
+targeting compatibility with the official [TON JavaScript SDK](https://github.com/ton-org/ton).
 
 **Why Ton.NET?**
+
 - ✨ Modern C# 12 with nullable reference types
 - 🎯 Targeting API compatibility with TON JS SDK
 - 🔒 Type-safe primitives and TL-B structures
@@ -10,16 +12,17 @@ A modern, comprehensive .NET SDK for the TON (The Open Network) blockchain. Buil
 - 📦 Modular architecture
 - 🚀 Production-ready
 
-> **Note:** This is a complete rewrite replacing the legacy TonSdk.NET. It provides a cleaner, more maintainable codebase with improved compatibility.
+> **Note:** This is a complete rewrite replacing the legacy TonSdk.NET. It provides a cleaner, more maintainable
+> codebase with improved compatibility.
 
 ## 📦 Packages
 
-| Package | Version | Description |
-|---------|---------|-------------|
-| **Ton.Core** | [![NuGet](https://img.shields.io/nuget/v/Ton.Core.svg)](https://www.nuget.org/packages/Ton.Core/) | Core primitives: Cells, BOC, Addresses, Types |
-| **Ton.Crypto** | [![NuGet](https://img.shields.io/nuget/v/Ton.Crypto.svg)](https://www.nuget.org/packages/Ton.Crypto/) | Ed25519, Mnemonics (BIP39), SHA, HMAC |
-| **Ton.Contracts** | [![NuGet](https://img.shields.io/nuget/v/Ton.Contracts.svg)](https://www.nuget.org/packages/Ton.Contracts/) | Smart contracts: Wallets, Jettons, NFTs |
-| **Ton.HttpClient** | [![NuGet](https://img.shields.io/nuget/v/Ton.HttpClient.svg)](https://www.nuget.org/packages/Ton.HttpClient/) | HTTP API clients (Toncenter v2/v4) |
+| Package            | Version                                                                                                       | Description                                   |
+|--------------------|---------------------------------------------------------------------------------------------------------------|-----------------------------------------------|
+| **Ton.Core**       | [![NuGet](https://img.shields.io/nuget/v/Ton.Core.svg)](https://www.nuget.org/packages/Ton.Core/)             | Core primitives: Cells, BOC, Addresses, Types |
+| **Ton.Crypto**     | [![NuGet](https://img.shields.io/nuget/v/Ton.Crypto.svg)](https://www.nuget.org/packages/Ton.Crypto/)         | Ed25519, Mnemonics (BIP39), SHA, HMAC         |
+| **Ton.Contracts**  | [![NuGet](https://img.shields.io/nuget/v/Ton.Contracts.svg)](https://www.nuget.org/packages/Ton.Contracts/)   | Smart contracts: Wallets, Jettons, NFTs       |
+| **Ton.HttpClient** | [![NuGet](https://img.shields.io/nuget/v/Ton.HttpClient.svg)](https://www.nuget.org/packages/Ton.HttpClient/) | HTTP API clients (Toncenter v2/v4)            |
 
 ## 🚀 Quick Start
 
@@ -182,7 +185,8 @@ SendMode.SendRemainingBalance
 // - Send all balance: SendRemainingBalance | SendDestroyIfZero | SendIgnoreErrors
 ```
 
-See [TON Documentation on Message Modes](https://docs.ton.org/develop/smart-contracts/messages#message-modes) for details.
+See [TON Documentation on Message Modes](https://docs.ton.org/develop/smart-contracts/messages#message-modes) for
+details.
 
 ## 📋 Implementation Status
 
@@ -209,6 +213,7 @@ dotnet test
 ```
 
 **Test Coverage:**
+
 - 327 tests in Ton.Core.Tests (BOC, TL-B, Dictionaries, Contracts)
 - 18 tests in Ton.Crypto.Tests (Mnemonic, Ed25519, Hashing)
 - 15 tests in Ton.HttpClient.Tests (TonClient v2/v4)
@@ -252,6 +257,7 @@ dotnet run
 ```
 
 Features:
+
 - Generate or load mnemonic phrases
 - Create WalletV5R1 instances
 - Check balance and seqno

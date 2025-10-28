@@ -14,58 +14,32 @@ public interface IWalletV5Action
 /// <summary>
 ///     Add extension action for Wallet V5
 /// </summary>
-public record OutActionAddExtension : IWalletV5Action
+public record OutActionAddExtension(Address Address) : IWalletV5Action
 {
-    public OutActionAddExtension(Address address)
-    {
-        Address = address;
-    }
-
-    public Address Address { get; init; }
     public string Type => "addExtension";
 }
 
 /// <summary>
 ///     Remove extension action for Wallet V5
 /// </summary>
-public record OutActionRemoveExtension : IWalletV5Action
+public record OutActionRemoveExtension(Address Address) : IWalletV5Action
 {
-    public OutActionRemoveExtension(Address address)
-    {
-        Address = address;
-    }
-
-    public Address Address { get; init; }
     public string Type => "removeExtension";
 }
 
 /// <summary>
 ///     Set is public key enabled action for Wallet V5
 /// </summary>
-public record OutActionSetIsPublicKeyEnabled : IWalletV5Action
+public record OutActionSetIsPublicKeyEnabled(bool IsEnabled) : IWalletV5Action
 {
-    public OutActionSetIsPublicKeyEnabled(bool isEnabled)
-    {
-        IsEnabled = isEnabled;
-    }
-
-    public bool IsEnabled { get; init; }
     public string Type => "setIsPublicKeyEnabled";
 }
 
 /// <summary>
 ///     Wrapper for OutAction.SendMsg to implement IWalletV5Action
 /// </summary>
-public record OutActionSendMsg : IWalletV5Action
+public record OutActionSendMsg(SendMode Mode, MessageRelaxed OutMsg) : IWalletV5Action
 {
-    public OutActionSendMsg(SendMode mode, MessageRelaxed outMsg)
-    {
-        Mode = mode;
-        OutMsg = outMsg;
-    }
-
-    public SendMode Mode { get; init; }
-    public MessageRelaxed OutMsg { get; init; }
     public string Type => "sendMsg";
 
     /// <summary>

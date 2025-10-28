@@ -27,7 +27,7 @@ internal static class DictParser
     {
         // Reading label
         int lb0 = slice.LoadBit() ? 1 : 0;
-        int prefixLength = 0;
+        int prefixLength;
         string pp = prefix;
 
         if (lb0 == 0)
