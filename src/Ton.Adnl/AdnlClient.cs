@@ -6,30 +6,30 @@ using Ton.Adnl.Protocol;
 namespace Ton.Adnl;
 
 /// <summary>
-/// ADNL (Abstract Datagram Network Layer) TCP client.
-/// Provides encrypted communication with TON nodes over TCP.
-/// Thread-safe implementation with automatic reconnection.
+///     ADNL (Abstract Datagram Network Layer) TCP client.
+///     Provides encrypted communication with TON nodes over TCP.
+///     Thread-safe implementation with automatic reconnection.
 /// </summary>
 public sealed class AdnlClient : IDisposable
 {
-    private readonly string _host;
-    private readonly int _port;
-    private readonly byte[] _peerPublicKey;
-    private readonly int _reconnectTimeoutMs;
-    private readonly SemaphoreSlim _stateLock = new(1, 1);
-    private readonly CancellationTokenSource _disposeCts = new();
+    readonly CancellationTokenSource disposeCts = new();
+    readonly string host;
+    readonly byte[] peerPublicKey;
+    readonly int port;
+    readonly int reconnectTimeoutMs;
+    readonly SemaphoreSlim stateLock = new(1, 1);
+    AdnlCipher? decryptCipher;
+    bool disposed;
+    AdnlCipher? encryptCipher;
+    AdnlKeys? keys;
+    NetworkStream? networkStream;
+    Task? receiveTask;
+    AdnlClientState state = AdnlClientState.Closed;
 
-    private TcpClient? _tcpClient;
-    private NetworkStream? _networkStream;
-    private AdnlKeys? _keys;
-    private AdnlCipher? _encryptCipher;
-    private AdnlCipher? _decryptCipher;
-    private Task? _receiveTask;
-    private AdnlClientState _state = AdnlClientState.Closed;
-    private bool _disposed;
+    TcpClient? tcpClient;
 
     /// <summary>
-    /// Creates a new ADNL client.
+    ///     Creates a new ADNL client.
     /// </summary>
     /// <param name="host">Server hostname or IP address.</param>
     /// <param name="port">Server port.</param>
@@ -41,95 +41,106 @@ public sealed class AdnlClient : IDisposable
             throw new ArgumentException("Host cannot be null or empty", nameof(host));
         if (port <= 0 || port > 65535)
             throw new ArgumentOutOfRangeException(nameof(port), "Port must be between 1 and 65535");
-        if (peerPublicKey == null)
-            throw new ArgumentNullException(nameof(peerPublicKey));
+        ArgumentNullException.ThrowIfNull(peerPublicKey);
         if (peerPublicKey.Length != 32)
             throw new ArgumentException("Peer public key must be 32 bytes", nameof(peerPublicKey));
         if (reconnectTimeoutMs < 0)
             throw new ArgumentOutOfRangeException(nameof(reconnectTimeoutMs), "Reconnect timeout cannot be negative");
 
-        _host = host;
-        _port = port;
-        _peerPublicKey = peerPublicKey;
-        _reconnectTimeoutMs = reconnectTimeoutMs;
+        this.host = host;
+        this.port = port;
+        this.peerPublicKey = peerPublicKey;
+        this.reconnectTimeoutMs = reconnectTimeoutMs;
     }
 
     /// <summary>
-    /// Gets the current connection state.
+    ///     Gets the current connection state.
     /// </summary>
     public AdnlClientState State
     {
         get
         {
-            _stateLock.Wait();
+            stateLock.Wait();
             try
             {
-                return _state;
+                return state;
             }
             finally
             {
-                _stateLock.Release();
+                stateLock.Release();
             }
         }
     }
 
+    public void Dispose()
+    {
+        if (!disposed)
+        {
+            disposed = true;
+            disposeCts.Cancel();
+            CloseInternalAsync().GetAwaiter().GetResult();
+            disposeCts.Dispose();
+            stateLock.Dispose();
+        }
+    }
+
     /// <summary>
-    /// Raised when the TCP connection is established.
+    ///     Raised when the TCP connection is established.
     /// </summary>
     public event Action? Connected;
 
     /// <summary>
-    /// Raised when the ADNL handshake completes and the client is ready.
+    ///     Raised when the ADNL handshake completes and the client is ready.
     /// </summary>
     public event Action? Ready;
 
     /// <summary>
-    /// Raised when the connection is closed.
+    ///     Raised when the connection is closed.
     /// </summary>
     public event Action? Closed;
 
     /// <summary>
-    /// Raised when data is received (after decryption).
+    ///     Raised when data is received (after decryption).
     /// </summary>
     public event Action<byte[]>? DataReceived;
 
     /// <summary>
-    /// Raised when an error occurs.
+    ///     Raised when an error occurs.
     /// </summary>
     public event Action<Exception>? Error;
 
     /// <summary>
-    /// Connects to the ADNL server asynchronously.
+    ///     Connects to the ADNL server asynchronously.
     /// </summary>
     public async Task ConnectAsync(CancellationToken cancellationToken = default)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(disposed, this);
 
-        await _stateLock.WaitAsync(cancellationToken);
+        await stateLock.WaitAsync(cancellationToken);
         try
         {
-            if (_state != AdnlClientState.Closed)
-                throw new InvalidOperationException($"Cannot connect in state {_state}");
+            if (state != AdnlClientState.Closed)
+                throw new InvalidOperationException($"Cannot connect in state {state}");
 
-            _state = AdnlClientState.Connecting;
+            state = AdnlClientState.Connecting;
         }
         finally
         {
-            _stateLock.Release();
+            stateLock.Release();
         }
 
         try
         {
             // Create TCP client
-            _tcpClient = new TcpClient
+            tcpClient = new TcpClient
             {
                 ReceiveBufferSize = 1024 * 1024, // 1 MB
                 SendBufferSize = 1024 * 1024
             };
 
             // Connect
-            await _tcpClient.ConnectAsync(_host, _port, cancellationToken);
-            _networkStream = _tcpClient.GetStream();
+            await tcpClient.ConnectAsync(host, port, cancellationToken);
+            networkStream = tcpClient.GetStream();
 
             Connected?.Invoke();
 
@@ -137,7 +148,7 @@ public sealed class AdnlClient : IDisposable
             await PerformHandshakeAsync(cancellationToken);
 
             // Start receiving
-            _receiveTask = Task.Run(() => ReceiveLoopAsync(_disposeCts.Token), _disposeCts.Token);
+            receiveTask = Task.Run(() => ReceiveLoopAsync(disposeCts.Token), disposeCts.Token);
 
             await SetStateAsync(AdnlClientState.Ready);
             Ready?.Invoke();
@@ -151,75 +162,62 @@ public sealed class AdnlClient : IDisposable
     }
 
     /// <summary>
-    /// Writes encrypted data to the server.
+    ///     Writes encrypted data to the server.
     /// </summary>
     public async Task WriteAsync(byte[] data, CancellationToken cancellationToken = default)
     {
-        if (data == null)
-            throw new ArgumentNullException(nameof(data));
+        ArgumentNullException.ThrowIfNull(data);
 
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(disposed, this);
 
-        await _stateLock.WaitAsync(cancellationToken);
+        await stateLock.WaitAsync(cancellationToken);
         try
         {
-            if (_state != AdnlClientState.Ready)
-                throw new InvalidOperationException($"Cannot write in state {_state}");
+            if (state != AdnlClientState.Ready)
+                throw new InvalidOperationException($"Cannot write in state {state}");
 
-            if (_networkStream == null || _encryptCipher == null)
+            if (networkStream == null || encryptCipher == null)
                 throw new InvalidOperationException("Connection not established");
 
             // Create ADNL packet
-            var packet = new AdnlPacket(data);
-            var packetBytes = packet.ToBytes();
+            AdnlPacket packet = new(data);
+            byte[] packetBytes = packet.ToBytes();
 
             // Encrypt
-            var encrypted = _encryptCipher.Process(packetBytes);
+            byte[] encrypted = encryptCipher.Process(packetBytes);
 
             // Write
-            await _networkStream.WriteAsync(encrypted, cancellationToken);
+            await networkStream.WriteAsync(encrypted, cancellationToken);
         }
         finally
         {
-            _stateLock.Release();
+            stateLock.Release();
         }
     }
 
     /// <summary>
-    /// Closes the connection.
+    ///     Closes the connection.
     /// </summary>
     public async Task CloseAsync()
     {
         await CloseInternalAsync();
     }
 
-    public void Dispose()
-    {
-        if (!_disposed)
-        {
-            _disposed = true;
-            _disposeCts.Cancel();
-            CloseInternalAsync().GetAwaiter().GetResult();
-            _disposeCts.Dispose();
-            _stateLock.Dispose();
-        }
-    }
-
-    private async Task PerformHandshakeAsync(CancellationToken cancellationToken)
+    async Task PerformHandshakeAsync(CancellationToken cancellationToken)
     {
         await SetStateAsync(AdnlClientState.Handshaking);
 
         // Generate ephemeral keys
-        _keys = new AdnlKeys(_peerPublicKey);
+        keys = new AdnlKeys(peerPublicKey);
 
         // Generate AES parameters
-        var aesParams = new AdnlAesParams();
+        AdnlAesParams aesParams = new();
 
         // Compute handshake packet
         // Key = shared_secret[0..16] + aesParams.Hash[16..32]
         // Nonce = aesParams.Hash[0..4] + shared_secret[20..32]
-        var sharedSecret = _keys.SharedSecret;
-        var paramsHash = aesParams.Hash;
+        byte[] sharedSecret = keys.SharedSecret;
+        byte[] paramsHash = aesParams.Hash;
 
         byte[] key = new byte[32];
         Array.Copy(sharedSecret, 0, key, 0, 16);
@@ -230,68 +228,66 @@ public sealed class AdnlClient : IDisposable
         Array.Copy(sharedSecret, 20, nonce, 4, 12);
 
         // Encrypt AES parameters
-        using var handshakeCipher = new AdnlCipher(key, nonce);
-        var encryptedParams = handshakeCipher.Process(aesParams.Bytes);
+        using AdnlCipher handshakeCipher = new(key, nonce);
+        byte[] encryptedParams = handshakeCipher.Process(aesParams.Bytes);
 
         // Build handshake packet
         // peer_address(32) + client_public_key(32) + params_hash(32) + encrypted_params(160)
-        var peerAddress = new AdnlAddress(_peerPublicKey);
-        var handshake = new byte[256];
+        AdnlAddress peerAddress = new(peerPublicKey);
+        byte[] handshake = new byte[256];
         int offset = 0;
 
         Array.Copy(peerAddress.Hash, 0, handshake, offset, 32);
         offset += 32;
-        Array.Copy(_keys.PublicKey, 0, handshake, offset, 32);
+        Array.Copy(keys.PublicKey, 0, handshake, offset, 32);
         offset += 32;
         Array.Copy(paramsHash, 0, handshake, offset, 32);
         offset += 32;
         Array.Copy(encryptedParams, 0, handshake, offset, 160);
 
         // Send handshake
-        if (_networkStream == null)
+        if (networkStream == null)
             throw new InvalidOperationException("Network stream not available");
 
-        await _networkStream.WriteAsync(handshake, cancellationToken);
+        await networkStream.WriteAsync(handshake, cancellationToken);
 
         // Setup ciphers for communication
-        _encryptCipher = new AdnlCipher(aesParams.TxKey, aesParams.TxNonce);
-        _decryptCipher = new AdnlCipher(aesParams.RxKey, aesParams.RxNonce);
+        encryptCipher = new AdnlCipher(aesParams.TxKey, aesParams.TxNonce);
+        decryptCipher = new AdnlCipher(aesParams.RxKey, aesParams.RxNonce);
 
         // Wait for handshake response (empty packet)
-        var responseBuffer = new byte[AdnlPacket.MinimumSize];
-        int read = await _networkStream.ReadAsync(responseBuffer, cancellationToken);
+        byte[] responseBuffer = new byte[AdnlPacket.MinimumSize];
+        int read = await networkStream.ReadAsync(responseBuffer, cancellationToken);
 
         if (read == 0)
             throw new IOException("Server closed connection during handshake");
 
         // Decrypt and verify
-        _decryptCipher.ProcessInPlace(responseBuffer.AsSpan(0, read));
-        var responsePacket = AdnlPacket.TryParse(responseBuffer[0..read]);
+        decryptCipher.ProcessInPlace(responseBuffer.AsSpan(0, read));
+        AdnlPacket? responsePacket = AdnlPacket.TryParse(responseBuffer[..read]);
 
         if (responsePacket == null || responsePacket.Payload.Length != 0)
             throw new InvalidOperationException("Invalid handshake response");
     }
 
-    private async Task ReceiveLoopAsync(CancellationToken cancellationToken)
+    async Task ReceiveLoopAsync(CancellationToken cancellationToken)
     {
-        var buffer = new List<byte>();
-        var tempBuffer = new byte[4096];
+        List<byte> buffer = [];
+        byte[] tempBuffer = new byte[4096];
 
         try
         {
-            while (!cancellationToken.IsCancellationRequested && _networkStream != null)
+            while (!cancellationToken.IsCancellationRequested && networkStream != null)
             {
-                int read = await _networkStream.ReadAsync(tempBuffer, cancellationToken);
+                int read = await networkStream.ReadAsync(tempBuffer, cancellationToken);
                 if (read == 0)
-                {
                     // Connection closed
                     break;
-                }
 
                 // Decrypt
-                if (_decryptCipher != null)
+                if (decryptCipher != null)
                 {
-                    var decrypted = _decryptCipher.Process(tempBuffer[0..read]);
+                    byte[] decrypted = decryptCipher.Process(tempBuffer[..read]);
                     buffer.AddRange(decrypted);
                 }
 
@@ -309,13 +305,13 @@ public sealed class AdnlClient : IDisposable
                         break; // Wait for more data
 
                     // Extract packet
-                    var packetBytes = buffer.GetRange(0, totalSize).ToArray();
+                    byte[] packetBytes = buffer.GetRange(0, totalSize).ToArray();
                     buffer.RemoveRange(0, totalSize);
 
                     // Parse and emit
                     try
                     {
-                        var packet = AdnlPacket.Parse(packetBytes);
+                        AdnlPacket packet = AdnlPacket.Parse(packetBytes);
                         DataReceived?.Invoke(packet.Payload);
                     }
                     catch (Exception ex)
@@ -335,48 +331,47 @@ public sealed class AdnlClient : IDisposable
         }
     }
 
-    private async Task CloseInternalAsync()
+    async Task CloseInternalAsync()
     {
-        await _stateLock.WaitAsync();
+        await stateLock.WaitAsync();
         try
         {
-            if (_state == AdnlClientState.Closed || _state == AdnlClientState.Closing)
+            if (state == AdnlClientState.Closed || state == AdnlClientState.Closing)
                 return;
 
-            _state = AdnlClientState.Closing;
+            state = AdnlClientState.Closing;
 
-            _encryptCipher?.Dispose();
-            _decryptCipher?.Dispose();
-            _networkStream?.Dispose();
-            _tcpClient?.Dispose();
+            encryptCipher?.Dispose();
+            decryptCipher?.Dispose();
+            networkStream?.Dispose();
+            tcpClient?.Dispose();
 
-            _encryptCipher = null;
-            _decryptCipher = null;
-            _networkStream = null;
-            _tcpClient = null;
-            _keys = null;
+            encryptCipher = null;
+            decryptCipher = null;
+            networkStream = null;
+            tcpClient = null;
+            keys = null;
 
-            _state = AdnlClientState.Closed;
+            state = AdnlClientState.Closed;
         }
         finally
         {
-            _stateLock.Release();
+            stateLock.Release();
         }
 
         Closed?.Invoke();
     }
 
-    private async Task SetStateAsync(AdnlClientState newState)
+    async Task SetStateAsync(AdnlClientState newState)
     {
-        await _stateLock.WaitAsync();
+        await stateLock.WaitAsync();
         try
         {
-            _state = newState;
+            state = newState;
         }
         finally
         {
-            _stateLock.Release();
+            stateLock.Release();
         }
     }
 }
-

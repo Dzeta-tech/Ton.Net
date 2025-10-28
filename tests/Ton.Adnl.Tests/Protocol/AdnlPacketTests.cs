@@ -1,6 +1,5 @@
 using Ton.Adnl.Crypto;
 using Ton.Adnl.Protocol;
-using Xunit;
 
 namespace Ton.Adnl.Tests.Protocol;
 
@@ -9,8 +8,8 @@ public class AdnlPacketTests
     [Fact]
     public void Constructor_WithValidPayload_ShouldSucceed()
     {
-        var payload = "Hello, ADNL!"u8.ToArray();
-        var packet = new AdnlPacket(payload);
+        byte[] payload = "Hello, ADNL!"u8.ToArray();
+        AdnlPacket packet = new(payload);
 
         Assert.NotNull(packet);
         Assert.Equal(payload, packet.Payload);
@@ -26,16 +25,16 @@ public class AdnlPacketTests
     [Fact]
     public void Constructor_WithEmptyPayload_ShouldSucceed()
     {
-        var packet = new AdnlPacket(Array.Empty<byte>());
+        AdnlPacket packet = new([]);
         Assert.Empty(packet.Payload);
     }
 
     [Fact]
     public void Constructor_WithCustomNonce_ShouldUseProvidedNonce()
     {
-        var payload = "Hello"u8.ToArray();
-        var nonce = AdnlKeys.GenerateRandomBytes(32);
-        var packet = new AdnlPacket(payload, nonce);
+        byte[] payload = "Hello"u8.ToArray();
+        byte[] nonce = AdnlKeys.GenerateRandomBytes(32);
+        AdnlPacket packet = new(payload, nonce);
 
         Assert.Equal(nonce, packet.Nonce);
     }
@@ -43,7 +42,7 @@ public class AdnlPacketTests
     [Fact]
     public void Constructor_WithInvalidNonceLength_ShouldThrow()
     {
-        var payload = "Hello"u8.ToArray();
+        byte[] payload = "Hello"u8.ToArray();
         Assert.Throws<ArgumentException>(() => new AdnlPacket(payload, new byte[31]));
         Assert.Throws<ArgumentException>(() => new AdnlPacket(payload, new byte[33]));
     }
@@ -51,8 +50,8 @@ public class AdnlPacketTests
     [Fact]
     public void Length_ShouldBeCorrect()
     {
-        var payload = "Hello"u8.ToArray();
-        var packet = new AdnlPacket(payload);
+        byte[] payload = "Hello"u8.ToArray();
+        AdnlPacket packet = new(payload);
 
         // Length = 4 (size) + 32 (nonce) + payload.Length + 32 (hash)
         int expectedLength = 4 + 32 + payload.Length + 32;
@@ -62,9 +61,9 @@ public class AdnlPacketTests
     [Fact]
     public void ToBytes_ShouldSerializeCorrectly()
     {
-        var payload = "Hello"u8.ToArray();
-        var packet = new AdnlPacket(payload);
-        var bytes = packet.ToBytes();
+        byte[] payload = "Hello"u8.ToArray();
+        AdnlPacket packet = new(payload);
+        byte[] bytes = packet.ToBytes();
 
         // Check length
         Assert.Equal(packet.Length, bytes.Length);
@@ -77,11 +76,11 @@ public class AdnlPacketTests
     [Fact]
     public void ToBytes_ShouldCacheResult()
     {
-        var payload = "Hello"u8.ToArray();
-        var packet = new AdnlPacket(payload);
+        byte[] payload = "Hello"u8.ToArray();
+        AdnlPacket packet = new(payload);
 
-        var bytes1 = packet.ToBytes();
-        var bytes2 = packet.ToBytes();
+        byte[] bytes1 = packet.ToBytes();
+        byte[] bytes2 = packet.ToBytes();
 
         // Should return the same cached instance
         Assert.Same(bytes1, bytes2);
@@ -90,11 +89,11 @@ public class AdnlPacketTests
     [Fact]
     public void TryParse_WithValidPacket_ShouldSucceed()
     {
-        var payload = "Hello, ADNL!"u8.ToArray();
-        var originalPacket = new AdnlPacket(payload);
-        var bytes = originalPacket.ToBytes();
+        byte[] payload = "Hello, ADNL!"u8.ToArray();
+        AdnlPacket originalPacket = new(payload);
+        byte[] bytes = originalPacket.ToBytes();
 
-        var parsedPacket = AdnlPacket.TryParse(bytes);
+        AdnlPacket? parsedPacket = AdnlPacket.TryParse(bytes);
 
         Assert.NotNull(parsedPacket);
         Assert.Equal(payload, parsedPacket.Payload);
@@ -104,8 +103,8 @@ public class AdnlPacketTests
     [Fact]
     public void TryParse_WithInsufficientData_ShouldReturnNull()
     {
-        var data = new byte[3]; // Less than 4 bytes
-        var packet = AdnlPacket.TryParse(data);
+        byte[] data = new byte[3]; // Less than 4 bytes
+        AdnlPacket? packet = AdnlPacket.TryParse(data);
 
         Assert.Null(packet);
     }
@@ -113,13 +112,13 @@ public class AdnlPacketTests
     [Fact]
     public void TryParse_WithIncompletePacket_ShouldReturnNull()
     {
-        var payload = "Hello"u8.ToArray();
-        var packet = new AdnlPacket(payload);
-        var bytes = packet.ToBytes();
+        byte[] payload = "Hello"u8.ToArray();
+        AdnlPacket packet = new(payload);
+        byte[] bytes = packet.ToBytes();
 
         // Take only first half
-        var incompleteData = bytes[..(bytes.Length / 2)];
-        var parsedPacket = AdnlPacket.TryParse(incompleteData);
+        byte[] incompleteData = bytes[..(bytes.Length / 2)];
+        AdnlPacket? parsedPacket = AdnlPacket.TryParse(incompleteData);
 
         Assert.Null(parsedPacket);
     }
@@ -127,9 +126,9 @@ public class AdnlPacketTests
     [Fact]
     public void TryParse_WithCorruptedHash_ShouldThrow()
     {
-        var payload = "Hello"u8.ToArray();
-        var packet = new AdnlPacket(payload);
-        var bytes = packet.ToBytes();
+        byte[] payload = "Hello"u8.ToArray();
+        AdnlPacket packet = new(payload);
+        byte[] bytes = packet.ToBytes();
 
         // Corrupt the hash (last 32 bytes)
         bytes[^1] ^= 0xFF;
@@ -146,11 +145,11 @@ public class AdnlPacketTests
     [Fact]
     public void Parse_WithValidPacket_ShouldSucceed()
     {
-        var payload = "Hello"u8.ToArray();
-        var originalPacket = new AdnlPacket(payload);
-        var bytes = originalPacket.ToBytes();
+        byte[] payload = "Hello"u8.ToArray();
+        AdnlPacket originalPacket = new(payload);
+        byte[] bytes = originalPacket.ToBytes();
 
-        var parsedPacket = AdnlPacket.Parse(bytes);
+        AdnlPacket parsedPacket = AdnlPacket.Parse(bytes);
 
         Assert.NotNull(parsedPacket);
         Assert.Equal(payload, parsedPacket.Payload);
@@ -159,19 +158,19 @@ public class AdnlPacketTests
     [Fact]
     public void Parse_WithInsufficientData_ShouldThrow()
     {
-        var data = new byte[3];
+        byte[] data = new byte[3];
         Assert.Throws<InvalidOperationException>(() => AdnlPacket.Parse(data));
     }
 
     [Fact]
     public void SerializeDeserialize_ShouldRoundTrip()
     {
-        var payload = "Test payload with special chars: 你好, мир!"u8.ToArray();
-        var nonce = AdnlKeys.GenerateRandomBytes(32);
-        var originalPacket = new AdnlPacket(payload, nonce);
+        byte[] payload = "Test payload with special chars: 你好, мир!"u8.ToArray();
+        byte[] nonce = AdnlKeys.GenerateRandomBytes(32);
+        AdnlPacket originalPacket = new(payload, nonce);
 
-        var bytes = originalPacket.ToBytes();
-        var parsedPacket = AdnlPacket.Parse(bytes);
+        byte[] bytes = originalPacket.ToBytes();
+        AdnlPacket parsedPacket = AdnlPacket.Parse(bytes);
 
         Assert.Equal(originalPacket.Payload, parsedPacket.Payload);
         Assert.Equal(originalPacket.Nonce, parsedPacket.Nonce);
@@ -181,9 +180,9 @@ public class AdnlPacketTests
     [Fact]
     public void IsComplete_WithCompletePacket_ShouldReturnTrue()
     {
-        var payload = "Hello"u8.ToArray();
-        var packet = new AdnlPacket(payload);
-        var bytes = packet.ToBytes();
+        byte[] payload = "Hello"u8.ToArray();
+        AdnlPacket packet = new(payload);
+        byte[] bytes = packet.ToBytes();
 
         Assert.True(AdnlPacket.IsComplete(bytes));
     }
@@ -191,19 +190,19 @@ public class AdnlPacketTests
     [Fact]
     public void IsComplete_WithIncompletePacket_ShouldReturnFalse()
     {
-        var payload = "Hello"u8.ToArray();
-        var packet = new AdnlPacket(payload);
-        var bytes = packet.ToBytes();
+        byte[] payload = "Hello"u8.ToArray();
+        AdnlPacket packet = new(payload);
+        byte[] bytes = packet.ToBytes();
 
         // Take only half
-        var incompleteData = bytes[..(bytes.Length / 2)];
+        byte[] incompleteData = bytes[..(bytes.Length / 2)];
         Assert.False(AdnlPacket.IsComplete(incompleteData));
     }
 
     [Fact]
     public void IsComplete_WithInsufficientData_ShouldReturnFalse()
     {
-        var data = new byte[3];
+        byte[] data = new byte[3];
         Assert.False(AdnlPacket.IsComplete(data));
     }
 
@@ -216,15 +215,15 @@ public class AdnlPacketTests
     [Fact]
     public void IsComplete_WithEmptyData_ShouldReturnFalse()
     {
-        Assert.False(AdnlPacket.IsComplete(Array.Empty<byte>()));
+        Assert.False(AdnlPacket.IsComplete([]));
     }
 
     [Fact]
     public void GetPacketLength_ShouldReturnCorrectLength()
     {
-        var payload = "Hello"u8.ToArray();
-        var packet = new AdnlPacket(payload);
-        var bytes = packet.ToBytes();
+        byte[] payload = "Hello"u8.ToArray();
+        AdnlPacket packet = new(payload);
+        byte[] bytes = packet.ToBytes();
 
         int length = AdnlPacket.GetPacketLength(bytes);
         Assert.Equal(packet.Length, length);
@@ -234,7 +233,7 @@ public class AdnlPacketTests
     [Fact]
     public void GetPacketLength_WithInsufficientData_ShouldThrow()
     {
-        var data = new byte[3];
+        byte[] data = new byte[3];
         Assert.Throws<ArgumentException>(() => AdnlPacket.GetPacketLength(data));
     }
 
@@ -253,32 +252,32 @@ public class AdnlPacketTests
     [Fact]
     public void EmptyPayloadPacket_ShouldHaveMinimumSize()
     {
-        var packet = new AdnlPacket(Array.Empty<byte>());
+        AdnlPacket packet = new([]);
         Assert.Equal(AdnlPacket.MinimumSize, packet.Length);
     }
 
     [Fact]
     public void LargePayload_ShouldSerializeCorrectly()
     {
-        var payload = AdnlKeys.GenerateRandomBytes(10000);
-        var packet = new AdnlPacket(payload);
-        var bytes = packet.ToBytes();
+        byte[] payload = AdnlKeys.GenerateRandomBytes(10000);
+        AdnlPacket packet = new(payload);
+        byte[] bytes = packet.ToBytes();
 
-        var parsedPacket = AdnlPacket.Parse(bytes);
+        AdnlPacket parsedPacket = AdnlPacket.Parse(bytes);
         Assert.Equal(payload, parsedPacket.Payload);
     }
 
     [Fact]
     public void DifferentPayloads_ShouldProduceDifferentPackets()
     {
-        var payload1 = "Hello"u8.ToArray();
-        var payload2 = "World"u8.ToArray();
+        byte[] payload1 = "Hello"u8.ToArray();
+        byte[] payload2 = "World"u8.ToArray();
 
-        var packet1 = new AdnlPacket(payload1);
-        var packet2 = new AdnlPacket(payload2);
+        AdnlPacket packet1 = new(payload1);
+        AdnlPacket packet2 = new(payload2);
 
-        var bytes1 = packet1.ToBytes();
-        var bytes2 = packet2.ToBytes();
+        byte[] bytes1 = packet1.ToBytes();
+        byte[] bytes2 = packet2.ToBytes();
 
         Assert.NotEqual(bytes1, bytes2);
     }
@@ -286,15 +285,15 @@ public class AdnlPacketTests
     [Fact]
     public void SamePayloadDifferentNonce_ShouldProduceDifferentPackets()
     {
-        var payload = "Hello"u8.ToArray();
-        var nonce1 = AdnlKeys.GenerateRandomBytes(32);
-        var nonce2 = AdnlKeys.GenerateRandomBytes(32);
+        byte[] payload = "Hello"u8.ToArray();
+        byte[] nonce1 = AdnlKeys.GenerateRandomBytes(32);
+        byte[] nonce2 = AdnlKeys.GenerateRandomBytes(32);
 
-        var packet1 = new AdnlPacket(payload, nonce1);
-        var packet2 = new AdnlPacket(payload, nonce2);
+        AdnlPacket packet1 = new(payload, nonce1);
+        AdnlPacket packet2 = new(payload, nonce2);
 
-        var bytes1 = packet1.ToBytes();
-        var bytes2 = packet2.ToBytes();
+        byte[] bytes1 = packet1.ToBytes();
+        byte[] bytes2 = packet2.ToBytes();
 
         Assert.NotEqual(bytes1, bytes2);
     }
@@ -307,12 +306,11 @@ public class AdnlPacketTests
     [InlineData(1000)]
     public void VariousPayloadSizes_ShouldRoundTrip(int size)
     {
-        var payload = size > 0 ? AdnlKeys.GenerateRandomBytes(size) : Array.Empty<byte>();
-        var originalPacket = new AdnlPacket(payload);
-        var bytes = originalPacket.ToBytes();
+        byte[] payload = size > 0 ? AdnlKeys.GenerateRandomBytes(size) : [];
+        AdnlPacket originalPacket = new(payload);
+        byte[] bytes = originalPacket.ToBytes();
 
-        var parsedPacket = AdnlPacket.Parse(bytes);
+        AdnlPacket parsedPacket = AdnlPacket.Parse(bytes);
         Assert.Equal(payload, parsedPacket.Payload);
     }
 }
-

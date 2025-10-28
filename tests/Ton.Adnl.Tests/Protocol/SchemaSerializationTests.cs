@@ -1,7 +1,6 @@
 using Ton.Adnl.Crypto;
 using Ton.Adnl.Protocol;
 using Ton.Adnl.TL;
-using Xunit;
 
 namespace Ton.Adnl.Tests.Protocol;
 
@@ -10,18 +9,18 @@ public class SchemaSerializationTests
     [Fact]
     public void TonNodeBlockId_ShouldSerializeAndDeserialize()
     {
-        var original = new TonNodeBlockId(
-            workchain: -1,
-            shard: -9223372036854775808,
-            seqno: 12345
+        TonNodeBlockId original = new(
+            -1,
+            -9223372036854775808,
+            12345
         );
 
-        var writer = new TLWriteBuffer();
+        TLWriteBuffer writer = new();
         original.WriteTo(writer);
-        var bytes = writer.Build();
+        byte[] bytes = writer.Build();
 
-        var reader = new TLReadBuffer(bytes);
-        var deserialized = TonNodeBlockId.ReadFrom(reader);
+        TLReadBuffer reader = new(bytes);
+        TonNodeBlockId deserialized = TonNodeBlockId.ReadFrom(reader);
 
         Assert.Equal(original.Workchain, deserialized.Workchain);
         Assert.Equal(original.Shard, deserialized.Shard);
@@ -31,23 +30,23 @@ public class SchemaSerializationTests
     [Fact]
     public void TonNodeBlockIdExt_ShouldSerializeAndDeserialize()
     {
-        var rootHash = AdnlKeys.GenerateRandomBytes(32);
-        var fileHash = AdnlKeys.GenerateRandomBytes(32);
+        byte[] rootHash = AdnlKeys.GenerateRandomBytes(32);
+        byte[] fileHash = AdnlKeys.GenerateRandomBytes(32);
 
-        var original = new TonNodeBlockIdExt(
-            workchain: 0,
-            shard: 1000000000,
-            seqno: 54321,
-            rootHash: rootHash,
-            fileHash: fileHash
+        TonNodeBlockIdExt original = new(
+            0,
+            1000000000,
+            54321,
+            rootHash,
+            fileHash
         );
 
-        var writer = new TLWriteBuffer();
+        TLWriteBuffer writer = new();
         original.WriteTo(writer);
-        var bytes = writer.Build();
+        byte[] bytes = writer.Build();
 
-        var reader = new TLReadBuffer(bytes);
-        var deserialized = TonNodeBlockIdExt.ReadFrom(reader);
+        TLReadBuffer reader = new(bytes);
+        TonNodeBlockIdExt deserialized = TonNodeBlockIdExt.ReadFrom(reader);
 
         Assert.Equal(original.Workchain, deserialized.Workchain);
         Assert.Equal(original.Shard, deserialized.Shard);
@@ -59,21 +58,21 @@ public class SchemaSerializationTests
     [Fact]
     public void TonNodeZeroStateIdExt_ShouldSerializeAndDeserialize()
     {
-        var rootHash = AdnlKeys.GenerateRandomBytes(32);
-        var fileHash = AdnlKeys.GenerateRandomBytes(32);
+        byte[] rootHash = AdnlKeys.GenerateRandomBytes(32);
+        byte[] fileHash = AdnlKeys.GenerateRandomBytes(32);
 
-        var original = new TonNodeZeroStateIdExt(
-            workchain: -1,
-            rootHash: rootHash,
-            fileHash: fileHash
+        TonNodeZeroStateIdExt original = new(
+            -1,
+            rootHash,
+            fileHash
         );
 
-        var writer = new TLWriteBuffer();
+        TLWriteBuffer writer = new();
         original.WriteTo(writer);
-        var bytes = writer.Build();
+        byte[] bytes = writer.Build();
 
-        var reader = new TLReadBuffer(bytes);
-        var deserialized = TonNodeZeroStateIdExt.ReadFrom(reader);
+        TLReadBuffer reader = new(bytes);
+        TonNodeZeroStateIdExt deserialized = TonNodeZeroStateIdExt.ReadFrom(reader);
 
         Assert.Equal(original.Workchain, deserialized.Workchain);
         Assert.Equal(original.RootHash, deserialized.RootHash);
@@ -83,20 +82,20 @@ public class SchemaSerializationTests
     [Fact]
     public void LiteServerAccountId_ShouldSerializeAndDeserialize()
     {
-        var accountId = AdnlKeys.GenerateRandomBytes(32);
+        byte[] accountId = AdnlKeys.GenerateRandomBytes(32);
 
-        var original = new LiteServerAccountId
+        LiteServerAccountId original = new()
         {
             Workchain = 0,
             Id = accountId
         };
 
-        var writer = new TLWriteBuffer();
+        TLWriteBuffer writer = new();
         original.WriteTo(writer);
-        var bytes = writer.Build();
+        byte[] bytes = writer.Build();
 
-        var reader = new TLReadBuffer(bytes);
-        var deserialized = LiteServerAccountId.ReadFrom(reader);
+        TLReadBuffer reader = new(bytes);
+        LiteServerAccountId? deserialized = LiteServerAccountId.ReadFrom(reader);
 
         Assert.Equal(original.Workchain, deserialized.Workchain);
         Assert.Equal(original.Id, deserialized.Id);
@@ -105,33 +104,33 @@ public class SchemaSerializationTests
     [Fact]
     public void LiteServerMasterchainInfo_ShouldSerializeAndDeserialize()
     {
-        var last = new TonNodeBlockIdExt(
-            workchain: -1,
-            shard: -9223372036854775808,
-            seqno: 100,
-            rootHash: AdnlKeys.GenerateRandomBytes(32),
-            fileHash: AdnlKeys.GenerateRandomBytes(32)
+        TonNodeBlockIdExt last = new(
+            -1,
+            -9223372036854775808,
+            100,
+            AdnlKeys.GenerateRandomBytes(32),
+            AdnlKeys.GenerateRandomBytes(32)
         );
 
-        var init = new TonNodeZeroStateIdExt(
-            workchain: -1,
-            rootHash: AdnlKeys.GenerateRandomBytes(32),
-            fileHash: AdnlKeys.GenerateRandomBytes(32)
+        TonNodeZeroStateIdExt init = new(
+            -1,
+            AdnlKeys.GenerateRandomBytes(32),
+            AdnlKeys.GenerateRandomBytes(32)
         );
 
-        var original = new LiteServerMasterchainInfo
+        LiteServerMasterchainInfo original = new()
         {
             Last = last,
             StateRootHash = AdnlKeys.GenerateRandomBytes(32),
             Init = init
         };
 
-        var writer = new TLWriteBuffer();
+        TLWriteBuffer writer = new();
         original.WriteTo(writer);
-        var bytes = writer.Build();
+        byte[] bytes = writer.Build();
 
-        var reader = new TLReadBuffer(bytes);
-        var deserialized = LiteServerMasterchainInfo.ReadFrom(reader);
+        TLReadBuffer reader = new(bytes);
+        LiteServerMasterchainInfo? deserialized = LiteServerMasterchainInfo.ReadFrom(reader);
 
         Assert.Equal(original.Last.Seqno, deserialized.Last.Seqno);
         Assert.Equal(original.StateRootHash, deserialized.StateRootHash);
@@ -141,21 +140,21 @@ public class SchemaSerializationTests
     [Fact]
     public void LiteServerMasterchainInfoExt_ShouldSerializeAndDeserialize()
     {
-        var last = new TonNodeBlockIdExt(
-            workchain: -1,
-            shard: -9223372036854775808,
-            seqno: 200,
-            rootHash: AdnlKeys.GenerateRandomBytes(32),
-            fileHash: AdnlKeys.GenerateRandomBytes(32)
+        TonNodeBlockIdExt last = new(
+            -1,
+            -9223372036854775808,
+            200,
+            AdnlKeys.GenerateRandomBytes(32),
+            AdnlKeys.GenerateRandomBytes(32)
         );
 
-        var init = new TonNodeZeroStateIdExt(
-            workchain: -1,
-            rootHash: AdnlKeys.GenerateRandomBytes(32),
-            fileHash: AdnlKeys.GenerateRandomBytes(32)
+        TonNodeZeroStateIdExt init = new(
+            -1,
+            AdnlKeys.GenerateRandomBytes(32),
+            AdnlKeys.GenerateRandomBytes(32)
         );
 
-        var original = new LiteServerMasterchainInfoExt
+        LiteServerMasterchainInfoExt original = new()
         {
             Mode = 0,
             Version = 1,
@@ -167,12 +166,12 @@ public class SchemaSerializationTests
             Init = init
         };
 
-        var writer = new TLWriteBuffer();
+        TLWriteBuffer writer = new();
         original.WriteTo(writer);
-        var bytes = writer.Build();
+        byte[] bytes = writer.Build();
 
-        var reader = new TLReadBuffer(bytes);
-        var deserialized = LiteServerMasterchainInfoExt.ReadFrom(reader);
+        TLReadBuffer reader = new(bytes);
+        LiteServerMasterchainInfoExt? deserialized = LiteServerMasterchainInfoExt.ReadFrom(reader);
 
         Assert.Equal(original.Mode, deserialized.Mode);
         Assert.Equal(original.Version, deserialized.Version);
@@ -184,17 +183,17 @@ public class SchemaSerializationTests
     [Fact]
     public void LiteServerCurrentTime_ShouldSerializeAndDeserialize()
     {
-        var original = new LiteServerCurrentTime
+        LiteServerCurrentTime original = new()
         {
             Now = 1234567890
         };
 
-        var writer = new TLWriteBuffer();
+        TLWriteBuffer writer = new();
         original.WriteTo(writer);
-        var bytes = writer.Build();
+        byte[] bytes = writer.Build();
 
-        var reader = new TLReadBuffer(bytes);
-        var deserialized = LiteServerCurrentTime.ReadFrom(reader);
+        TLReadBuffer reader = new(bytes);
+        LiteServerCurrentTime? deserialized = LiteServerCurrentTime.ReadFrom(reader);
 
         Assert.Equal(original.Now, deserialized.Now);
     }
@@ -202,7 +201,7 @@ public class SchemaSerializationTests
     [Fact]
     public void LiteServerVersion_ShouldSerializeAndDeserialize()
     {
-        var original = new LiteServerVersion
+        LiteServerVersion original = new()
         {
             Mode = 1,
             Version = 2,
@@ -210,12 +209,12 @@ public class SchemaSerializationTests
             Now = 1234567890
         };
 
-        var writer = new TLWriteBuffer();
+        TLWriteBuffer writer = new();
         original.WriteTo(writer);
-        var bytes = writer.Build();
+        byte[] bytes = writer.Build();
 
-        var reader = new TLReadBuffer(bytes);
-        var deserialized = LiteServerVersion.ReadFrom(reader);
+        TLReadBuffer reader = new(bytes);
+        LiteServerVersion? deserialized = LiteServerVersion.ReadFrom(reader);
 
         Assert.Equal(original.Mode, deserialized.Mode);
         Assert.Equal(original.Version, deserialized.Version);
@@ -226,28 +225,28 @@ public class SchemaSerializationTests
     [Fact]
     public void LiteServerBlockData_ShouldSerializeAndDeserialize()
     {
-        var blockId = new TonNodeBlockIdExt(
-            workchain: 0,
-            shard: 1000,
-            seqno: 100,
-            rootHash: AdnlKeys.GenerateRandomBytes(32),
-            fileHash: AdnlKeys.GenerateRandomBytes(32)
+        TonNodeBlockIdExt blockId = new(
+            0,
+            1000,
+            100,
+            AdnlKeys.GenerateRandomBytes(32),
+            AdnlKeys.GenerateRandomBytes(32)
         );
 
-        var data = AdnlKeys.GenerateRandomBytes(256);
+        byte[] data = AdnlKeys.GenerateRandomBytes(256);
 
-        var original = new LiteServerBlockData
+        LiteServerBlockData original = new()
         {
             Id = blockId,
             Data = data
         };
 
-        var writer = new TLWriteBuffer();
+        TLWriteBuffer writer = new();
         original.WriteTo(writer);
-        var bytes = writer.Build();
+        byte[] bytes = writer.Build();
 
-        var reader = new TLReadBuffer(bytes);
-        var deserialized = LiteServerBlockData.ReadFrom(reader);
+        TLReadBuffer reader = new(bytes);
+        LiteServerBlockData? deserialized = LiteServerBlockData.ReadFrom(reader);
 
         Assert.Equal(original.Id.Seqno, deserialized.Id.Seqno);
         Assert.Equal(original.Data, deserialized.Data);
@@ -256,18 +255,18 @@ public class SchemaSerializationTests
     [Fact]
     public void LiteServerError_ShouldSerializeAndDeserialize()
     {
-        var original = new LiteServerError
+        LiteServerError original = new()
         {
             Code = 404,
             Message = "Not found"
         };
 
-        var writer = new TLWriteBuffer();
+        TLWriteBuffer writer = new();
         original.WriteTo(writer);
-        var bytes = writer.Build();
+        byte[] bytes = writer.Build();
 
-        var reader = new TLReadBuffer(bytes);
-        var deserialized = LiteServerError.ReadFrom(reader);
+        TLReadBuffer reader = new(bytes);
+        LiteServerError? deserialized = LiteServerError.ReadFrom(reader);
 
         Assert.Equal(original.Code, deserialized.Code);
         Assert.Equal(original.Message, deserialized.Message);
@@ -276,18 +275,18 @@ public class SchemaSerializationTests
     [Fact]
     public void LiteServerTransactionId3_ShouldSerializeAndDeserialize()
     {
-        var original = new LiteServerTransactionId3
+        LiteServerTransactionId3 original = new()
         {
             Account = AdnlKeys.GenerateRandomBytes(32),
             Lt = 123456789L
         };
 
-        var writer = new TLWriteBuffer();
+        TLWriteBuffer writer = new();
         original.WriteTo(writer);
-        var bytes = writer.Build();
+        byte[] bytes = writer.Build();
 
-        var reader = new TLReadBuffer(bytes);
-        var deserialized = LiteServerTransactionId3.ReadFrom(reader);
+        TLReadBuffer reader = new(bytes);
+        LiteServerTransactionId3? deserialized = LiteServerTransactionId3.ReadFrom(reader);
 
         Assert.Equal(original.Account, deserialized.Account);
         Assert.Equal(original.Lt, deserialized.Lt);
@@ -321,4 +320,3 @@ public class SchemaSerializationTests
         Assert.False(typeof(LiteServerAccountId).IsValueType);
     }
 }
-

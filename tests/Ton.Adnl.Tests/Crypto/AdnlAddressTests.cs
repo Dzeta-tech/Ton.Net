@@ -1,5 +1,5 @@
 using Ton.Adnl.Crypto;
-using Xunit;
+using Ton.Crypto.Primitives;
 
 namespace Ton.Adnl.Tests.Crypto;
 
@@ -8,8 +8,8 @@ public class AdnlAddressTests
     [Fact]
     public void Constructor_WithValidPublicKey_ShouldSucceed()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var address = new AdnlAddress(publicKey);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlAddress address = new(publicKey);
 
         Assert.NotNull(address);
         Assert.Equal(32, address.Hash.Length);
@@ -31,9 +31,9 @@ public class AdnlAddressTests
     [Fact]
     public void Constructor_WithBase64PublicKey_ShouldSucceed()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var base64 = Convert.ToBase64String(publicKey);
-        var address = new AdnlAddress(base64);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        string base64 = Convert.ToBase64String(publicKey);
+        AdnlAddress address = new(base64);
 
         Assert.NotNull(address);
         Assert.Equal(32, address.Hash.Length);
@@ -55,9 +55,9 @@ public class AdnlAddressTests
     [Fact]
     public void Hash_ShouldBeSha256OfPublicKey()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var address = new AdnlAddress(publicKey);
-        var expectedHash = Ton.Crypto.Primitives.Sha256.Hash(publicKey);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlAddress address = new(publicKey);
+        byte[] expectedHash = Sha256.Hash(publicKey);
 
         Assert.Equal(expectedHash, address.Hash);
     }
@@ -65,11 +65,11 @@ public class AdnlAddressTests
     [Fact]
     public void Hash_ShouldReturnCopy()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var address = new AdnlAddress(publicKey);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlAddress address = new(publicKey);
 
-        var hash1 = address.Hash;
-        var hash2 = address.Hash;
+        byte[] hash1 = address.Hash;
+        byte[] hash2 = address.Hash;
 
         // Should return different instances (copies)
         Assert.NotSame(hash1, hash2);
@@ -79,23 +79,23 @@ public class AdnlAddressTests
     [Fact]
     public void ToHex_ShouldReturnLowercaseHexString()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var address = new AdnlAddress(publicKey);
-        var hex = address.ToHex();
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlAddress address = new(publicKey);
+        string hex = address.ToHex();
 
         Assert.Equal(64, hex.Length); // 32 bytes = 64 hex chars
-        Assert.All(hex, c => Assert.True(char.IsDigit(c) || (c >= 'a' && c <= 'f')));
+        Assert.All(hex, c => Assert.True(char.IsDigit(c) || c is >= 'a' and <= 'f'));
     }
 
     [Fact]
     public void ToBase64_ShouldReturnValidBase64String()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var address = new AdnlAddress(publicKey);
-        var base64 = address.ToBase64();
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlAddress address = new(publicKey);
+        string base64 = address.ToBase64();
 
         // Should be able to decode it
-        var decoded = Convert.FromBase64String(base64);
+        byte[] decoded = Convert.FromBase64String(base64);
         Assert.Equal(32, decoded.Length);
         Assert.Equal(address.Hash, decoded);
     }
@@ -103,8 +103,8 @@ public class AdnlAddressTests
     [Fact]
     public void ToString_ShouldReturnHexString()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var address = new AdnlAddress(publicKey);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlAddress address = new(publicKey);
 
         Assert.Equal(address.ToHex(), address.ToString());
     }
@@ -112,9 +112,9 @@ public class AdnlAddressTests
     [Fact]
     public void Equals_WithSamePublicKey_ShouldReturnTrue()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var address1 = new AdnlAddress(publicKey);
-        var address2 = new AdnlAddress(publicKey);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlAddress address1 = new(publicKey);
+        AdnlAddress address2 = new(publicKey);
 
         Assert.True(address1.Equals(address2));
         Assert.True(address1 == address2);
@@ -124,10 +124,10 @@ public class AdnlAddressTests
     [Fact]
     public void Equals_WithDifferentPublicKeys_ShouldReturnFalse()
     {
-        var publicKey1 = AdnlKeys.GenerateRandomBytes(32);
-        var publicKey2 = AdnlKeys.GenerateRandomBytes(32);
-        var address1 = new AdnlAddress(publicKey1);
-        var address2 = new AdnlAddress(publicKey2);
+        byte[] publicKey1 = AdnlKeys.GenerateRandomBytes(32);
+        byte[] publicKey2 = AdnlKeys.GenerateRandomBytes(32);
+        AdnlAddress address1 = new(publicKey1);
+        AdnlAddress address2 = new(publicKey2);
 
         Assert.False(address1.Equals(address2));
         Assert.False(address1 == address2);
@@ -137,8 +137,8 @@ public class AdnlAddressTests
     [Fact]
     public void Equals_WithNull_ShouldReturnFalse()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var address = new AdnlAddress(publicKey);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlAddress? address = new(publicKey);
 
         Assert.False(address.Equals(null));
         Assert.False(address == null);
@@ -148,8 +148,8 @@ public class AdnlAddressTests
     [Fact]
     public void Equals_WithSameInstance_ShouldReturnTrue()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var address = new AdnlAddress(publicKey);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlAddress address = new(publicKey);
 
         Assert.True(address.Equals(address));
         Assert.True(address == address);
@@ -158,9 +158,9 @@ public class AdnlAddressTests
     [Fact]
     public void GetHashCode_WithSamePublicKey_ShouldBeSame()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var address1 = new AdnlAddress(publicKey);
-        var address2 = new AdnlAddress(publicKey);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlAddress address1 = new(publicKey);
+        AdnlAddress address2 = new(publicKey);
 
         Assert.Equal(address1.GetHashCode(), address2.GetHashCode());
     }
@@ -168,10 +168,10 @@ public class AdnlAddressTests
     [Fact]
     public void GetHashCode_WithDifferentPublicKeys_ShouldBeDifferent()
     {
-        var publicKey1 = AdnlKeys.GenerateRandomBytes(32);
-        var publicKey2 = AdnlKeys.GenerateRandomBytes(32);
-        var address1 = new AdnlAddress(publicKey1);
-        var address2 = new AdnlAddress(publicKey2);
+        byte[] publicKey1 = AdnlKeys.GenerateRandomBytes(32);
+        byte[] publicKey2 = AdnlKeys.GenerateRandomBytes(32);
+        AdnlAddress address1 = new(publicKey1);
+        AdnlAddress address2 = new(publicKey2);
 
         // Hash codes might collide, but it's extremely unlikely with random keys
         Assert.NotEqual(address1.GetHashCode(), address2.GetHashCode());
@@ -180,13 +180,12 @@ public class AdnlAddressTests
     [Fact]
     public void Constructor_WithBase64AndBinary_ShouldProduceSameAddress()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var base64 = Convert.ToBase64String(publicKey);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        string base64 = Convert.ToBase64String(publicKey);
 
-        var address1 = new AdnlAddress(publicKey);
-        var address2 = new AdnlAddress(base64);
+        AdnlAddress address1 = new(publicKey);
+        AdnlAddress address2 = new(base64);
 
         Assert.Equal(address1, address2);
     }
 }
-

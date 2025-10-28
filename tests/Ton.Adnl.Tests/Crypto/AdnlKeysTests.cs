@@ -1,5 +1,4 @@
 using Ton.Adnl.Crypto;
-using Xunit;
 
 namespace Ton.Adnl.Tests.Crypto;
 
@@ -8,8 +7,8 @@ public class AdnlKeysTests
     [Fact]
     public void Constructor_WithValidPeerPublicKey_ShouldSucceed()
     {
-        var peerPublicKey = AdnlKeys.GenerateRandomBytes(32);
-        var keys = new AdnlKeys(peerPublicKey);
+        byte[] peerPublicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlKeys keys = new(peerPublicKey);
 
         Assert.NotNull(keys.PublicKey);
         Assert.Equal(32, keys.PublicKey.Length);
@@ -33,8 +32,8 @@ public class AdnlKeysTests
     [Fact]
     public void PublicKey_ShouldBe32Bytes()
     {
-        var peerPublicKey = AdnlKeys.GenerateRandomBytes(32);
-        var keys = new AdnlKeys(peerPublicKey);
+        byte[] peerPublicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlKeys keys = new(peerPublicKey);
 
         Assert.Equal(32, keys.PublicKey.Length);
     }
@@ -42,8 +41,8 @@ public class AdnlKeysTests
     [Fact]
     public void PrivateKey_ShouldBe64Bytes()
     {
-        var peerPublicKey = AdnlKeys.GenerateRandomBytes(32);
-        var keys = new AdnlKeys(peerPublicKey);
+        byte[] peerPublicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlKeys keys = new(peerPublicKey);
 
         Assert.Equal(64, keys.PrivateKey.Length);
     }
@@ -51,32 +50,32 @@ public class AdnlKeysTests
     [Fact]
     public void PrivateKey_ShouldContainPublicKeyInLastBytes()
     {
-        var peerPublicKey = AdnlKeys.GenerateRandomBytes(32);
-        var keys = new AdnlKeys(peerPublicKey);
+        byte[] peerPublicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlKeys keys = new(peerPublicKey);
 
         // Ed25519 private key format: 32-byte seed + 32-byte public key
-        var publicKeyFromPrivate = keys.PrivateKey[32..64];
+        byte[] publicKeyFromPrivate = keys.PrivateKey[32..64];
         Assert.Equal(keys.PublicKey, publicKeyFromPrivate);
     }
 
     [Fact]
     public void SharedSecret_ShouldBe32Bytes()
     {
-        var peerPublicKey = AdnlKeys.GenerateRandomBytes(32);
-        var keys = new AdnlKeys(peerPublicKey);
+        byte[] peerPublicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlKeys keys = new(peerPublicKey);
 
-        var sharedSecret = keys.SharedSecret;
+        byte[] sharedSecret = keys.SharedSecret;
         Assert.Equal(32, sharedSecret.Length);
     }
 
     [Fact]
     public void SharedSecret_ShouldBeCached()
     {
-        var peerPublicKey = AdnlKeys.GenerateRandomBytes(32);
-        var keys = new AdnlKeys(peerPublicKey);
+        byte[] peerPublicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlKeys keys = new(peerPublicKey);
 
-        var sharedSecret1 = keys.SharedSecret;
-        var sharedSecret2 = keys.SharedSecret;
+        byte[] sharedSecret1 = keys.SharedSecret;
+        byte[] sharedSecret2 = keys.SharedSecret;
 
         // Should return the same cached instance
         Assert.Same(sharedSecret1, sharedSecret2);
@@ -86,17 +85,17 @@ public class AdnlKeysTests
     public void SharedSecret_ShouldBeConsistent_BetweenTwoPeers()
     {
         // Generate two key pairs
-        var aliceKeys = new AdnlKeys(AdnlKeys.GenerateRandomBytes(32));
-        var bobKeys = new AdnlKeys(aliceKeys.PublicKey);
+        AdnlKeys aliceKeys = new(AdnlKeys.GenerateRandomBytes(32));
+        AdnlKeys bobKeys = new(aliceKeys.PublicKey);
 
         // Recreate Alice's keys with Bob's public key
-        var aliceKeysWithBob = new AdnlKeys(bobKeys.PublicKey);
+        AdnlKeys aliceKeysWithBob = new(bobKeys.PublicKey);
         // Use Alice's original key pair for computing shared secret
         // This is a simplified test - in reality, both would use the same keypairs
 
         // The shared secret computation should be deterministic for same inputs
-        var secret1 = aliceKeys.SharedSecret;
-        var secret2 = aliceKeys.SharedSecret;
+        byte[] secret1 = aliceKeys.SharedSecret;
+        byte[] secret2 = aliceKeys.SharedSecret;
 
         Assert.Equal(secret1, secret2);
     }
@@ -104,7 +103,7 @@ public class AdnlKeysTests
     [Fact]
     public void GenerateRandomBytes_WithValidCount_ShouldReturnCorrectLength()
     {
-        var bytes = AdnlKeys.GenerateRandomBytes(32);
+        byte[] bytes = AdnlKeys.GenerateRandomBytes(32);
         Assert.Equal(32, bytes.Length);
 
         bytes = AdnlKeys.GenerateRandomBytes(16);
@@ -129,8 +128,8 @@ public class AdnlKeysTests
     [Fact]
     public void GenerateRandomBytes_ShouldReturnDifferentValues()
     {
-        var bytes1 = AdnlKeys.GenerateRandomBytes(32);
-        var bytes2 = AdnlKeys.GenerateRandomBytes(32);
+        byte[] bytes1 = AdnlKeys.GenerateRandomBytes(32);
+        byte[] bytes2 = AdnlKeys.GenerateRandomBytes(32);
 
         // Extremely unlikely to be equal if truly random
         Assert.NotEqual(bytes1, bytes2);
@@ -139,11 +138,11 @@ public class AdnlKeysTests
     [Fact]
     public void Constructor_WithDifferentPeers_ShouldGenerateDifferentKeys()
     {
-        var peer1 = AdnlKeys.GenerateRandomBytes(32);
-        var peer2 = AdnlKeys.GenerateRandomBytes(32);
+        byte[] peer1 = AdnlKeys.GenerateRandomBytes(32);
+        byte[] peer2 = AdnlKeys.GenerateRandomBytes(32);
 
-        var keys1 = new AdnlKeys(peer1);
-        var keys2 = new AdnlKeys(peer2);
+        AdnlKeys keys1 = new(peer1);
+        AdnlKeys keys2 = new(peer2);
 
         // Each instance should generate unique ephemeral keys
         Assert.NotEqual(keys1.PublicKey, keys2.PublicKey);
@@ -153,10 +152,9 @@ public class AdnlKeysTests
     [Fact]
     public void PeerPublicKey_ShouldReturnOriginalValue()
     {
-        var peerPublicKey = AdnlKeys.GenerateRandomBytes(32);
-        var keys = new AdnlKeys(peerPublicKey);
+        byte[] peerPublicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlKeys keys = new(peerPublicKey);
 
         Assert.Equal(peerPublicKey, keys.PeerPublicKey);
     }
 }
-

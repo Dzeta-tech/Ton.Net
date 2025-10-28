@@ -1,6 +1,4 @@
-using Ton.Adnl;
 using Ton.Adnl.Crypto;
-using Xunit;
 
 namespace Ton.Adnl.Tests;
 
@@ -9,8 +7,8 @@ public class AdnlClientTests
     [Fact]
     public void Constructor_WithValidParameters_ShouldSucceed()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var client = new AdnlClient("127.0.0.1", 12345, publicKey);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlClient client = new("127.0.0.1", 12345, publicKey);
 
         Assert.NotNull(client);
         Assert.Equal(AdnlClientState.Closed, client.State);
@@ -19,21 +17,21 @@ public class AdnlClientTests
     [Fact]
     public void Constructor_WithNullHost_ShouldThrow()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
         Assert.Throws<ArgumentException>(() => new AdnlClient(null!, 12345, publicKey));
     }
 
     [Fact]
     public void Constructor_WithEmptyHost_ShouldThrow()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
         Assert.Throws<ArgumentException>(() => new AdnlClient("", 12345, publicKey));
     }
 
     [Fact]
     public void Constructor_WithInvalidPort_ShouldThrow()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
         Assert.Throws<ArgumentOutOfRangeException>(() => new AdnlClient("127.0.0.1", 0, publicKey));
         Assert.Throws<ArgumentOutOfRangeException>(() => new AdnlClient("127.0.0.1", -1, publicKey));
         Assert.Throws<ArgumentOutOfRangeException>(() => new AdnlClient("127.0.0.1", 65536, publicKey));
@@ -55,16 +53,16 @@ public class AdnlClientTests
     [Fact]
     public void Constructor_WithNegativeReconnectTimeout_ShouldThrow()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        Assert.Throws<ArgumentOutOfRangeException>(() => 
-            new AdnlClient("127.0.0.1", 12345, publicKey, reconnectTimeoutMs: -1));
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new AdnlClient("127.0.0.1", 12345, publicKey, -1));
     }
 
     [Fact]
     public void State_InitialState_ShouldBeClosed()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var client = new AdnlClient("127.0.0.1", 12345, publicKey);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlClient client = new("127.0.0.1", 12345, publicKey);
 
         Assert.Equal(AdnlClientState.Closed, client.State);
     }
@@ -72,32 +70,29 @@ public class AdnlClientTests
     [Fact]
     public async Task WriteAsync_WhenNotConnected_ShouldThrow()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var client = new AdnlClient("127.0.0.1", 12345, publicKey);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlClient client = new("127.0.0.1", 12345, publicKey);
 
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
         {
-            await client.WriteAsync(new byte[] { 1, 2, 3 });
+            await client.WriteAsync([1, 2, 3]);
         });
     }
 
     [Fact]
     public async Task WriteAsync_WithNullData_ShouldThrow()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var client = new AdnlClient("127.0.0.1", 12345, publicKey);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlClient client = new("127.0.0.1", 12345, publicKey);
 
-        await Assert.ThrowsAsync<ArgumentNullException>(async () =>
-        {
-            await client.WriteAsync(null!);
-        });
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => { await client.WriteAsync(null!); });
     }
 
     [Fact]
     public void Dispose_ShouldCloseConnection()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var client = new AdnlClient("127.0.0.1", 12345, publicKey);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlClient client = new("127.0.0.1", 12345, publicKey);
 
         client.Dispose();
 
@@ -108,22 +103,19 @@ public class AdnlClientTests
     [Fact]
     public async Task Dispose_ShouldPreventFurtherOperations()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var client = new AdnlClient("127.0.0.1", 12345, publicKey);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlClient client = new("127.0.0.1", 12345, publicKey);
 
         client.Dispose();
 
-        await Assert.ThrowsAsync<ObjectDisposedException>(async () =>
-        {
-            await client.ConnectAsync();
-        });
+        await Assert.ThrowsAsync<ObjectDisposedException>(async () => { await client.ConnectAsync(); });
     }
 
     [Fact]
     public void Events_ShouldBeRaisable()
     {
-        var publicKey = AdnlKeys.GenerateRandomBytes(32);
-        var client = new AdnlClient("127.0.0.1", 12345, publicKey);
+        byte[] publicKey = AdnlKeys.GenerateRandomBytes(32);
+        AdnlClient client = new("127.0.0.1", 12345, publicKey);
 
         bool connectedRaised = false;
         bool readyRaised = false;
@@ -145,4 +137,3 @@ public class AdnlClientTests
         Assert.False(errorRaised);
     }
 }
-

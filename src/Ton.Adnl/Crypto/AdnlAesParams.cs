@@ -3,13 +3,13 @@ using Ton.Crypto.Primitives;
 namespace Ton.Adnl.Crypto;
 
 /// <summary>
-/// ADNL AES encryption parameters used during handshake.
-/// Contains cryptographically random data for establishing secure communication.
+///     ADNL AES encryption parameters used during handshake.
+///     Contains cryptographically random data for establishing secure communication.
 /// </summary>
 public sealed class AdnlAesParams
 {
     /// <summary>
-    /// Creates new random AES parameters for ADNL handshake.
+    ///     Creates new random AES parameters for ADNL handshake.
     /// </summary>
     public AdnlAesParams()
     {
@@ -19,18 +19,18 @@ public sealed class AdnlAesParams
     }
 
     /// <summary>
-    /// Gets the raw parameter bytes (160 bytes).
+    ///     Gets the raw parameter bytes (160 bytes).
     /// </summary>
     public byte[] Bytes { get; }
 
     /// <summary>
-    /// Gets the SHA-256 hash of the parameter bytes (32 bytes).
+    ///     Gets the SHA-256 hash of the parameter bytes (32 bytes).
     /// </summary>
     public byte[] Hash { get; }
 
     /// <summary>
-    /// Gets the transmission key (32 bytes) derived from the parameters.
-    /// Used for encrypting outgoing data.
+    ///     Gets the transmission key (32 bytes) derived from the parameters.
+    ///     Used for encrypting outgoing data.
     /// </summary>
     public byte[] TxKey
     {
@@ -43,8 +43,8 @@ public sealed class AdnlAesParams
     }
 
     /// <summary>
-    /// Gets the transmission nonce/IV (16 bytes) derived from the parameters.
-    /// Used as initial counter for encrypting outgoing data.
+    ///     Gets the transmission nonce/IV (16 bytes) derived from the parameters.
+    ///     Used as initial counter for encrypting outgoing data.
     /// </summary>
     public byte[] TxNonce
     {
@@ -57,8 +57,8 @@ public sealed class AdnlAesParams
     }
 
     /// <summary>
-    /// Gets the reception key (32 bytes) derived from the parameters.
-    /// Used for decrypting incoming data.
+    ///     Gets the reception key (32 bytes) derived from the parameters.
+    ///     Used for decrypting incoming data.
     /// </summary>
     public byte[] RxKey
     {
@@ -71,8 +71,8 @@ public sealed class AdnlAesParams
     }
 
     /// <summary>
-    /// Gets the reception nonce/IV (16 bytes) derived from the parameters.
-    /// Used as initial counter for decrypting incoming data.
+    ///     Gets the reception nonce/IV (16 bytes) derived from the parameters.
+    ///     Used as initial counter for decrypting incoming data.
     /// </summary>
     public byte[] RxNonce
     {
@@ -84,4 +84,3 @@ public sealed class AdnlAesParams
         }
     }
 }
-
