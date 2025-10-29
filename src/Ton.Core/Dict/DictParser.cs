@@ -60,7 +60,7 @@ internal static class DictParser
         if (n - prefixLength == 0)
         {
             // Leaf node - extract value
-            res[BigInteger.Parse("0" + pp, NumberStyles.AllowBinarySpecifier)] = extractor(slice);
+            res[ParseBinaryString(pp)] = extractor(slice);
         }
         else
         {
@@ -81,5 +81,18 @@ internal static class DictParser
         while (slice.LoadBit()) res++;
 
         return res;
+    }
+
+    /// <summary>
+    ///     Parse binary string to BigInteger (workaround for .NET 6 compatibility)
+    /// </summary>
+    static BigInteger ParseBinaryString(string binary)
+    {
+        BigInteger result = BigInteger.Zero;
+        foreach (char c in binary)
+        {
+            result = (result << 1) + (c == '1' ? 1 : 0);
+        }
+        return result;
     }
 }

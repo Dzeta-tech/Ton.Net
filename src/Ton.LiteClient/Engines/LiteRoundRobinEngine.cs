@@ -11,7 +11,7 @@ public sealed class LiteRoundRobinEngine : ILiteEngine
 {
     readonly List<ILiteEngine> allEngines = new();
     readonly List<ILiteEngine> readyEngines = new();
-    readonly Lock stateLock = new();
+    readonly object stateLock = new();
     int counter;
     bool isClosed;
 

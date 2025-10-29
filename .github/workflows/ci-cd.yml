@@ -7,7 +7,9 @@ on:
     branches: [ main ]
 
 env:
-  DOTNET_VERSION: '9.0.x'
+  DOTNET_VERSION: |
+    8.0.x
+    9.0.x
 
 jobs:
   build-and-test:
@@ -19,7 +21,9 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+        dotnet-version: |
+          8.0.x
+          9.0.x
     
     - name: Restore dependencies
       run: dotnet restore
@@ -41,7 +45,9 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+        dotnet-version: |
+          8.0.x
+          9.0.x
     
     - name: Build and Pack Ton.Core
       run: |

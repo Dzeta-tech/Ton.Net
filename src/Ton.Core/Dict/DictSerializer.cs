@@ -203,8 +203,7 @@ internal static class DictSerializer
 
         // Value
         if (label.Length > 0)
-            builder.StoreUint(BigInteger.Parse("0" + label, NumberStyles.AllowBinarySpecifier),
-                label.Length);
+            builder.StoreUint(ParseBinaryString(label), label.Length);
     }
 
     static void WriteLabelLong(string label, int keyLength, Builder builder)
@@ -219,8 +218,7 @@ internal static class DictSerializer
 
         // Value
         if (label.Length > 0)
-            builder.StoreUint(BigInteger.Parse("0" + label, NumberStyles.AllowBinarySpecifier),
-                label.Length);
+            builder.StoreUint(ParseBinaryString(label), label.Length);
     }
 
     static void WriteLabelSame(string label, int keyLength, Builder builder)
@@ -280,6 +278,19 @@ internal static class DictSerializer
         while (binary.Length < length) binary = '0' + binary;
 
         return binary;
+    }
+
+    /// <summary>
+    ///     Parse binary string to BigInteger (workaround for .NET 6 compatibility)
+    /// </summary>
+    static BigInteger ParseBinaryString(string binary)
+    {
+        BigInteger result = BigInteger.Zero;
+        foreach (char c in binary)
+        {
+            result = (result << 1) + (c == '1' ? 1 : 0);
+        }
+        return result;
     }
 
     #endregion

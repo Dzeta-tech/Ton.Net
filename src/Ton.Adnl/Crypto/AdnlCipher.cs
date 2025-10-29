@@ -10,7 +10,7 @@ public sealed class AdnlCipher : IDisposable
 {
     readonly Aes aes;
     readonly byte[] counter;
-    readonly Lock @lock = new();
+    readonly object @lock = new();
     readonly byte[] remainingKeyStream;
     bool disposed;
     int remainingKeyStreamIndex;
@@ -58,7 +58,7 @@ public sealed class AdnlCipher : IDisposable
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        ObjectDisposedException.ThrowIf(disposed, this);
+        if (disposed) throw new ObjectDisposedException(nameof(AdnlCipher));
 
         // Thread-safe: lock to prevent concurrent modification of counter state
         lock (@lock)
@@ -88,7 +88,7 @@ public sealed class AdnlCipher : IDisposable
     /// <param name="data">Data to encrypt/decrypt in-place.</param>
     public void ProcessInPlace(Span<byte> data)
     {
-        ObjectDisposedException.ThrowIf(disposed, this);
+        if (disposed) throw new ObjectDisposedException(nameof(AdnlCipher));
 
         // Thread-safe: lock to prevent concurrent modification of counter state
         lock (@lock)

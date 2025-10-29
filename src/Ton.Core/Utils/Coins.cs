@@ -115,7 +115,7 @@ public static partial class Coins
             fracStr = "0" + fracStr;
 
         // Remove trailing zeros
-        fracStr = MyRegex().Replace(fracStr, "$1");
+        fracStr = TrailingZerosRegex.Replace(fracStr, "$1");
 
         // Convert whole
         BigInteger whole = value / NanoPower;
@@ -149,6 +149,5 @@ public static partial class Coins
         return FromNano(BigInteger.Parse(value));
     }
 
-    [GeneratedRegex("^([0-9]*[1-9]|0)(0*)$")]
-    private static partial Regex MyRegex();
+    private static readonly Regex TrailingZerosRegex = new("^([0-9]*[1-9]|0)(0*)$", RegexOptions.Compiled);
 }

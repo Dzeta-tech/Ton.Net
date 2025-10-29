@@ -17,7 +17,7 @@ public sealed class LiteSingleEngine : ILiteEngine
     readonly int port;
     readonly int reconnectTimeoutMs;
     readonly byte[] serverPublicKey;
-    readonly Lock stateLock = new();
+    readonly object stateLock = new();
 
     AdnlClient? client;
     bool isClosed = true;

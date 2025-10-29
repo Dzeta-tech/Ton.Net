@@ -186,7 +186,7 @@ public partial class Address : IEquatable<Address>
             return false;
 
         // Check if address is valid base64
-        if (!MyRegex().IsMatch(source))
+        if (!Base64Regex.IsMatch(source))
             return false;
 
         return true;
@@ -215,7 +215,7 @@ public partial class Address : IEquatable<Address>
             return false;
 
         // hash is not valid hex
-        if (!MyRegex1().IsMatch(hash.ToLower()))
+        if (!HexRegex.IsMatch(hash.ToLower()))
             return false;
 
         // hash is not correct length
@@ -347,11 +347,8 @@ public partial class Address : IEquatable<Address>
         return !(left == right);
     }
 
-    [GeneratedRegex("^[A-Za-z0-9+/_-]+$")]
-    private static partial Regex MyRegex();
-
-    [GeneratedRegex("^[a-f0-9]+$")]
-    private static partial Regex MyRegex1();
+    private static readonly Regex Base64Regex = new("^[A-Za-z0-9+/_-]+$", RegexOptions.Compiled);
+    private static readonly Regex HexRegex = new("^[a-f0-9]+$", RegexOptions.Compiled);
 }
 
 /// <summary>

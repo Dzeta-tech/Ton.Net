@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -19,6 +19,11 @@
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageTags>ton;blockchain;liteclient;adnl;crypto;web3</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+
+        <!-- Include symbols and XML in package -->
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
     </PropertyGroup>
 
     <ItemGroup>
@@ -29,5 +34,6 @@
         <ProjectReference Include="..\Ton.Adnl\Ton.Adnl.csproj"/>
         <ProjectReference Include="..\Ton.Core\Ton.Core.csproj"/>
     </ItemGroup>
+
 
 </Project>

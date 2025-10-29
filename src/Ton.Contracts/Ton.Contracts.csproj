@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+        <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -19,6 +20,11 @@
         <RepositoryType>git</RepositoryType>
         <PackageProjectUrl>https://github.com/Dzeta-tech/Ton.Net</PackageProjectUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+
+        <!-- Include symbols and XML in package -->
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
     </PropertyGroup>
 
     <ItemGroup>
@@ -29,5 +35,6 @@
         <ProjectReference Include="..\Ton.Core\Ton.Core.csproj"/>
         <ProjectReference Include="..\Ton.Crypto\Ton.Crypto.csproj"/>
     </ItemGroup>
+
 
 </Project>

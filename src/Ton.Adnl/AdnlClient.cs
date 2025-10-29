@@ -113,7 +113,7 @@ public sealed class AdnlClient : IDisposable
     /// </summary>
     public async Task ConnectAsync(CancellationToken cancellationToken = default)
     {
-        ObjectDisposedException.ThrowIf(disposed, this);
+        if (disposed) throw new ObjectDisposedException(nameof(AdnlClient));
 
         await stateLock.WaitAsync(cancellationToken);
         try
@@ -167,7 +167,7 @@ public sealed class AdnlClient : IDisposable
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        ObjectDisposedException.ThrowIf(disposed, this);
+        if (disposed) throw new ObjectDisposedException(nameof(AdnlClient));
 
         await stateLock.WaitAsync(cancellationToken);
         try
