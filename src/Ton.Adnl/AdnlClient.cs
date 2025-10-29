@@ -147,7 +147,7 @@ public sealed class AdnlClient : IDisposable
             await PrepareHandshakeAsync(cancellationToken);
 
             // Start receiving (ciphers are now ready)
-            Task.Run(() => ReceiveLoopAsync(disposeCts.Token), disposeCts.Token);
+            _ = Task.Run(() => ReceiveLoopAsync(disposeCts.Token), disposeCts.Token);
 
             // Send handshake (response will be handled by receive loop)
             await SendHandshakeAsync(cancellationToken);

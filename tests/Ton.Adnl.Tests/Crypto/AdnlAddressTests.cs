@@ -161,7 +161,9 @@ public class AdnlAddressTests
         AdnlAddress address = new(publicKey);
 
         Assert.True(address.Equals(address));
+#pragma warning disable CS1718 // Comparison made to same variable (intentional for testing == operator)
         Assert.True(address == address);
+#pragma warning restore CS1718
     }
 
     [Fact]

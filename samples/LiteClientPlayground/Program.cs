@@ -83,10 +83,9 @@ try
         Console.WriteLine("Transactions:");
         foreach (BlockTransaction tx in transactions.Transactions.Take(10))
         {
-            string accountHex = Convert.ToHexString(tx.Account);
             string hashHex = Convert.ToHexString(tx.Hash);
 
-            Console.WriteLine($"  • Account: {(accountHex.Length > 16 ? "..." + accountHex[^16..] : accountHex)}");
+            Console.WriteLine($"  • Account: {tx.Account}");
             Console.WriteLine($"    LT: {tx.Lt}");
             Console.WriteLine($"    Hash: {(hashHex.Length > 16 ? hashHex[..16] + "..." : hashHex)}");
             Console.WriteLine();
