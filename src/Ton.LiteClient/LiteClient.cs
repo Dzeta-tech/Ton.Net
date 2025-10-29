@@ -38,34 +38,13 @@ public sealed class LiteClient : IDisposable
     }
 
     /// <summary>
-    ///     Creates a new lite client with a single server connection
-    /// </summary>
-    /// <param name="host">Server host/IP</param>
-    /// <param name="port">Server port</param>
-    /// <param name="serverPublicKey">Server's Ed25519 public key (32 bytes or base64 string)</param>
-    public static LiteClient Create(string host, int port, byte[] serverPublicKey)
-    {
-        LiteSingleEngine engine = new(host, port, serverPublicKey);
-        return new LiteClient(engine);
-    }
-
-    /// <summary>
-    ///     Creates a new lite client with a single server connection (base64 public key)
-    /// </summary>
-    public static LiteClient Create(string host, int port, string serverPublicKeyBase64)
-    {
-        LiteSingleEngine engine = new(host, port, serverPublicKeyBase64);
-        return new LiteClient(engine);
-    }
-
-    /// <summary>
     ///     Gets current server time
     /// </summary>
     public async Task<DateTimeOffset> GetTimeAsync(
         int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
-        var request = new GetTimeRequest();
+        GetTimeRequest request = new();
         LiteServerCurrentTime response = await Engine.QueryAsync(
             request,
             static r => LiteServerCurrentTime.ReadFrom(r),
@@ -82,7 +61,7 @@ public sealed class LiteClient : IDisposable
         int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
-        var request = new GetMasterchainInfoRequest();
+        GetMasterchainInfoRequest request = new();
         LiteServerMasterchainInfo response = await Engine.QueryAsync(
             request,
             static r => LiteServerMasterchainInfo.ReadFrom(r),
@@ -112,7 +91,7 @@ public sealed class LiteClient : IDisposable
         int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
-        var request = new GetVersionRequest();
+        GetVersionRequest request = new();
         LiteServerVersion response = await Engine.QueryAsync(
             request,
             static r => LiteServerVersion.ReadFrom(r),
@@ -132,13 +111,13 @@ public sealed class LiteClient : IDisposable
         int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
-        var blockId = new TonNodeBlockId
+        TonNodeBlockId blockId = new()
         {
             Workchain = workchain,
             Shard = shard,
             Seqno = unchecked((int)seqno)
         };
-        var request = new LookupBlockRequest(blockId); // Mode flags handled automatically
+        LookupBlockRequest request = new(blockId); // Mode flags handled automatically
 
         LiteServerBlockHeader response = await Engine.QueryAsync(
             request,
@@ -162,7 +141,7 @@ public sealed class LiteClient : IDisposable
         int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
-        var blockIdExt = new TonNodeBlockIdExt
+        TonNodeBlockIdExt blockIdExt = new()
         {
             Workchain = blockId.Workchain,
             Shard = blockId.Shard,
@@ -171,7 +150,7 @@ public sealed class LiteClient : IDisposable
             FileHash = blockId.FileHash
         };
 
-        var request = new GetBlockHeaderRequest(blockIdExt); // Mode handled automatically
+        GetBlockHeaderRequest request = new(blockIdExt); // Mode handled automatically
 
         LiteServerBlockHeader response = await Engine.QueryAsync(
             request,
@@ -219,7 +198,7 @@ public sealed class LiteClient : IDisposable
         int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
-        var blockIdExt = new TonNodeBlockIdExt
+        TonNodeBlockIdExt blockIdExt = new()
         {
             Workchain = blockId.Workchain,
             Shard = blockId.Shard,
@@ -228,7 +207,7 @@ public sealed class LiteClient : IDisposable
             FileHash = blockId.FileHash
         };
 
-        var request = new GetAllShardsInfoRequest(blockIdExt);
+        GetAllShardsInfoRequest request = new(blockIdExt);
 
         LiteServerAllShardsInfo response = await Engine.QueryAsync(
             request,
@@ -256,7 +235,7 @@ public sealed class LiteClient : IDisposable
         int timeout = 10000,
         CancellationToken cancellationToken = default)
     {
-        var blockIdExt = new TonNodeBlockIdExt
+        TonNodeBlockIdExt blockIdExt = new()
         {
             Workchain = blockId.Workchain,
             Shard = blockId.Shard,
@@ -265,7 +244,7 @@ public sealed class LiteClient : IDisposable
             FileHash = blockId.FileHash
         };
 
-        var request = new ListBlockTransactionsRequest(blockIdExt, count, after);
+        ListBlockTransactionsRequest request = new(blockIdExt, count, after);
 
         LiteServerBlockTransactions response = await Engine.QueryAsync(
             request,
@@ -274,16 +253,14 @@ public sealed class LiteClient : IDisposable
             cancellationToken);
 
         // Convert to user-friendly model
-        var transactions = new List<BlockTransaction>();
-        foreach (var txId in response.Ids)
-        {
+        List<BlockTransaction> transactions = new();
+        foreach (LiteServerTransactionId? txId in response.Ids)
             transactions.Add(new BlockTransaction
             {
                 Account = txId.Account,
                 Lt = txId.Lt,
                 Hash = txId.Hash
             });
-        }
 
         return new BlockTransactions
         {
@@ -298,5 +275,4 @@ public sealed class LiteClient : IDisposable
             Incomplete = response.Incomplete
         };
     }
-
 }

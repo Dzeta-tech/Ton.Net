@@ -12,4 +12,3 @@ public interface ILiteRequest
     /// </summary>
     void WriteTo(TLWriteBuffer writer);
 }
-

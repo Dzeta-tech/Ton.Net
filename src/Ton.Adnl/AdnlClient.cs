@@ -16,7 +16,6 @@ public sealed class AdnlClient : IDisposable
     readonly string host;
     readonly byte[] peerPublicKey;
     readonly int port;
-    readonly int reconnectTimeoutMs;
     readonly SemaphoreSlim stateLock = new(1, 1);
     AdnlCipher? decryptCipher;
     bool disposed;
@@ -25,7 +24,6 @@ public sealed class AdnlClient : IDisposable
     byte[]? handshakePacket;
     AdnlKeys? keys;
     NetworkStream? networkStream;
-    Task? receiveTask;
     AdnlClientState state = AdnlClientState.Closed;
 
     TcpClient? tcpClient;
@@ -52,7 +50,6 @@ public sealed class AdnlClient : IDisposable
         this.host = host;
         this.port = port;
         this.peerPublicKey = peerPublicKey;
-        this.reconnectTimeoutMs = reconnectTimeoutMs;
     }
 
     /// <summary>
@@ -150,7 +147,7 @@ public sealed class AdnlClient : IDisposable
             await PrepareHandshakeAsync(cancellationToken);
 
             // Start receiving (ciphers are now ready)
-            receiveTask = Task.Run(() => ReceiveLoopAsync(disposeCts.Token), disposeCts.Token);
+            Task.Run(() => ReceiveLoopAsync(disposeCts.Token), disposeCts.Token);
 
             // Send handshake (response will be handled by receive loop)
             await SendHandshakeAsync(cancellationToken);

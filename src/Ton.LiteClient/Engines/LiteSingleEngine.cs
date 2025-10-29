@@ -98,6 +98,9 @@ public sealed class LiteSingleEngine : ILiteEngine
                 throw new InvalidOperationException("Engine is closed");
         }
 
+        // Wait for connection to be ready (with timeout)
+        await WaitForReadyAsync(timeout, cancellationToken);
+
         // Generate random query ID
         byte[] queryId = AdnlKeys.GenerateRandomBytes(32);
         string queryIdHex = Convert.ToHexString(queryId);
@@ -122,7 +125,7 @@ public sealed class LiteSingleEngine : ILiteEngine
 
         // Create completion source (using object to avoid generic type issues with dynamic storage)
         TaskCompletionSource<object> tcs = new();
-        
+
         // Store the response reader with proper function ID extraction
         // We'll extract the constructor ID from the actual response
         PendingQuery query = new()
@@ -130,7 +133,8 @@ public sealed class LiteSingleEngine : ILiteEngine
             FunctionId = 0, // Not needed anymore - we match by query ID
             ResponseReader = responseReader,
             CompletionSource = tcs,
-            Timeout = timeout
+            Timeout = timeout,
+            QueryData = finalQuery
         };
 
         pendingQueries[queryIdHex] = query;
@@ -145,7 +149,7 @@ public sealed class LiteSingleEngine : ILiteEngine
                 q.CompletionSource.TrySetException(new TimeoutException($"Query timed out after {timeout}ms"));
         });
 
-        // Send query if ready
+        // Send query
         lock (stateLock)
         {
             if (isReady && client != null)
@@ -155,90 +159,9 @@ public sealed class LiteSingleEngine : ILiteEngine
                         q.CompletionSource.TrySetException(t.Exception?.InnerException ??
                                                            new Exception("Failed to send query"));
                 });
-            else
-                throw new InvalidOperationException("Engine is not ready");
         }
 
         // Wait for response
-        object result = await tcs.Task;
-        return (TResponse)result;
-    }
-
-    /// <summary>
-    ///     Legacy query method for manual serialization (deprecated, use generated request classes instead)
-    /// </summary>
-    [Obsolete("Use the QueryAsync overload that accepts a generated request class instead")]
-    public async Task<TResponse> QueryAsync<TRequest, TResponse>(
-        uint functionId,
-        Action<TLWriteBuffer, TRequest> requestWriter,
-        Func<TLReadBuffer, TResponse> responseReader,
-        TRequest request,
-        int timeout = 5000,
-        CancellationToken cancellationToken = default)
-    {
-        lock (stateLock)
-        {
-            if (isClosed)
-                throw new InvalidOperationException("Engine is closed");
-        }
-
-        // Generate random query ID
-        byte[] queryId = AdnlKeys.GenerateRandomBytes(32);
-        string queryIdHex = Convert.ToHexString(queryId);
-
-        // Build the request with function ID
-        TLWriteBuffer requestBuffer = new();
-        requestBuffer.WriteUInt32(functionId); // Write function constructor ID first
-        requestWriter(requestBuffer, request); // Then write request parameters
-        byte[] requestData = requestBuffer.Build();
-
-        // Wrap in liteServer.query
-        TLWriteBuffer liteServerQueryBuffer = new();
-        liteServerQueryBuffer.WriteUInt32(0x798C06DF); // liteServer.query
-        liteServerQueryBuffer.WriteBuffer(requestData);
-        byte[] liteServerQuery = liteServerQueryBuffer.Build();
-
-        // Wrap in adnl.message.query
-        TLWriteBuffer adnlQueryBuffer = new();
-        adnlQueryBuffer.WriteUInt32(0xB48BF97A); // adnl.message.query
-        adnlQueryBuffer.WriteInt256(new BigInteger(queryId));
-        adnlQueryBuffer.WriteBuffer(liteServerQuery);
-        byte[] finalQuery = adnlQueryBuffer.Build();
-
-        // Create completion source (using object to avoid generic type issues with dynamic storage)
-        TaskCompletionSource<object> tcs = new();
-        PendingQuery query = new()
-        {
-            FunctionId = functionId,
-            ResponseReader = responseReader,
-            CompletionSource = tcs,
-            Timeout = timeout
-        };
-
-        pendingQueries[queryIdHex] = query;
-
-        // Setup timeout
-        using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(timeout);
-
-        cts.Token.Register(() =>
-        {
-            if (pendingQueries.TryRemove(queryIdHex, out PendingQuery? q))
-                q.CompletionSource.TrySetException(new TimeoutException($"Query timed out after {timeout}ms"));
-        });
-
-        // Send query if ready
-        lock (stateLock)
-        {
-            if (isReady && client != null)
-                _ = client.WriteAsync(finalQuery).ContinueWith(t =>
-                {
-                    if (t.IsFaulted && pendingQueries.TryRemove(queryIdHex, out PendingQuery? q))
-                        q.CompletionSource.TrySetException(t.Exception!.InnerException ?? t.Exception);
-                });
-        }
-
-        // Wait for result and cast to expected type
         object result = await tcs.Task;
         return (TResponse)result;
     }
@@ -311,26 +234,27 @@ public sealed class LiteSingleEngine : ILiteEngine
 
     void OnClientReady()
     {
+        AdnlClient? currentClient;
         lock (stateLock)
         {
             isReady = true;
+            currentClient = client;
         }
 
         Ready?.Invoke(this, EventArgs.Empty);
 
-        // Resend all pending queries
-        lock (stateLock)
+        // Resend all pending queries after reconnection
+        if (currentClient != null)
         {
-            if (client == null)
-                return;
-
             foreach (KeyValuePair<string, PendingQuery> kvp in pendingQueries)
             {
-                // Rebuild query for this queryId
-                byte[] queryId = Convert.FromHexString(kvp.Key);
-
-                // Note: We can't rebuild the original request here, so queries sent before
-                // ready will timeout. In production, clients should wait for Ready event.
+                PendingQuery query = kvp.Value;
+                _ = currentClient.WriteAsync(query.QueryData).ContinueWith(t =>
+                {
+                    if (t.IsFaulted && pendingQueries.TryRemove(kvp.Key, out PendingQuery? q))
+                        q.CompletionSource.TrySetException(t.Exception?.InnerException ??
+                                                           new Exception("Failed to resend query after reconnection"));
+                });
             }
         }
     }
@@ -429,12 +353,71 @@ public sealed class LiteSingleEngine : ILiteEngine
         }
     }
 
+    /// <summary>
+    ///     Waits for the engine to be ready for queries
+    /// </summary>
+    async Task WaitForReadyAsync(int timeout, CancellationToken cancellationToken)
+    {
+        // If already ready, return immediately
+        lock (stateLock)
+        {
+            if (isReady)
+                return;
+
+            if (isClosed)
+                throw new InvalidOperationException("Engine is closed");
+        }
+
+        // Wait for ready event
+        TaskCompletionSource readyTask = new();
+
+        EventHandler? readyHandler = null;
+        EventHandler<Exception>? errorHandler = null;
+
+        readyHandler = (s, e) => readyTask.TrySetResult();
+        errorHandler = (s, ex) => readyTask.TrySetException(ex);
+
+        Ready += readyHandler;
+        Error += errorHandler;
+
+        try
+        {
+            // Check again after subscribing (race condition prevention)
+            lock (stateLock)
+            {
+                if (isReady)
+                {
+                    readyTask.TrySetResult();
+                    return;
+                }
+            }
+
+            using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cts.CancelAfter(timeout);
+
+            Task delayTask = Task.Delay(-1, cts.Token);
+            Task completedTask = await Task.WhenAny(readyTask.Task, delayTask);
+
+            if (completedTask == delayTask)
+                throw new TimeoutException($"Connection not ready within {timeout}ms");
+
+            // Re-throw any exception from the ready task
+            await readyTask.Task;
+        }
+        finally
+        {
+            Ready -= readyHandler;
+            Error -= errorHandler;
+        }
+    }
+
     sealed class PendingQuery
     {
         public required uint FunctionId { get; init; }
         public required Delegate ResponseReader { get; init; }
         public required TaskCompletionSource<object> CompletionSource { get; init; }
         public required int Timeout { get; init; }
+        public required byte[] QueryData { get; init; }
     }
 }
 

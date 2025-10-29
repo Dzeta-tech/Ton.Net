@@ -18,12 +18,46 @@ dotnet run <host> <port> <publicKey>
 ### Example with Public Lite Server
 
 You can find public lite servers in the TON global config:
+
 - Mainnet: https://ton.org/global-config.json
 - Testnet: https://ton.org/testnet-global.config.json
 
 Example (using a public testnet server):
+
 ```bash
 dotnet run 135.181.140.212 13206 "uNRRL+6jLpjLRHZfCr2f8CLWQB5vcvI1Wc4NzK8VbFQ="
+```
+
+## Implementation Details
+
+The sample uses `LiteClientFactory.Create()` to create a lite client. The connection to the server happens automatically when you make the first request - you don't need to explicitly call any connect method.
+
+```csharp
+using Ton.LiteClient;
+
+// Create client - connection happens automatically on first request
+using var client = LiteClientFactory.Create(host, port, publicKey);
+
+// Just start making requests!
+var masterchainInfo = await client.GetMasterchainInfoAsync();
+```
+
+If the connection drops, the engine will automatically reconnect when you make the next request. You don't need to handle reconnection logic in your code.
+
+For more control, you can create the engine and client manually:
+
+```csharp
+using Ton.LiteClient;
+using Ton.LiteClient.Engines;
+
+// Create engine with custom reconnection timeout
+var engine = new LiteSingleEngine(host, port, publicKey, reconnectTimeoutMs: 5000);
+
+// Create client
+using var client = new LiteClient(engine);
+
+// Just start making requests - connection is automatic
+var masterchainInfo = await client.GetMasterchainInfoAsync();
 ```
 
 ## Output Example

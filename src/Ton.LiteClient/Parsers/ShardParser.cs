@@ -34,7 +34,7 @@ public static class ShardParser
         Slice dictSlice = dictCell.BeginParse();
 
         // Parse dictionary with 32-bit keys (workchain IDs)
-        var dict = dictSlice.LoadDictDirect(
+        Core.Dict.Dictionary<DictKeyInt, Cell>? dict = dictSlice.LoadDictDirect(
             DictionaryKeys.Int(32),
             DictionaryValues.Cell());
 
@@ -44,19 +44,19 @@ public static class ShardParser
         List<BlockId> shards = new();
 
         // Parse each workchain's shard tree
-        foreach (var kvp in dict)
+        foreach (KeyValuePair<DictKeyInt, Cell> kvp in dict)
         {
             int workchain = kvp.Key.Value;
             Cell shardTreeCell = kvp.Value;
-            
+
             Slice treeSlice = shardTreeCell.BeginParse();
             bool isBranch = treeSlice.LoadBit();
-            
+
             if (!isBranch)
             {
                 // bt_leaf - single shard for this workchain (contains full ShardDescr)
                 uint type = (uint)treeSlice.LoadUint(4);
-                
+
                 if (type == 0xa || type == 0xb)
                 {
                     // Read full ShardDescr from the leaf
@@ -64,15 +64,15 @@ public static class ShardParser
                     treeSlice.Skip(32); // reg_mc_seqno
                     treeSlice.Skip(64); // start_lt
                     treeSlice.Skip(64); // end_lt
-                    
+
                     byte[] rootHash = treeSlice.LoadBits(256).ToBytes();
                     byte[] fileHash = treeSlice.LoadBits(256).ToBytes();
-                    
+
                     treeSlice.Skip(5); // flags
                     treeSlice.Skip(3);
                     treeSlice.Skip(32);
                     long shardId = treeSlice.LoadInt(64);
-                    
+
                     shards.Add(new BlockId(workchain, shardId, seqno, rootHash, fileHash));
                 }
             }
@@ -93,19 +93,19 @@ public static class ShardParser
     static void ParseShardTreeIterative(Cell rootCell, int workchain, ref List<BlockId> shards)
     {
         // Stack of (slice, shard ID) pairs to process
-        var stack = new Stack<(Slice slice, long shard)>();
+        Stack<(Slice slice, long shard)> stack = new();
         stack.Push((rootCell.BeginParse(), 1L << 63));
 
         while (stack.Count > 0)
         {
-            var (slice, shard) = stack.Pop();
+            (Slice slice, long shard) = stack.Pop();
 
             bool isBranch = slice.LoadBit();
 
             if (!isBranch) // Leaf node - contains full ShardDescr
             {
                 uint type = (uint)slice.LoadUint(4);
-                
+
                 if (type == 0xa || type == 0xb)
                 {
                     // Read full ShardDescr
@@ -113,17 +113,18 @@ public static class ShardParser
                     slice.Skip(32); // reg_mc_seqno
                     slice.Skip(64); // start_lt
                     slice.Skip(64); // end_lt
-                    
+
                     byte[] rootHash = slice.LoadBits(256).ToBytes();
                     byte[] fileHash = slice.LoadBits(256).ToBytes();
-                    
+
                     slice.Skip(5); // flags
                     slice.Skip(3);
                     slice.Skip(32);
                     long shardId = slice.LoadInt(64);
-                    
+
                     shards.Add(new BlockId(workchain, shardId, seqno, rootHash, fileHash));
                 }
+
                 continue;
             }
 

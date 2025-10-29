@@ -36,18 +36,6 @@ public interface ILiteEngine : IDisposable
         where TRequest : ILiteRequest;
 
     /// <summary>
-    ///     Legacy query method for manual serialization (deprecated)
-    /// </summary>
-    [Obsolete("Use the QueryAsync overload that accepts a generated request class instead")]
-    Task<TResponse> QueryAsync<TRequest, TResponse>(
-        uint functionId,
-        Action<TLWriteBuffer, TRequest> requestWriter,
-        Func<TLReadBuffer, TResponse> responseReader,
-        TRequest request,
-        int timeout = 5000,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
     ///     Closes the engine and releases resources
     /// </summary>
     Task CloseAsync();
