@@ -10,7 +10,7 @@ namespace Ton.LiteClient;
 /// </summary>
 public static class LiteClientFactory
 {
-    static readonly HttpClient httpClient = new();
+    static readonly HttpClient HttpClient = new();
 
     /// <summary>
     ///     Creates a new lite client with a single server connection.
@@ -69,7 +69,7 @@ public static class LiteClientFactory
         CancellationToken cancellationToken = default)
     {
         // Download and parse config
-        NetworkConfig config = await httpClient.GetFromJsonAsync<NetworkConfig>(
+        NetworkConfig config = await HttpClient.GetFromJsonAsync<NetworkConfig>(
                                    configUrl,
                                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
                                    cancellationToken)
@@ -103,7 +103,7 @@ public static class LiteClientFactory
             byte[] publicKey = serverConfig.Id.GetPublicKey();
 
             LiteSingleEngine engine = new(host, serverConfig.Port, publicKey, reconnectTimeoutMs);
-            return new LiteClient(engine, true);
+            return new LiteClient(engine);
         }
 
         // Multiple servers - use round-robin
@@ -115,7 +115,7 @@ public static class LiteClientFactory
         }).ToArray();
 
         LiteRoundRobinEngine roundRobinEngine = new(engines);
-        return new LiteClient(roundRobinEngine, true);
+        return new LiteClient(roundRobinEngine);
     }
 
     /// <summary>
@@ -139,7 +139,7 @@ public static class LiteClientFactory
         ).ToArray();
 
         LiteRoundRobinEngine roundRobinEngine = new(engines);
-        return new LiteClient(roundRobinEngine, true);
+        return new LiteClient(roundRobinEngine);
     }
 
     /// <summary>

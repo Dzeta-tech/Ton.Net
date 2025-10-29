@@ -22,6 +22,19 @@ public sealed class MasterchainInfo
     /// </summary>
     public required ZeroStateId Init { get; init; }
 
+    /// <summary>
+    ///     Creates MasterchainInfo from ADNL protocol's LiteServerMasterchainInfo
+    /// </summary>
+    public static MasterchainInfo FromAdnl(LiteServerMasterchainInfo adnlInfo)
+    {
+        return new MasterchainInfo
+        {
+            Last = BlockId.FromAdnl(adnlInfo.Last),
+            StateRootHash = adnlInfo.StateRootHash,
+            Init = ZeroStateId.FromAdnl(adnlInfo.Init)
+        };
+    }
+
     public override string ToString()
     {
         return $"MasterchainInfo(seqno:{Last.Seqno})";
@@ -67,6 +80,23 @@ public sealed class MasterchainInfoExt
     ///     Zero state (initial state) block reference
     /// </summary>
     public required ZeroStateId Init { get; init; }
+
+    /// <summary>
+    ///     Creates MasterchainInfoExt from ADNL protocol's LiteServerMasterchainInfoExt
+    /// </summary>
+    public static MasterchainInfoExt FromAdnl(LiteServerMasterchainInfoExt adnlInfo)
+    {
+        return new MasterchainInfoExt
+        {
+            Version = adnlInfo.Version,
+            Capabilities = adnlInfo.Capabilities,
+            Last = BlockId.FromAdnl(adnlInfo.Last),
+            LastUtime = adnlInfo.LastUtime,
+            Now = adnlInfo.Now,
+            StateRootHash = adnlInfo.StateRootHash,
+            Init = ZeroStateId.FromAdnl(adnlInfo.Init)
+        };
+    }
 
     public override string ToString()
     {

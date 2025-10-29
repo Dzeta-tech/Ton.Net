@@ -1,3 +1,5 @@
+using Ton.Adnl.Protocol;
+
 namespace Ton.LiteClient.Models;
 
 /// <summary>
@@ -21,6 +23,19 @@ public sealed class BlockHeader
     ///     This is typically a MerkleProof cell that can be parsed using Cell.FromBoc() and UnwrapProof().
     /// </summary>
     public required byte[] HeaderProof { get; init; }
+
+    /// <summary>
+    ///     Creates BlockHeader from ADNL protocol's LiteServerBlockHeader
+    /// </summary>
+    public static BlockHeader FromAdnl(LiteServerBlockHeader adnlHeader)
+    {
+        return new BlockHeader
+        {
+            Id = BlockId.FromAdnl(adnlHeader.Id),
+            Mode = adnlHeader.Mode,
+            HeaderProof = adnlHeader.HeaderProof
+        };
+    }
 
     /// <summary>
     ///     Returns a string representation of the block header

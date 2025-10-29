@@ -422,13 +422,8 @@ public sealed class LiteSingleEngine : ILiteEngine
 /// <summary>
 ///     Exception thrown when lite server returns an error
 /// </summary>
-public sealed class LiteServerException : Exception
+public sealed class LiteServerException(int errorCode, string message)
+    : Exception($"LiteServer error {errorCode}: {message}")
 {
-    public LiteServerException(int errorCode, string message)
-        : base($"LiteServer error {errorCode}: {message}")
-    {
-        ErrorCode = errorCode;
-    }
-
-    public int ErrorCode { get; }
+    public int ErrorCode { get; } = errorCode;
 }
