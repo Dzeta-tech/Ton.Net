@@ -1,0 +1,11 @@
+- name: Home
+  href: index.md
+- name: Getting Started
+  href: docs/getting-started/toc.yml
+- name: Modules
+  href: docs/modules/toc.yml
+- name: Guides
+  href: docs/guides/toc.yml
+- name: API Reference
+  href: api/
+
