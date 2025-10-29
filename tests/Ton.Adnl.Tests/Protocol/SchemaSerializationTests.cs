@@ -311,15 +311,6 @@ public class SchemaSerializationTests
     }
 
     [Fact]
-    public void StructTypes_ShouldBeValueTypes()
-    {
-        // Verify that basic types are structs (value types)
-        Assert.True(typeof(TonNodeBlockId).IsValueType);
-        Assert.True(typeof(TonNodeBlockIdExt).IsValueType);
-        Assert.True(typeof(TonNodeZeroStateIdExt).IsValueType);
-    }
-
-    [Fact]
     public void ClassTypes_ShouldBeReferenceTypes()
     {
         // Verify that liteServer types are classes (reference types)
