@@ -11,7 +11,7 @@ public sealed class LiteRoundRobinEngine : ILiteEngine
 {
     readonly List<ILiteEngine> allEngines = new();
     readonly List<ILiteEngine> readyEngines = new();
-    readonly object stateLock = new();
+    readonly Lock stateLock = new();
     int counter;
     bool isClosed;
 
@@ -27,66 +27,49 @@ public sealed class LiteRoundRobinEngine : ILiteEngine
         if (engines.Length == 0)
             throw new ArgumentException("Must provide at least one engine", nameof(engines));
 
-        foreach (ILiteEngine engine in engines)
+        foreach (ILiteEngine engine in engines) AddSingleEngine(engine);
+    }
+
+    /// <summary>
+    ///     Gets the number of engines in the round-robin pool
+    /// </summary>
+    public int EngineCount
+    {
+        get
         {
-            AddSingleEngine(engine);
+            lock (stateLock)
+            {
+                return allEngines.Count;
+            }
         }
     }
 
     /// <summary>
-    ///     Adds a single engine to the round-robin pool
+    ///     Gets the number of ready engines
     /// </summary>
-    void AddSingleEngine(ILiteEngine engine)
+    public int ReadyEngineCount
     {
-        lock (stateLock)
-        {
-            if (allEngines.Contains(engine))
-                throw new InvalidOperationException("Engine already exists");
-
-            allEngines.Add(engine);
-        }
-
-        // Subscribe to events to dynamically manage ready engines list
-        engine.Ready += (s, e) =>
+        get
         {
             lock (stateLock)
             {
-                if (!readyEngines.Contains(engine))
-                    readyEngines.Add(engine);
-            }
-        };
-
-        engine.Closed += (s, e) =>
-        {
-            lock (stateLock)
-            {
-                readyEngines.Remove(engine);
-            }
-        };
-
-        engine.Error += (s, ex) =>
-        {
-            lock (stateLock)
-            {
-                readyEngines.Remove(engine);
-            }
-        };
-
-        // If engine is already ready, add it immediately
-        if (engine.IsReady)
-        {
-            lock (stateLock)
-            {
-                if (!readyEngines.Contains(engine))
-                    readyEngines.Add(engine);
+                return readyEngines.Count;
             }
         }
+    }
 
-        // Forward events
-        engine.Connected += OnEngineConnected;
-        engine.Ready += OnEngineReady;
-        engine.Closed += OnEngineClosed;
-        engine.Error += OnEngineError;
+    /// <summary>
+    ///     Gets the underlying engines (read-only)
+    /// </summary>
+    public IReadOnlyList<ILiteEngine> Engines
+    {
+        get
+        {
+            lock (stateLock)
+            {
+                return allEngines.ToArray();
+            }
+        }
     }
 
     /// <summary>
@@ -145,7 +128,7 @@ public sealed class LiteRoundRobinEngine : ILiteEngine
 
         lock (stateLock)
         {
-            id = (counter++ % Math.Max(readyEngines.Count, 1));
+            id = counter++ % Math.Max(readyEngines.Count, 1);
         }
 
         while (true)
@@ -154,15 +137,15 @@ public sealed class LiteRoundRobinEngine : ILiteEngine
 
             ILiteEngine? engine = null;
             int readyCount;
-            
+
             lock (stateLock)
             {
                 readyCount = readyEngines.Count;
-                
+
                 if (readyCount == 0 || id >= readyCount || !readyEngines[id].IsReady)
                 {
                     // Move to next engine
-                    id = ((id + 1) % Math.Max(readyCount, 1));
+                    id = (id + 1) % Math.Max(readyCount, 1);
                     attempts++;
 
                     // Wait if we've tried all engines or no engines are ready
@@ -204,17 +187,15 @@ public sealed class LiteRoundRobinEngine : ILiteEngine
                 // Continue on timeout - try next engine
                 lock (stateLock)
                 {
-                    id = ((id + 1) % Math.Max(readyEngines.Count, 1));
+                    id = (id + 1) % Math.Max(readyEngines.Count, 1);
                 }
-
-                continue;
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 // Move to next engine
                 lock (stateLock)
                 {
-                    id = ((id + 1) % Math.Max(readyEngines.Count, 1));
+                    id = (id + 1) % Math.Max(readyEngines.Count, 1);
                 }
 
                 errorsCount++;
@@ -267,6 +248,60 @@ public sealed class LiteRoundRobinEngine : ILiteEngine
         }
     }
 
+    /// <summary>
+    ///     Adds a single engine to the round-robin pool
+    /// </summary>
+    void AddSingleEngine(ILiteEngine engine)
+    {
+        lock (stateLock)
+        {
+            if (allEngines.Contains(engine))
+                throw new InvalidOperationException("Engine already exists");
+
+            allEngines.Add(engine);
+        }
+
+        // Subscribe to events to dynamically manage ready engines list
+        engine.Ready += (s, e) =>
+        {
+            lock (stateLock)
+            {
+                if (!readyEngines.Contains(engine))
+                    readyEngines.Add(engine);
+            }
+        };
+
+        engine.Closed += (s, e) =>
+        {
+            lock (stateLock)
+            {
+                readyEngines.Remove(engine);
+            }
+        };
+
+        engine.Error += (s, ex) =>
+        {
+            lock (stateLock)
+            {
+                readyEngines.Remove(engine);
+            }
+        };
+
+        // If engine is already ready, add it immediately
+        if (engine.IsReady)
+            lock (stateLock)
+            {
+                if (!readyEngines.Contains(engine))
+                    readyEngines.Add(engine);
+            }
+
+        // Forward events
+        engine.Connected += OnEngineConnected;
+        engine.Ready += OnEngineReady;
+        engine.Closed += OnEngineClosed;
+        engine.Error += OnEngineError;
+    }
+
     void OnEngineConnected(object? sender, EventArgs e)
     {
         Connected?.Invoke(this, e);
@@ -288,47 +323,4 @@ public sealed class LiteRoundRobinEngine : ILiteEngine
     {
         Error?.Invoke(this, ex);
     }
-
-    /// <summary>
-    ///     Gets the number of engines in the round-robin pool
-    /// </summary>
-    public int EngineCount
-    {
-        get
-        {
-            lock (stateLock)
-            {
-                return allEngines.Count;
-            }
-        }
-    }
-
-    /// <summary>
-    ///     Gets the number of ready engines
-    /// </summary>
-    public int ReadyEngineCount
-    {
-        get
-        {
-            lock (stateLock)
-            {
-                return readyEngines.Count;
-            }
-        }
-    }
-
-    /// <summary>
-    ///     Gets the underlying engines (read-only)
-    /// </summary>
-    public IReadOnlyList<ILiteEngine> Engines
-    {
-        get
-        {
-            lock (stateLock)
-            {
-                return allEngines.ToArray();
-            }
-        }
-    }
 }
-

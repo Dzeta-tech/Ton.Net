@@ -30,7 +30,8 @@ dotnet run 135.181.140.212 13206 "uNRRL+6jLpjLRHZfCr2f8CLWQB5vcvI1Wc4NzK8VbFQ="
 
 ## Implementation Details
 
-The sample uses `LiteClientFactory.Create()` to create a lite client. The connection to the server happens automatically when you make the first request - you don't need to explicitly call any connect method.
+The sample uses `LiteClientFactory.Create()` to create a lite client. The connection to the server happens automatically
+when you make the first request - you don't need to explicitly call any connect method.
 
 ```csharp
 using Ton.LiteClient;
@@ -42,7 +43,8 @@ using var client = LiteClientFactory.Create(host, port, publicKey);
 var masterchainInfo = await client.GetMasterchainInfoAsync();
 ```
 
-If the connection drops, the engine will automatically reconnect when you make the next request. You don't need to handle reconnection logic in your code.
+If the connection drops, the engine will automatically reconnect when you make the next request. You don't need to
+handle reconnection logic in your code.
 
 For more control, you can create the engine and client manually:
 

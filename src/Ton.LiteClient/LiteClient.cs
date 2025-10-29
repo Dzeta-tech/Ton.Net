@@ -1,6 +1,4 @@
-using System.Numerics;
 using Ton.Adnl.Protocol;
-using Ton.Core.Boc;
 using Ton.LiteClient.Engines;
 using Ton.LiteClient.Models;
 using Ton.LiteClient.Parsers;
@@ -70,17 +68,35 @@ public sealed class LiteClient : IDisposable
 
         return new MasterchainInfo
         {
-            Last = new BlockId(
-                response.Last.Workchain,
-                response.Last.Shard,
-                unchecked((uint)response.Last.Seqno),
-                response.Last.RootHash,
-                response.Last.FileHash),
+            Last = BlockId.FromAdnl(response.Last),
             StateRootHash = response.StateRootHash,
-            Init = new ZeroStateId(
-                response.Init.Workchain,
-                response.Init.RootHash,
-                response.Init.FileHash)
+            Init = ZeroStateId.FromAdnl(response.Init)
+        };
+    }
+
+    /// <summary>
+    ///     Gets extended masterchain information including version, capabilities, and timestamps
+    /// </summary>
+    public async Task<MasterchainInfoExt> GetMasterchainInfoExtAsync(
+        int timeout = 5000,
+        CancellationToken cancellationToken = default)
+    {
+        GetMasterchainInfoExtRequest request = new();
+        LiteServerMasterchainInfoExt response = await Engine.QueryAsync(
+            request,
+            static r => LiteServerMasterchainInfoExt.ReadFrom(r),
+            timeout,
+            cancellationToken);
+
+        return new MasterchainInfoExt
+        {
+            Version = response.Version,
+            Capabilities = response.Capabilities,
+            Last = BlockId.FromAdnl(response.Last),
+            LastUtime = response.LastUtime,
+            Now = response.Now,
+            StateRootHash = response.StateRootHash,
+            Init = ZeroStateId.FromAdnl(response.Init)
         };
     }
 
@@ -125,12 +141,61 @@ public sealed class LiteClient : IDisposable
             timeout,
             cancellationToken);
 
-        return new BlockId(
-            response.Id.Workchain,
-            response.Id.Shard,
-            unchecked((uint)response.Id.Seqno),
-            response.Id.RootHash,
-            response.Id.FileHash);
+        return BlockId.FromAdnl(response.Id);
+    }
+
+    /// <summary>
+    ///     Looks up a block by workchain, shard, and unix timestamp
+    /// </summary>
+    public async Task<BlockId> LookupBlockByUtimeAsync(
+        int workchain,
+        long shard,
+        int utime,
+        int timeout = 5000,
+        CancellationToken cancellationToken = default)
+    {
+        TonNodeBlockId blockId = new()
+        {
+            Workchain = workchain,
+            Shard = shard,
+            Seqno = 0
+        };
+        LookupBlockRequest request = new(blockId, null, utime);
+
+        LiteServerBlockHeader response = await Engine.QueryAsync(
+            request,
+            static r => LiteServerBlockHeader.ReadFrom(r),
+            timeout,
+            cancellationToken);
+
+        return BlockId.FromAdnl(response.Id);
+    }
+
+    /// <summary>
+    ///     Looks up a block by workchain, shard, and logical time
+    /// </summary>
+    public async Task<BlockId> LookupBlockByLtAsync(
+        int workchain,
+        long shard,
+        long lt,
+        int timeout = 5000,
+        CancellationToken cancellationToken = default)
+    {
+        TonNodeBlockId blockId = new()
+        {
+            Workchain = workchain,
+            Shard = shard,
+            Seqno = 0
+        };
+        LookupBlockRequest request = new(blockId, lt, null);
+
+        LiteServerBlockHeader response = await Engine.QueryAsync(
+            request,
+            static r => LiteServerBlockHeader.ReadFrom(r),
+            timeout,
+            cancellationToken);
+
+        return BlockId.FromAdnl(response.Id);
     }
 
     /// <summary>
@@ -141,16 +206,7 @@ public sealed class LiteClient : IDisposable
         int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
-        TonNodeBlockIdExt blockIdExt = new()
-        {
-            Workchain = blockId.Workchain,
-            Shard = blockId.Shard,
-            Seqno = unchecked((int)blockId.Seqno),
-            RootHash = blockId.RootHash,
-            FileHash = blockId.FileHash
-        };
-
-        GetBlockHeaderRequest request = new(blockIdExt); // Mode handled automatically
+        GetBlockHeaderRequest request = new(blockId.ToAdnl()); // Mode handled automatically
 
         LiteServerBlockHeader response = await Engine.QueryAsync(
             request,
@@ -158,35 +214,11 @@ public sealed class LiteClient : IDisposable
             timeout,
             cancellationToken);
 
-        // Parse block header from data
-        Cell headerCell = Cell.FromBoc(response.HeaderProof)[0];
-        Slice headerSlice = headerCell.BeginParse();
-
-        // Read block header fields (simplified - full parsing would be more complex)
         return new BlockHeader
         {
-            Id = new BlockId(
-                response.Id.Workchain,
-                response.Id.Shard,
-                unchecked((uint)response.Id.Seqno),
-                response.Id.RootHash,
-                response.Id.FileHash),
-            GlobalId = 0, // Would need to parse from cell
-            Version = 0,
-            Flags = 0,
-            AfterMerge = false,
-            AfterSplit = false,
-            BeforeSplit = false,
-            WantMerge = false,
-            WantSplit = false,
-            ValidatorListHashShort = 0,
-            CatchainSeqno = 0,
-            MinRefMcSeqno = 0,
-            IsKeyBlock = false,
-            PrevKeyBlockSeqno = 0,
-            GenUtime = 0,
-            StartLt = BigInteger.Zero,
-            EndLt = BigInteger.Zero
+            Id = BlockId.FromAdnl(response.Id),
+            Mode = response.Mode,
+            HeaderProof = response.HeaderProof
         };
     }
 
@@ -198,16 +230,7 @@ public sealed class LiteClient : IDisposable
         int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
-        TonNodeBlockIdExt blockIdExt = new()
-        {
-            Workchain = blockId.Workchain,
-            Shard = blockId.Shard,
-            Seqno = unchecked((int)blockId.Seqno),
-            RootHash = blockId.RootHash,
-            FileHash = blockId.FileHash
-        };
-
-        GetAllShardsInfoRequest request = new(blockIdExt);
+        GetAllShardsInfoRequest request = new(blockId.ToAdnl());
 
         LiteServerAllShardsInfo response = await Engine.QueryAsync(
             request,
@@ -235,16 +258,7 @@ public sealed class LiteClient : IDisposable
         int timeout = 10000,
         CancellationToken cancellationToken = default)
     {
-        TonNodeBlockIdExt blockIdExt = new()
-        {
-            Workchain = blockId.Workchain,
-            Shard = blockId.Shard,
-            Seqno = unchecked((int)blockId.Seqno),
-            RootHash = blockId.RootHash,
-            FileHash = blockId.FileHash
-        };
-
-        ListBlockTransactionsRequest request = new(blockIdExt, count, after);
+        ListBlockTransactionsRequest request = new(blockId.ToAdnl(), count, after);
 
         LiteServerBlockTransactions response = await Engine.QueryAsync(
             request,
@@ -252,27 +266,6 @@ public sealed class LiteClient : IDisposable
             timeout,
             cancellationToken);
 
-        // Convert to user-friendly model
-        List<BlockTransaction> transactions = new();
-        foreach (LiteServerTransactionId? txId in response.Ids)
-            transactions.Add(new BlockTransaction
-            {
-                Account = txId.Account,
-                Lt = txId.Lt,
-                Hash = txId.Hash
-            });
-
-        return new BlockTransactions
-        {
-            BlockId = new BlockId(
-                response.Id.Workchain,
-                response.Id.Shard,
-                unchecked((uint)response.Id.Seqno),
-                response.Id.RootHash,
-                response.Id.FileHash),
-            RequestedCount = count,
-            Transactions = transactions,
-            Incomplete = response.Incomplete
-        };
+        return BlockTransactions.FromAdnl(response, count);
     }
 }

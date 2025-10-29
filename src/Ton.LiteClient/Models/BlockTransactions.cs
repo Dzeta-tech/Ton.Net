@@ -1,3 +1,5 @@
+using Ton.Adnl.Protocol;
+
 namespace Ton.LiteClient.Models;
 
 /// <summary>
@@ -29,6 +31,24 @@ public sealed class BlockTransactions
     ///     Proof data (if requested)
     /// </summary>
     public byte[]? Proof { get; init; }
+
+    /// <summary>
+    ///     Creates BlockTransactions from ADNL protocol's LiteServerBlockTransactions
+    /// </summary>
+    public static BlockTransactions FromAdnl(LiteServerBlockTransactions adnlResponse, uint requestedCount)
+    {
+        List<BlockTransaction> transactions = adnlResponse.Ids
+            .Select(BlockTransaction.FromAdnl)
+            .ToList();
+
+        return new BlockTransactions
+        {
+            BlockId = BlockId.FromAdnl(adnlResponse.Id),
+            RequestedCount = requestedCount,
+            Transactions = transactions,
+            Incomplete = adnlResponse.Incomplete
+        };
+    }
 
     public override string ToString()
     {
@@ -65,6 +85,19 @@ public readonly record struct BlockTransaction
     ///     Returns the hash as a hex string
     /// </summary>
     public string HashHex => Convert.ToHexString(Hash);
+
+    /// <summary>
+    ///     Creates BlockTransaction from ADNL protocol's LiteServerTransactionId
+    /// </summary>
+    public static BlockTransaction FromAdnl(LiteServerTransactionId adnlTx)
+    {
+        return new BlockTransaction
+        {
+            Account = adnlTx.Account,
+            Lt = adnlTx.Lt,
+            Hash = adnlTx.Hash
+        };
+    }
 
     public override string ToString()
     {

@@ -70,10 +70,10 @@ public static class LiteClientFactory
     {
         // Download and parse config
         NetworkConfig config = await httpClient.GetFromJsonAsync<NetworkConfig>(
-            configUrl,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
-            cancellationToken)
-            ?? throw new InvalidOperationException("Failed to load network config from URL");
+                                   configUrl,
+                                   new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
+                                   cancellationToken)
+                               ?? throw new InvalidOperationException("Failed to load network config from URL");
 
         return CreateFromConfig(config, reconnectTimeoutMs);
     }
@@ -103,7 +103,7 @@ public static class LiteClientFactory
             byte[] publicKey = serverConfig.Id.GetPublicKey();
 
             LiteSingleEngine engine = new(host, serverConfig.Port, publicKey, reconnectTimeoutMs);
-            return new LiteClient(engine, ownsEngine: true);
+            return new LiteClient(engine, true);
         }
 
         // Multiple servers - use round-robin
@@ -115,7 +115,7 @@ public static class LiteClientFactory
         }).ToArray();
 
         LiteRoundRobinEngine roundRobinEngine = new(engines);
-        return new LiteClient(roundRobinEngine, ownsEngine: true);
+        return new LiteClient(roundRobinEngine, true);
     }
 
     /// <summary>
@@ -139,7 +139,7 @@ public static class LiteClientFactory
         ).ToArray();
 
         LiteRoundRobinEngine roundRobinEngine = new(engines);
-        return new LiteClient(roundRobinEngine, ownsEngine: true);
+        return new LiteClient(roundRobinEngine, true);
     }
 
     /// <summary>
@@ -164,5 +164,3 @@ public static class LiteClientFactory
         return CreateRoundRobin(serversWithBytes, reconnectTimeoutMs);
     }
 }
-
-

@@ -91,11 +91,9 @@ public sealed class ServerIdentity
 /// </summary>
 public sealed class ValidatorConfig
 {
-    [JsonPropertyName("@type")]
-    public string Type { get; set; } = string.Empty;
+    [JsonPropertyName("@type")] public string Type { get; set; } = string.Empty;
 
-    [JsonPropertyName("zero_state")]
-    public ZeroState? ZeroState { get; set; }
+    [JsonPropertyName("zero_state")] public ZeroState? ZeroState { get; set; }
 }
 
 /// <summary>
@@ -103,19 +101,13 @@ public sealed class ValidatorConfig
 /// </summary>
 public sealed class ZeroState
 {
-    [JsonPropertyName("workchain")]
-    public int Workchain { get; set; }
+    [JsonPropertyName("workchain")] public int Workchain { get; set; }
 
-    [JsonPropertyName("shard")]
-    public long Shard { get; set; }
+    [JsonPropertyName("shard")] public long Shard { get; set; }
 
-    [JsonPropertyName("seqno")]
-    public int Seqno { get; set; }
+    [JsonPropertyName("seqno")] public int Seqno { get; set; }
 
-    [JsonPropertyName("root_hash")]
-    public string RootHash { get; set; } = string.Empty;
+    [JsonPropertyName("root_hash")] public string RootHash { get; set; } = string.Empty;
 
-    [JsonPropertyName("file_hash")]
-    public string FileHash { get; set; } = string.Empty;
+    [JsonPropertyName("file_hash")] public string FileHash { get; set; } = string.Empty;
 }
-

@@ -1,3 +1,5 @@
+using Ton.Adnl.Protocol;
+
 namespace Ton.LiteClient.Models;
 
 /// <summary>
@@ -23,6 +25,52 @@ public sealed class MasterchainInfo
     public override string ToString()
     {
         return $"MasterchainInfo(seqno:{Last.Seqno})";
+    }
+}
+
+/// <summary>
+///     Represents extended masterchain information including version, capabilities, and timestamps
+/// </summary>
+public sealed class MasterchainInfoExt
+{
+    /// <summary>
+    ///     Protocol version
+    /// </summary>
+    public required int Version { get; init; }
+
+    /// <summary>
+    ///     Server capabilities flags
+    /// </summary>
+    public required long Capabilities { get; init; }
+
+    /// <summary>
+    ///     Latest known masterchain block
+    /// </summary>
+    public required BlockId Last { get; init; }
+
+    /// <summary>
+    ///     Unix timestamp of the last block
+    /// </summary>
+    public required int LastUtime { get; init; }
+
+    /// <summary>
+    ///     Current server time (unix timestamp)
+    /// </summary>
+    public required int Now { get; init; }
+
+    /// <summary>
+    ///     State root hash
+    /// </summary>
+    public required byte[] StateRootHash { get; init; }
+
+    /// <summary>
+    ///     Zero state (initial state) block reference
+    /// </summary>
+    public required ZeroStateId Init { get; init; }
+
+    public override string ToString()
+    {
+        return $"MasterchainInfoExt(seqno:{Last.Seqno}, version:{Version}, capabilities:{Capabilities})";
     }
 }
 
@@ -61,6 +109,17 @@ public record ZeroStateId
     ///     File hash of the zero state
     /// </summary>
     public byte[] FileHash { get; init; }
+
+    /// <summary>
+    ///     Creates a ZeroStateId from ADNL protocol's TonNodeZeroStateIdExt
+    /// </summary>
+    public static ZeroStateId FromAdnl(TonNodeZeroStateIdExt adnlZeroState)
+    {
+        return new ZeroStateId(
+            adnlZeroState.Workchain,
+            adnlZeroState.RootHash,
+            adnlZeroState.FileHash);
+    }
 
     public override string ToString()
     {

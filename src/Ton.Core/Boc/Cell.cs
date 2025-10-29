@@ -94,6 +94,40 @@ public class Cell
     /// </summary>
     public bool IsExotic => Type != CellType.Ordinary;
 
+    /// <summary>
+    ///     For MerkleProof exotic cells, returns the referenced cell (the actual data).
+    ///     For MerkleUpdate cells, returns the first reference (the "new" state).
+    ///     For ordinary cells, returns this cell.
+    ///     This is useful when parsing proof structures where you want to access the underlying data.
+    /// </summary>
+    /// <returns>The underlying data cell</returns>
+    public Cell UnwrapProof()
+    {
+        if (Type == CellType.MerkleProof)
+        {
+            // MerkleProof cells have exactly 1 reference containing the actual data
+            if (Refs.Length != 1)
+                throw new InvalidOperationException(
+                    $"MerkleProof cell must have exactly 1 reference, got {Refs.Length}");
+
+            return Refs[0];
+        }
+
+        if (Type == CellType.MerkleUpdate)
+        {
+            // MerkleUpdate cells have 2 references: old state [0] and new state [1]
+            // Return the new state (second reference)
+            if (Refs.Length != 2)
+                throw new InvalidOperationException(
+                    $"MerkleUpdate cell must have exactly 2 references, got {Refs.Length}");
+
+            return Refs[1];
+        }
+
+        // For ordinary and other exotic cells, return this cell
+        return this;
+    }
+
     void ValidateExoticCell()
     {
         switch (Type)

@@ -17,7 +17,7 @@ public sealed class LiteSingleEngine : ILiteEngine
     readonly int port;
     readonly int reconnectTimeoutMs;
     readonly byte[] serverPublicKey;
-    readonly object stateLock = new();
+    readonly Lock stateLock = new();
 
     AdnlClient? client;
     bool isClosed = true;
@@ -153,12 +153,12 @@ public sealed class LiteSingleEngine : ILiteEngine
         lock (stateLock)
         {
             if (isReady && client != null)
-                _ = client.WriteAsync(finalQuery).ContinueWith(t =>
+                _ = client.WriteAsync(finalQuery, cts.Token).ContinueWith(t =>
                 {
                     if (t.IsFaulted && pendingQueries.TryRemove(queryIdHex, out PendingQuery? q))
                         q.CompletionSource.TrySetException(t.Exception?.InnerException ??
                                                            new Exception("Failed to send query"));
-                });
+                }, cts.Token);
         }
 
         // Wait for response
@@ -245,7 +245,6 @@ public sealed class LiteSingleEngine : ILiteEngine
 
         // Resend all pending queries after reconnection
         if (currentClient != null)
-        {
             foreach (KeyValuePair<string, PendingQuery> kvp in pendingQueries)
             {
                 PendingQuery query = kvp.Value;
@@ -256,7 +255,6 @@ public sealed class LiteSingleEngine : ILiteEngine
                                                            new Exception("Failed to resend query after reconnection"));
                 });
             }
-        }
     }
 
     void OnClientClosed()

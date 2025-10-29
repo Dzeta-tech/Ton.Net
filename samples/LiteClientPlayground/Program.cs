@@ -25,7 +25,7 @@ try
     // 1. Get Masterchain Info (connection happens automatically here)
     Console.WriteLine("📊 Getting masterchain info...");
     MasterchainInfo masterchainInfo = await client.GetMasterchainInfoAsync();
-    
+
     Console.WriteLine("✅ Connected and ready!\n");
 
     Console.WriteLine($"Latest block: seqno {masterchainInfo.Last.Seqno}");
@@ -71,7 +71,8 @@ try
     Console.WriteLine($"📝 Listing transactions in block {blockToQuery.Seqno}...");
     BlockTransactions transactions = await client.ListBlockTransactionsAsync(blockToQuery);
 
-    Console.WriteLine($"Block: wc:{transactions.BlockId.Workchain}, shard:{transactions.BlockId.Shard:X16}, seqno:{transactions.BlockId.Seqno}");
+    Console.WriteLine(
+        $"Block: wc:{transactions.BlockId.Workchain}, shard:{transactions.BlockId.Shard:X16}, seqno:{transactions.BlockId.Seqno}");
     Console.WriteLine($"Requested: {transactions.RequestedCount}");
     Console.WriteLine($"Found: {transactions.Transactions.Count}");
     Console.WriteLine($"Incomplete: {transactions.Incomplete}");

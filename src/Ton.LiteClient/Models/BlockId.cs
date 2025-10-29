@@ -1,3 +1,5 @@
+using Ton.Adnl.Protocol;
+
 namespace Ton.LiteClient.Models;
 
 /// <summary>
@@ -62,6 +64,34 @@ public record BlockId
     ///     Returns the file hash as a hex string
     /// </summary>
     public string FileHashHex => Convert.ToHexString(FileHash);
+
+    /// <summary>
+    ///     Creates a BlockId from ADNL protocol's TonNodeBlockIdExt
+    /// </summary>
+    public static BlockId FromAdnl(TonNodeBlockIdExt adnlBlock)
+    {
+        return new BlockId(
+            adnlBlock.Workchain,
+            adnlBlock.Shard,
+            unchecked((uint)adnlBlock.Seqno),
+            adnlBlock.RootHash,
+            adnlBlock.FileHash);
+    }
+
+    /// <summary>
+    ///     Converts this BlockId to ADNL protocol's TonNodeBlockIdExt
+    /// </summary>
+    public TonNodeBlockIdExt ToAdnl()
+    {
+        return new TonNodeBlockIdExt
+        {
+            Workchain = Workchain,
+            Shard = Shard,
+            Seqno = unchecked((int)Seqno),
+            RootHash = RootHash,
+            FileHash = FileHash
+        };
+    }
 
     public override string ToString()
     {
