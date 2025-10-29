@@ -1,4 +1,5 @@
 using Ton.Adnl.Protocol;
+using Ton.Core.Addresses;
 
 namespace Ton.LiteClient.Models;
 
@@ -37,13 +38,15 @@ public sealed class BlockTransactions
     /// </summary>
     public static BlockTransactions FromAdnl(LiteServerBlockTransactions adnlResponse, uint requestedCount)
     {
+        BlockId blockId = BlockId.FromAdnl(adnlResponse.Id);
+        
         List<BlockTransaction> transactions = adnlResponse.Ids
-            .Select(BlockTransaction.FromAdnl)
+            .Select(id => BlockTransaction.FromAdnl(id, blockId.Workchain))
             .ToList();
 
         return new BlockTransactions
         {
-            BlockId = BlockId.FromAdnl(adnlResponse.Id),
+            BlockId = blockId,
             RequestedCount = requestedCount,
             Transactions = transactions,
             Incomplete = adnlResponse.Incomplete
@@ -63,9 +66,9 @@ public sealed class BlockTransactions
 public readonly record struct BlockTransaction
 {
     /// <summary>
-    ///     Account address (32 bytes)
+    ///     Account address
     /// </summary>
-    public required byte[] Account { get; init; }
+    public required Address Account { get; init; }
 
     /// <summary>
     ///     Logical time
@@ -78,11 +81,6 @@ public readonly record struct BlockTransaction
     public required byte[] Hash { get; init; }
 
     /// <summary>
-    ///     Returns the account as a hex string
-    /// </summary>
-    public string AccountHex => Convert.ToHexString(Account);
-
-    /// <summary>
     ///     Returns the hash as a hex string
     /// </summary>
     public string HashHex => Convert.ToHexString(Hash);
@@ -90,11 +88,13 @@ public readonly record struct BlockTransaction
     /// <summary>
     ///     Creates BlockTransaction from ADNL protocol's LiteServerTransactionId
     /// </summary>
-    public static BlockTransaction FromAdnl(LiteServerTransactionId adnlTx)
+    /// <param name="adnlTx">The ADNL transaction identifier</param>
+    /// <param name="workchain">The workchain of the block containing this transaction</param>
+    public static BlockTransaction FromAdnl(LiteServerTransactionId adnlTx, int workchain)
     {
         return new BlockTransaction
         {
-            Account = adnlTx.Account,
+            Account = new Address(workchain, adnlTx.Account),
             Lt = adnlTx.Lt,
             Hash = adnlTx.Hash
         };
@@ -103,6 +103,6 @@ public readonly record struct BlockTransaction
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"Tx(account:...{AccountHex[^16..]}, lt:{Lt}, hash:{HashHex[..16]}...)";
+        return $"Tx(account:{Account}, lt:{Lt}, hash:{HashHex[..16]}...)";
     }
 }

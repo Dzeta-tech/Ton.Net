@@ -255,12 +255,12 @@ public class LiteClientIntegrationTests(ITestOutputHelper output) : IAsyncLifeti
         foreach (BlockTransaction tx in blockTransactions.Transactions.Take(5))
         {
             Assert.NotNull(tx.Account);
-            Assert.Equal(32, tx.Account.Length);
+            Assert.Equal(32, tx.Account.Hash.Length);
             Assert.True(tx.Lt > 0, "Logical time should be positive");
             Assert.NotNull(tx.Hash);
             Assert.Equal(32, tx.Hash.Length);
 
-            output.WriteLine($"    Tx: account={Convert.ToHexString(tx.Account).Substring(0, 16)}..., " +
+            output.WriteLine($"    Tx: account={tx.Account}, " +
                              $"lt={tx.Lt}, hash={Convert.ToHexString(tx.Hash).Substring(0, 16)}...");
         }
     }
@@ -295,12 +295,12 @@ public class LiteClientIntegrationTests(ITestOutputHelper output) : IAsyncLifeti
             foreach (BlockTransaction tx in blockTransactions.Transactions.Take(5))
             {
                 Assert.NotNull(tx.Account);
-                Assert.Equal(32, tx.Account.Length);
+                Assert.Equal(32, tx.Account.Hash.Length);
                 Assert.True(tx.Lt > 0, "Logical time should be positive");
                 Assert.NotNull(tx.Hash);
                 Assert.Equal(32, tx.Hash.Length);
 
-                output.WriteLine($"    Tx: account={Convert.ToHexString(tx.Account).Substring(0, 16)}..., " +
+                output.WriteLine($"    Tx: account={tx.Account}, " +
                                  $"lt={tx.Lt}, hash={Convert.ToHexString(tx.Hash).Substring(0, 16)}...");
             }
         }
