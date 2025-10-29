@@ -55,6 +55,7 @@ public sealed class LiteSingleEngine : ILiteEngine
     {
     }
 
+    /// <inheritdoc />
     public bool IsReady
     {
         get
@@ -66,6 +67,7 @@ public sealed class LiteSingleEngine : ILiteEngine
         }
     }
 
+    /// <inheritdoc />
     public bool IsClosed
     {
         get
@@ -77,9 +79,16 @@ public sealed class LiteSingleEngine : ILiteEngine
         }
     }
 
+    /// <inheritdoc />
     public event EventHandler? Connected;
+
+    /// <inheritdoc />
     public event EventHandler? Ready;
+
+    /// <inheritdoc />
     public event EventHandler? Closed;
+
+    /// <inheritdoc />
     public event EventHandler<Exception>? Error;
 
     /// <summary>
@@ -88,7 +97,6 @@ public sealed class LiteSingleEngine : ILiteEngine
     public async Task<TResponse> QueryAsync<TRequest, TResponse>(
         TRequest request,
         Func<TLReadBuffer, TResponse> responseReader,
-        int timeout = 5000,
         CancellationToken cancellationToken = default)
         where TRequest : ILiteRequest
     {
@@ -98,8 +106,8 @@ public sealed class LiteSingleEngine : ILiteEngine
                 throw new InvalidOperationException("Engine is closed");
         }
 
-        // Wait for connection to be ready (with timeout)
-        await WaitForReadyAsync(timeout, cancellationToken);
+        // Wait for connection to be ready
+        await WaitForReadyAsync(cancellationToken);
 
         // Generate random query ID
         byte[] queryId = AdnlKeys.GenerateRandomBytes(32);
@@ -133,32 +141,28 @@ public sealed class LiteSingleEngine : ILiteEngine
             FunctionId = 0, // Not needed anymore - we match by query ID
             ResponseReader = responseReader,
             CompletionSource = tcs,
-            Timeout = timeout,
             QueryData = finalQuery
         };
 
         pendingQueries[queryIdHex] = query;
 
-        // Setup timeout
-        using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(timeout);
-
-        cts.Token.Register(() =>
+        // Setup cancellation
+        cancellationToken.Register(() =>
         {
             if (pendingQueries.TryRemove(queryIdHex, out PendingQuery? q))
-                q.CompletionSource.TrySetException(new TimeoutException($"Query timed out after {timeout}ms"));
+                q.CompletionSource.TrySetCanceled(cancellationToken);
         });
 
         // Send query
         lock (stateLock)
         {
             if (isReady && client != null)
-                _ = client.WriteAsync(finalQuery, cts.Token).ContinueWith(t =>
+                _ = client.WriteAsync(finalQuery, cancellationToken).ContinueWith(t =>
                 {
                     if (t.IsFaulted && pendingQueries.TryRemove(queryIdHex, out PendingQuery? q))
                         q.CompletionSource.TrySetException(t.Exception?.InnerException ??
                                                            new Exception("Failed to send query"));
-                }, cts.Token);
+                }, cancellationToken);
         }
 
         // Wait for response
@@ -166,6 +170,7 @@ public sealed class LiteSingleEngine : ILiteEngine
         return (TResponse)result;
     }
 
+    /// <inheritdoc />
     public async Task CloseAsync()
     {
         AdnlClient? clientToClose;
@@ -189,6 +194,7 @@ public sealed class LiteSingleEngine : ILiteEngine
         if (clientToClose != null) await clientToClose.CloseAsync();
     }
 
+    /// <inheritdoc />
     public void Dispose()
     {
         CloseAsync().GetAwaiter().GetResult();
@@ -354,7 +360,7 @@ public sealed class LiteSingleEngine : ILiteEngine
     /// <summary>
     ///     Waits for the engine to be ready for queries
     /// </summary>
-    async Task WaitForReadyAsync(int timeout, CancellationToken cancellationToken)
+    async Task WaitForReadyAsync(CancellationToken cancellationToken)
     {
         // If already ready, return immediately
         lock (stateLock)
@@ -390,17 +396,8 @@ public sealed class LiteSingleEngine : ILiteEngine
                 }
             }
 
-            using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(timeout);
-
-            Task delayTask = Task.Delay(-1, cts.Token);
-            Task completedTask = await Task.WhenAny(readyTask.Task, delayTask);
-
-            if (completedTask == delayTask)
-                throw new TimeoutException($"Connection not ready within {timeout}ms");
-
-            // Re-throw any exception from the ready task
-            await readyTask.Task;
+            // Wait for ready or error
+            await readyTask.Task.WaitAsync(cancellationToken);
         }
         finally
         {
@@ -414,7 +411,6 @@ public sealed class LiteSingleEngine : ILiteEngine
         public required uint FunctionId { get; init; }
         public required Delegate ResponseReader { get; init; }
         public required TaskCompletionSource<object> CompletionSource { get; init; }
-        public required int Timeout { get; init; }
         public required byte[] QueryData { get; init; }
     }
 }
@@ -425,5 +421,8 @@ public sealed class LiteSingleEngine : ILiteEngine
 public sealed class LiteServerException(int errorCode, string message)
     : Exception($"LiteServer error {errorCode}: {message}")
 {
+    /// <summary>
+    ///     Gets the error code returned by the lite server
+    /// </summary>
     public int ErrorCode { get; } = errorCode;
 }

@@ -50,6 +50,7 @@ public sealed class BlockTransactions
         };
     }
 
+    /// <inheritdoc />
     public override string ToString()
     {
         return $"BlockTransactions(block:{BlockId.Seqno}, count:{Transactions.Count}, incomplete:{Incomplete})";
@@ -99,6 +100,7 @@ public readonly record struct BlockTransaction
         };
     }
 
+    /// <inheritdoc />
     public override string ToString()
     {
         return $"Tx(account:...{AccountHex[^16..]}, lt:{Lt}, hash:{HashHex[..16]}...)";

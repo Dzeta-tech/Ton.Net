@@ -100,9 +100,16 @@ public sealed class LiteRoundRobinEngine : ILiteEngine
         }
     }
 
+    /// <inheritdoc />
     public event EventHandler? Connected;
+
+    /// <inheritdoc />
     public event EventHandler? Ready;
+
+    /// <inheritdoc />
     public event EventHandler? Closed;
+
+    /// <inheritdoc />
     public event EventHandler<Exception>? Error;
 
     /// <summary>
@@ -112,7 +119,6 @@ public sealed class LiteRoundRobinEngine : ILiteEngine
     public async Task<TResponse> QueryAsync<TRequest, TResponse>(
         TRequest request,
         Func<TLReadBuffer, TResponse> responseReader,
-        int timeout = 5000,
         CancellationToken cancellationToken = default)
         where TRequest : ILiteRequest
     {
@@ -179,7 +185,7 @@ public sealed class LiteRoundRobinEngine : ILiteEngine
 
             try
             {
-                TResponse result = await engine.QueryAsync(request, responseReader, timeout, cancellationToken);
+                TResponse result = await engine.QueryAsync(request, responseReader, cancellationToken);
                 return result;
             }
             catch (TimeoutException)
@@ -209,6 +215,7 @@ public sealed class LiteRoundRobinEngine : ILiteEngine
         }
     }
 
+    /// <inheritdoc />
     public async Task CloseAsync()
     {
         ILiteEngine[] enginesToClose;
@@ -226,6 +233,7 @@ public sealed class LiteRoundRobinEngine : ILiteEngine
         await Task.WhenAll(enginesToClose.Select(e => e.CloseAsync()));
     }
 
+    /// <inheritdoc />
     public void Dispose()
     {
         CloseAsync().GetAwaiter().GetResult();

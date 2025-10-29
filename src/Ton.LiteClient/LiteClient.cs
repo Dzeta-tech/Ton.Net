@@ -12,18 +12,14 @@ namespace Ton.LiteClient;
 /// </summary>
 public sealed class LiteClient : IDisposable
 {
-    readonly bool ownsEngine;
-
     /// <summary>
     ///     Creates a new lite client with the specified engine
     /// </summary>
     /// <param name="engine">Lite engine instance</param>
-    /// <param name="ownsEngine">Whether this client should dispose the engine when disposed</param>
-    public LiteClient(ILiteEngine engine, bool ownsEngine = true)
+    public LiteClient(ILiteEngine engine)
     {
         ArgumentNullException.ThrowIfNull(engine);
         Engine = engine;
-        this.ownsEngine = ownsEngine;
     }
 
     /// <summary>
@@ -31,23 +27,21 @@ public sealed class LiteClient : IDisposable
     /// </summary>
     public ILiteEngine Engine { get; }
 
+    /// <inheritdoc />
     public void Dispose()
     {
-        if (ownsEngine) Engine.Dispose();
+        Engine.Dispose();
     }
 
     /// <summary>
     ///     Gets current server time
     /// </summary>
-    public async Task<DateTimeOffset> GetTimeAsync(
-        int timeout = 5000,
-        CancellationToken cancellationToken = default)
+    public async Task<DateTimeOffset> GetTimeAsync(CancellationToken cancellationToken = default)
     {
         GetTimeRequest request = new();
         LiteServerCurrentTime response = await Engine.QueryAsync(
             request,
             static r => LiteServerCurrentTime.ReadFrom(r),
-            timeout,
             cancellationToken);
 
         return DateTimeOffset.FromUnixTimeSeconds(response.Now);
@@ -56,15 +50,12 @@ public sealed class LiteClient : IDisposable
     /// <summary>
     ///     Gets masterchain information including latest block
     /// </summary>
-    public async Task<MasterchainInfo> GetMasterchainInfoAsync(
-        int timeout = 5000,
-        CancellationToken cancellationToken = default)
+    public async Task<MasterchainInfo> GetMasterchainInfoAsync(CancellationToken cancellationToken = default)
     {
         GetMasterchainInfoRequest request = new();
         LiteServerMasterchainInfo response = await Engine.QueryAsync(
             request,
             static r => LiteServerMasterchainInfo.ReadFrom(r),
-            timeout,
             cancellationToken);
 
         return MasterchainInfo.FromAdnl(response);
@@ -73,15 +64,12 @@ public sealed class LiteClient : IDisposable
     /// <summary>
     ///     Gets extended masterchain information including version, capabilities, and timestamps
     /// </summary>
-    public async Task<MasterchainInfoExt> GetMasterchainInfoExtAsync(
-        int timeout = 5000,
-        CancellationToken cancellationToken = default)
+    public async Task<MasterchainInfoExt> GetMasterchainInfoExtAsync(CancellationToken cancellationToken = default)
     {
         GetMasterchainInfoExtRequest request = new();
         LiteServerMasterchainInfoExt response = await Engine.QueryAsync(
             request,
             static r => LiteServerMasterchainInfoExt.ReadFrom(r),
-            timeout,
             cancellationToken);
 
         return MasterchainInfoExt.FromAdnl(response);
@@ -91,14 +79,12 @@ public sealed class LiteClient : IDisposable
     ///     Gets version information from the lite server
     /// </summary>
     public async Task<(int Version, long Capabilities, int Now)> GetVersionAsync(
-        int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
         GetVersionRequest request = new();
         LiteServerVersion response = await Engine.QueryAsync(
             request,
             static r => LiteServerVersion.ReadFrom(r),
-            timeout,
             cancellationToken);
 
         return (response.Version, response.Capabilities, response.Now);
@@ -111,7 +97,6 @@ public sealed class LiteClient : IDisposable
         int workchain,
         long shard,
         uint seqno,
-        int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
         TonNodeBlockId blockId = new()
@@ -125,7 +110,6 @@ public sealed class LiteClient : IDisposable
         LiteServerBlockHeader response = await Engine.QueryAsync(
             request,
             static r => LiteServerBlockHeader.ReadFrom(r),
-            timeout,
             cancellationToken);
 
         return BlockId.FromAdnl(response.Id);
@@ -138,7 +122,6 @@ public sealed class LiteClient : IDisposable
         int workchain,
         long shard,
         int utime,
-        int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
         TonNodeBlockId blockId = new()
@@ -152,7 +135,6 @@ public sealed class LiteClient : IDisposable
         LiteServerBlockHeader response = await Engine.QueryAsync(
             request,
             static r => LiteServerBlockHeader.ReadFrom(r),
-            timeout,
             cancellationToken);
 
         return BlockId.FromAdnl(response.Id);
@@ -165,7 +147,6 @@ public sealed class LiteClient : IDisposable
         int workchain,
         long shard,
         long lt,
-        int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
         TonNodeBlockId blockId = new()
@@ -179,7 +160,6 @@ public sealed class LiteClient : IDisposable
         LiteServerBlockHeader response = await Engine.QueryAsync(
             request,
             static r => LiteServerBlockHeader.ReadFrom(r),
-            timeout,
             cancellationToken);
 
         return BlockId.FromAdnl(response.Id);
@@ -190,7 +170,6 @@ public sealed class LiteClient : IDisposable
     /// </summary>
     public async Task<BlockHeader> GetBlockHeaderAsync(
         BlockId blockId,
-        int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
         GetBlockHeaderRequest request = new(blockId.ToAdnl()); // Mode handled automatically
@@ -198,7 +177,6 @@ public sealed class LiteClient : IDisposable
         LiteServerBlockHeader response = await Engine.QueryAsync(
             request,
             static r => LiteServerBlockHeader.ReadFrom(r),
-            timeout,
             cancellationToken);
 
         return BlockHeader.FromAdnl(response);
@@ -209,7 +187,6 @@ public sealed class LiteClient : IDisposable
     /// </summary>
     public async Task<BlockId[]> GetAllShardsInfoAsync(
         BlockId blockId,
-        int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
         GetAllShardsInfoRequest request = new(blockId.ToAdnl());
@@ -217,7 +194,6 @@ public sealed class LiteClient : IDisposable
         LiteServerAllShardsInfo response = await Engine.QueryAsync(
             request,
             static r => LiteServerAllShardsInfo.ReadFrom(r),
-            timeout,
             cancellationToken);
 
         // Parse shard data from BOC and return as BlockId array
@@ -230,14 +206,12 @@ public sealed class LiteClient : IDisposable
     /// <param name="blockId">The block identifier</param>
     /// <param name="count">Maximum number of transactions to return</param>
     /// <param name="after">Optional transaction ID to start after (for pagination)</param>
-    /// <param name="timeout">Optional timeout in milliseconds</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Block transactions information</returns>
     public async Task<BlockTransactions> ListBlockTransactionsAsync(
         BlockId blockId,
-        uint count = 40,
+        uint count = 256,
         LiteServerTransactionId3? after = null,
-        int timeout = 10000,
         CancellationToken cancellationToken = default)
     {
         ListBlockTransactionsRequest request = new(blockId.ToAdnl(), count, after);
@@ -245,7 +219,6 @@ public sealed class LiteClient : IDisposable
         LiteServerBlockTransactions response = await Engine.QueryAsync(
             request,
             static r => LiteServerBlockTransactions.ReadFrom(r),
-            timeout,
             cancellationToken);
 
         return BlockTransactions.FromAdnl(response, count);
@@ -256,13 +229,11 @@ public sealed class LiteClient : IDisposable
     /// </summary>
     /// <param name="address">Account address</param>
     /// <param name="blockId">Block identifier</param>
-    /// <param name="timeout">Optional timeout in milliseconds</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Account state information</returns>
     public async Task<AccountState> GetAccountStateAsync(
         Address address,
         BlockId blockId,
-        int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
         LiteServerAccountId accountId = new()
@@ -276,7 +247,6 @@ public sealed class LiteClient : IDisposable
         LiteServerAccountState response = await Engine.QueryAsync(
             request,
             static r => LiteServerAccountState.ReadFrom(r),
-            timeout,
             cancellationToken);
 
         return AccountState.FromAdnl(response, address);
@@ -286,12 +256,10 @@ public sealed class LiteClient : IDisposable
     ///     Gets blockchain configuration parameters
     /// </summary>
     /// <param name="blockId">Block identifier</param>
-    /// <param name="timeout">Optional timeout in milliseconds</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Config info with state proof and config proof</returns>
     public async Task<ConfigInfo> GetConfigAsync(
         BlockId blockId,
-        int timeout = 5000,
         CancellationToken cancellationToken = default)
     {
         GetConfigAllRequest request = new(blockId.ToAdnl());
@@ -299,7 +267,6 @@ public sealed class LiteClient : IDisposable
         LiteServerConfigInfo response = await Engine.QueryAsync(
             request,
             static r => LiteServerConfigInfo.ReadFrom(r),
-            timeout,
             cancellationToken);
 
         return ConfigInfo.FromAdnl(response);

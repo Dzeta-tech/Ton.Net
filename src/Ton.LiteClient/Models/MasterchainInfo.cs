@@ -35,6 +35,7 @@ public sealed class MasterchainInfo
         };
     }
 
+    /// <inheritdoc />
     public override string ToString()
     {
         return $"MasterchainInfo(seqno:{Last.Seqno})";
@@ -98,6 +99,7 @@ public sealed class MasterchainInfoExt
         };
     }
 
+    /// <inheritdoc />
     public override string ToString()
     {
         return $"MasterchainInfoExt(seqno:{Last.Seqno}, version:{Version}, capabilities:{Capabilities})";
@@ -109,6 +111,12 @@ public sealed class MasterchainInfoExt
 /// </summary>
 public record ZeroStateId
 {
+    /// <summary>
+    ///     Creates a new zero state identifier
+    /// </summary>
+    /// <param name="workchain">Workchain ID</param>
+    /// <param name="rootHash">Zero state root hash (32 bytes)</param>
+    /// <param name="fileHash">Zero state file hash (32 bytes)</param>
     public ZeroStateId(int workchain, byte[] rootHash, byte[] fileHash)
     {
         ArgumentNullException.ThrowIfNull(rootHash);
@@ -151,6 +159,7 @@ public record ZeroStateId
             adnlZeroState.FileHash);
     }
 
+    /// <inheritdoc />
     public override string ToString()
     {
         return $"ZeroState(wc:{Workchain})";

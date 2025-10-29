@@ -167,6 +167,7 @@ public sealed class AccountState
         };
     }
 
+    /// <inheritdoc />
     public override string ToString()
     {
         return $"Account({Address}, balance:{BalanceInTon:F4} TON, state:{State})";

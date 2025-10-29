@@ -7,6 +7,14 @@ namespace Ton.LiteClient.Models;
 /// </summary>
 public record BlockId
 {
+    /// <summary>
+    ///     Creates a new block identifier
+    /// </summary>
+    /// <param name="workchain">Workchain ID (-1 for masterchain, 0 for basechain)</param>
+    /// <param name="shard">Shard identifier</param>
+    /// <param name="seqno">Block sequence number</param>
+    /// <param name="rootHash">Block root hash (32 bytes)</param>
+    /// <param name="fileHash">Block file hash (32 bytes)</param>
     public BlockId(int workchain, long shard, uint seqno, byte[] rootHash, byte[] fileHash)
     {
         ArgumentNullException.ThrowIfNull(rootHash);
@@ -93,6 +101,7 @@ public record BlockId
         };
     }
 
+    /// <inheritdoc />
     public override string ToString()
     {
         return $"Block(wc:{Workchain}, shard:{Shard:X}, seqno:{Seqno})";

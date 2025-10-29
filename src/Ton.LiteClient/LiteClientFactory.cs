@@ -20,17 +20,15 @@ public static class LiteClientFactory
     /// <param name="port">Server port</param>
     /// <param name="serverPublicKey">Server's Ed25519 public key (32 bytes)</param>
     /// <param name="reconnectTimeoutMs">Reconnection timeout in milliseconds (default: 10000)</param>
-    /// <param name="ownsEngine">Whether the client should dispose the engine when disposed (default: true)</param>
     /// <returns>New LiteClient instance with a LiteSingleEngine</returns>
     public static LiteClient Create(
         string host,
         int port,
         byte[] serverPublicKey,
-        int reconnectTimeoutMs = 10000,
-        bool ownsEngine = true)
+        int reconnectTimeoutMs = 10000)
     {
         LiteSingleEngine engine = new(host, port, serverPublicKey, reconnectTimeoutMs);
-        return new LiteClient(engine, ownsEngine);
+        return new LiteClient(engine);
     }
 
     /// <summary>
@@ -41,17 +39,58 @@ public static class LiteClientFactory
     /// <param name="port">Server port</param>
     /// <param name="serverPublicKeyBase64">Server's Ed25519 public key as base64 string</param>
     /// <param name="reconnectTimeoutMs">Reconnection timeout in milliseconds (default: 10000)</param>
-    /// <param name="ownsEngine">Whether the client should dispose the engine when disposed (default: true)</param>
     /// <returns>New LiteClient instance with a LiteSingleEngine</returns>
     public static LiteClient Create(
         string host,
         int port,
         string serverPublicKeyBase64,
-        int reconnectTimeoutMs = 10000,
-        bool ownsEngine = true)
+        int reconnectTimeoutMs = 10000)
     {
         byte[] publicKey = Convert.FromBase64String(serverPublicKeyBase64);
-        return Create(host, port, publicKey, reconnectTimeoutMs, ownsEngine);
+        return Create(host, port, publicKey, reconnectTimeoutMs);
+    }
+
+    /// <summary>
+    ///     Creates a new lite client with a single server connection and rate limiting.
+    ///     The client will automatically connect when the first request is made.
+    /// </summary>
+    /// <param name="host">Server host/IP</param>
+    /// <param name="port">Server port</param>
+    /// <param name="serverPublicKey">Server's Ed25519 public key (32 bytes)</param>
+    /// <param name="requestsPerSecond">Maximum requests per second</param>
+    /// <param name="reconnectTimeoutMs">Reconnection timeout in milliseconds (default: 10000)</param>
+    /// <returns>New LiteClient instance with a rate-limited LiteSingleEngine</returns>
+    public static LiteClient CreateRateLimited(
+        string host,
+        int port,
+        byte[] serverPublicKey,
+        int requestsPerSecond,
+        int reconnectTimeoutMs = 10000)
+    {
+        LiteSingleEngine singleEngine = new(host, port, serverPublicKey, reconnectTimeoutMs);
+        RateLimitedLiteEngine rateLimitedEngine = new(singleEngine, requestsPerSecond);
+        return new LiteClient(rateLimitedEngine);
+    }
+
+    /// <summary>
+    ///     Creates a new lite client with a single server connection and rate limiting (base64 public key).
+    ///     The client will automatically connect when the first request is made.
+    /// </summary>
+    /// <param name="host">Server host/IP</param>
+    /// <param name="port">Server port</param>
+    /// <param name="serverPublicKeyBase64">Server's Ed25519 public key as base64 string</param>
+    /// <param name="requestsPerSecond">Maximum requests per second</param>
+    /// <param name="reconnectTimeoutMs">Reconnection timeout in milliseconds (default: 10000)</param>
+    /// <returns>New LiteClient instance with a rate-limited LiteSingleEngine</returns>
+    public static LiteClient CreateRateLimited(
+        string host,
+        int port,
+        string serverPublicKeyBase64,
+        int requestsPerSecond,
+        int reconnectTimeoutMs = 10000)
+    {
+        byte[] publicKey = Convert.FromBase64String(serverPublicKeyBase64);
+        return CreateRateLimited(host, port, publicKey, requestsPerSecond, reconnectTimeoutMs);
     }
 
     /// <summary>

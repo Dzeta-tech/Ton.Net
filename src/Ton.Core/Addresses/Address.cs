@@ -7,11 +7,14 @@ namespace Ton.Core.Addresses;
 ///     Represents a TON blockchain address.
 ///     Addresses are immutable and can be parsed from both friendly (base64-encoded) and raw (workchain:hash) formats.
 /// </summary>
-public partial class Address : IEquatable<Address>
+public class Address : IEquatable<Address>
 {
     const byte BounceableTag = 0x11;
     const byte NonBounceableTag = 0x51;
     const byte TestFlag = 0x80;
+
+    static readonly Regex Base64Regex = new("^[A-Za-z0-9+/_-]+$", RegexOptions.Compiled);
+    static readonly Regex HexRegex = new("^[a-f0-9]+$", RegexOptions.Compiled);
 
     /// <summary>
     ///     Creates a new TON address with the specified workchain and hash.
@@ -346,9 +349,6 @@ public partial class Address : IEquatable<Address>
     {
         return !(left == right);
     }
-
-    private static readonly Regex Base64Regex = new("^[A-Za-z0-9+/_-]+$", RegexOptions.Compiled);
-    private static readonly Regex HexRegex = new("^[a-f0-9]+$", RegexOptions.Compiled);
 }
 
 /// <summary>

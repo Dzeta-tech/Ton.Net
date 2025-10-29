@@ -35,6 +35,7 @@ public sealed class ConfigInfo
         };
     }
 
+    /// <inheritdoc />
     public override string ToString()
     {
         return $"ConfigInfo(block:{Block.Seqno}, stateProof:{StateProof.Length}b, configProof:{ConfigProof.Length}b)";

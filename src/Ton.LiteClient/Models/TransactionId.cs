@@ -7,6 +7,11 @@ namespace Ton.LiteClient.Models;
 /// </summary>
 public record TransactionId
 {
+    /// <summary>
+    ///     Creates a new transaction identifier
+    /// </summary>
+    /// <param name="lt">Logical time of the transaction</param>
+    /// <param name="hash">Transaction hash (32 bytes)</param>
     public TransactionId(BigInteger lt, byte[] hash)
     {
         ArgumentNullException.ThrowIfNull(hash);
@@ -33,6 +38,7 @@ public record TransactionId
     /// </summary>
     public string HashHex => Convert.ToHexString(Hash);
 
+    /// <inheritdoc />
     public override string ToString()
     {
         return $"Tx(lt:{Lt}, hash:{HashHex[..16]}...)";

@@ -8,9 +8,11 @@ namespace Ton.Core.Utils;
 ///     Utility functions for converting between TON coins and nanotons.
 ///     1 TON = 1,000,000,000 nanotons
 /// </summary>
-public static partial class Coins
+public static class Coins
 {
     const long NanoPower = 1_000_000_000L;
+
+    static readonly Regex TrailingZerosRegex = new("^([0-9]*[1-9]|0)(0*)$", RegexOptions.Compiled);
 
     /// <summary>
     ///     Converts TON coins to nanotons.
@@ -148,6 +150,4 @@ public static partial class Coins
     {
         return FromNano(BigInteger.Parse(value));
     }
-
-    private static readonly Regex TrailingZerosRegex = new("^([0-9]*[1-9]|0)(0*)$", RegexOptions.Compiled);
 }

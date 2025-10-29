@@ -25,13 +25,11 @@ public interface ILiteEngine : IDisposable
     /// <typeparam name="TResponse">Response type</typeparam>
     /// <param name="request">Request object</param>
     /// <param name="responseReader">Function to read response from TL buffer</param>
-    /// <param name="timeout">Query timeout in milliseconds (default: 5000ms)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Deserialized response</returns>
     Task<TResponse> QueryAsync<TRequest, TResponse>(
         TRequest request,
         Func<TLReadBuffer, TResponse> responseReader,
-        int timeout = 5000,
         CancellationToken cancellationToken = default)
         where TRequest : ILiteRequest;
 

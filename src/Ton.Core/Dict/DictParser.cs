@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Numerics;
 using Ton.Core.Boc;
 
@@ -89,10 +88,7 @@ internal static class DictParser
     static BigInteger ParseBinaryString(string binary)
     {
         BigInteger result = BigInteger.Zero;
-        foreach (char c in binary)
-        {
-            result = (result << 1) + (c == '1' ? 1 : 0);
-        }
+        foreach (char c in binary) result = (result << 1) + (c == '1' ? 1 : 0);
         return result;
     }
 }
