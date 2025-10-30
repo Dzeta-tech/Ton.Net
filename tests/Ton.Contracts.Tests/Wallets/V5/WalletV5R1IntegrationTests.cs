@@ -149,7 +149,7 @@ public class WalletV5R1IntegrationTests
 
         // Verify it can be serialized to BOC
         byte[] boc = transfer.ToBoc();
-        Assert.That(boc.Length, Is.GreaterThan(0));
+        Assert.That(boc, Is.Not.Empty);
 
         await TestContext.Out.WriteLineAsync($"Transfer cell created: {boc.Length} bytes BOC");
     }
@@ -177,7 +177,7 @@ public class WalletV5R1IntegrationTests
         Assert.That(request.Bits.Length, Is.GreaterThan(0));
 
         byte[] boc = request.ToBoc();
-        Assert.That(boc.Length, Is.GreaterThan(0));
+        Assert.That(boc, Is.Not.Empty);
 
         await TestContext.Out.WriteLineAsync($"Add extension request created: {boc.Length} bytes BOC");
     }

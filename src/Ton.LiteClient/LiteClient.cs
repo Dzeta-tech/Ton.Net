@@ -74,7 +74,8 @@ public sealed class LiteClient : IDisposable
     /// </summary>
     public async Task<MasterchainInfoExt> GetMasterchainInfoExtAsync(CancellationToken cancellationToken = default)
     {
-        GetMasterchainInfoExtRequest request = new();
+        // Mode 0: default mode
+        GetMasterchainInfoExtRequest request = new(0);
         LiteServerMasterchainInfoExt response = await Engine.QueryAsync(
             request,
             static r => LiteServerMasterchainInfoExt.ReadFrom(r),
@@ -113,7 +114,8 @@ public sealed class LiteClient : IDisposable
             Shard = shard,
             Seqno = unchecked((int)seqno)
         };
-        LookupBlockRequest request = new(blockId); // Mode flags handled automatically
+        // Mode 1: lookup by seqno (bit 0)
+        LookupBlockRequest request = new(1, blockId);
 
         LiteServerBlockHeader response = await Engine.QueryAsync(
             request,
@@ -138,7 +140,8 @@ public sealed class LiteClient : IDisposable
             Shard = shard,
             Seqno = 0
         };
-        LookupBlockRequest request = new(blockId, null, utime);
+        // Mode 4: lookup by utime (bit 2)
+        LookupBlockRequest request = new(4, blockId, null, utime);
 
         LiteServerBlockHeader response = await Engine.QueryAsync(
             request,
@@ -163,7 +166,8 @@ public sealed class LiteClient : IDisposable
             Shard = shard,
             Seqno = 0
         };
-        LookupBlockRequest request = new(blockId, lt);
+        // Mode 2: lookup by lt (bit 1)
+        LookupBlockRequest request = new(2, blockId, lt);
 
         LiteServerBlockHeader response = await Engine.QueryAsync(
             request,
@@ -180,7 +184,8 @@ public sealed class LiteClient : IDisposable
         BlockId blockId,
         CancellationToken cancellationToken = default)
     {
-        GetBlockHeaderRequest request = new(blockId.ToAdnl()); // Mode handled automatically
+        // Mode 0: default mode
+        GetBlockHeaderRequest request = new(blockId.ToAdnl(), 0);
 
         LiteServerBlockHeader response = await Engine.QueryAsync(
             request,
@@ -222,7 +227,8 @@ public sealed class LiteClient : IDisposable
         LiteServerTransactionId3? after = null,
         CancellationToken cancellationToken = default)
     {
-        ListBlockTransactionsRequest request = new(blockId.ToAdnl(), count, after);
+        // Mode 7: full transaction info (bits 0-2 set)
+        ListBlockTransactionsRequest request = new(blockId.ToAdnl(), 7, count, after);
 
         LiteServerBlockTransactions response = await Engine.QueryAsync(
             request,
@@ -270,7 +276,8 @@ public sealed class LiteClient : IDisposable
         BlockId blockId,
         CancellationToken cancellationToken = default)
     {
-        GetConfigAllRequest request = new(blockId.ToAdnl());
+        // Mode 0: default mode
+        GetConfigAllRequest request = new(0, blockId.ToAdnl());
 
         LiteServerConfigInfo response = await Engine.QueryAsync(
             request,
@@ -302,7 +309,9 @@ public sealed class LiteClient : IDisposable
             ? Tuple.SerializeTuple(args).ToBoc()
             : [];
 
+        // Mode 4: include stack in response
         RunSmcMethodRequest request = new(
+            4,
             blockId.ToAdnl(),
             new LiteServerAccountId { Workchain = address.Workchain, Id = address.Hash },
             methodId,

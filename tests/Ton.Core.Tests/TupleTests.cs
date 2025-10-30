@@ -168,7 +168,7 @@ public class TupleTests
         Assert.Multiple(() =>
         {
             Assert.That(parsed, Has.Length.EqualTo(reparsed.Length));
-            Assert.That(parsed.Length, Is.GreaterThan(0)); // Should have parsed some items
+            Assert.That(parsed, Is.Not.Empty); // Should have parsed some items
         });
     }
 

@@ -127,7 +127,7 @@ public class ContractAddressTests
         Assert.Multiple(() =>
         {
             Assert.That(addr.Workchain, Is.EqualTo(0));
-            Assert.That(addr.Hash.Length, Is.EqualTo(32));
+            Assert.That(addr.Hash, Has.Length.EqualTo(32));
         });
     }
 }

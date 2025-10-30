@@ -203,7 +203,7 @@ public class MessageTests
         Cell cell = builder.EndCell();
 
         // Should have refs for init and body
-        Assert.That(cell.Refs.Length, Is.GreaterThanOrEqualTo(2));
+        Assert.That(cell.Refs, Has.Length.GreaterThanOrEqualTo(2));
 
         // Should still deserialize correctly
         Message message2 = Message.Load(cell.BeginParse());

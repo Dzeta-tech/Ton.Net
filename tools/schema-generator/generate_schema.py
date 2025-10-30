@@ -544,9 +544,8 @@ def generate_request_class(func: TLType) -> str:
     result_type = to_pascal_case(func.result_type)
     
     # Separate fields into required and optional
-    required_fields = [f for f in func.fields if not f.is_optional and f.name != 'mode']
-    optional_fields = [f for f in func.fields if f.is_optional and f.name != 'mode']
-    has_mode = any(f.name == 'mode' for f in func.fields)
+    required_fields = [f for f in func.fields if not f.is_optional]
+    optional_fields = [f for f in func.fields if f.is_optional]
     
     lines = []
     lines.append(f'/// <summary>')
@@ -558,9 +557,6 @@ def generate_request_class(func: TLType) -> str:
     
     # Generate fields
     for field in func.fields:
-        if field.name == 'mode':
-            continue  # Mode is computed automatically
-        
         prop_name = to_pascal_case(field.name)
         cs_type = field.type
         
@@ -621,54 +617,11 @@ def generate_request_class(func: TLType) -> str:
     lines.append('    {')
     lines.append(f'        writer.WriteUInt32(0x{func.constructor:08X}); // {func.name}')
     
-    if has_mode:
-        # Compute mode flags automatically
-        lines.append('')
-        lines.append('        // Compute mode flags automatically')
-        
-        # Check if we have any mode-conditional fields
-        has_mode_conditional = any(
-            field.is_optional and field.condition and 
-            re.match(r'mode\.(\d+)', field.condition) 
-            for field in optional_fields
-        )
-        
-        # For lookupBlock and similar, set bit 0 by default when no optionals are provided
-        # This handles the implicit mode.0 flag for basic lookups
-        if has_mode_conditional and func.name in ['liteServer.lookupBlock', 'liteServer.lookupBlockWithProof']:
-            lines.append('        // Bit 0 is set by default for basic lookup (by seqno)')
-            lines.append('        uint mode = 1;')
-        elif has_mode_conditional and func.name == 'liteServer.listBlockTransactions':
-            lines.append('        // Bits 0-2 must be set for listBlockTransactions')
-            lines.append('        uint mode = 7;')
-        else:
-            lines.append('        uint mode = 0;')
-            
-        for field in optional_fields:
-            if field.condition:
-                condition_match = re.match(r'(\w+)\.(\d+)', field.condition)
-                if condition_match:
-                    mode_field, bit = condition_match.groups()
-                    if mode_field == 'mode':
-                        prop_name = to_pascal_case(field.name)
-                        # Check different nullable types
-                        if field.type in ['int', 'uint', 'long', 'bool']:
-                            lines.append(f'        if ({prop_name}.HasValue) {{ mode |= (1u << {bit}); }}')
-                        elif field.type == 'byte[]':
-                            lines.append(f'        if ({prop_name} != null && {prop_name}.Length > 0) {{ mode |= (1u << {bit}); }}')
-                        elif field.type.endswith('[]'):
-                            lines.append(f'        if ({prop_name} != null && {prop_name}.Length > 0) {{ mode |= (1u << {bit}); }}')
-                        elif field.type == 'string':
-                            lines.append(f'        if (!string.IsNullOrEmpty({prop_name})) {{ mode |= (1u << {bit}); }}')
-                        else:
-                            lines.append(f'        if ({prop_name} != null) {{ mode |= (1u << {bit}); }}')
+    # Mode handling is now done by the caller (LiteClient)
+    # Just write the mode value as-is
     
     # Write all fields in their TL schema order
     for field in func.fields:
-        if field.name == 'mode':
-            lines.append('        writer.WriteUInt32(mode);')
-            continue
-        
         prop_name = to_pascal_case(field.name)
         
         if field.is_optional and field.condition:
@@ -677,7 +630,7 @@ def generate_request_class(func: TLType) -> str:
             if condition_match:
                 mode_field, bit = condition_match.groups()
                 if mode_field == 'mode':
-                    lines.append(f'        if ((mode & (1u << {bit})) != 0)')
+                    lines.append(f'        if (({to_pascal_case(mode_field)} & (1u << {bit})) != 0)')
                     lines.append('        {')
                     write_stmt = generate_write_statement(field)
                     lines.append(f'            {write_stmt}')
@@ -779,6 +732,7 @@ def generate_csharp_code(types: List[TLType], functions: List[TLType]) -> str:
         lines.append(f'// Union types: {", ".join(union_types.keys())}')
     lines.append('')
     lines.append('#nullable disable')
+    lines.append('#pragma warning disable CS0108 // Member hides inherited member; missing new keyword')
     lines.append('')
     lines.append('using System;')
     lines.append('using Ton.Adnl.TL;')

@@ -1781,16 +1781,17 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public sealed class GetMasterchainInfoExtRequest : ILiteRequest
     {
+        public uint Mode { get; set; }
 
-        public GetMasterchainInfoExtRequest() { }
+        public GetMasterchainInfoExtRequest(uint mode)
+        {
+            Mode = mode;
+        }
 
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0x70A671DF); // liteServer.getMasterchainInfoExt
-
-            // Compute mode flags automatically
-            uint mode = 0;
-            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Mode);
         }
     }
 
@@ -1867,20 +1868,19 @@ namespace Ton.Adnl.Protocol
     public sealed class GetBlockHeaderRequest : ILiteRequest
     {
         public TonNodeBlockIdExt Id { get; set; }
+        public uint Mode { get; set; }
 
-        public GetBlockHeaderRequest(TonNodeBlockIdExt id)
+        public GetBlockHeaderRequest(TonNodeBlockIdExt id, uint mode)
         {
             Id = id;
+            Mode = mode;
         }
 
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0x21EC069E); // liteServer.getBlockHeader
-
-            // Compute mode flags automatically
-            uint mode = 0;
             Id.WriteTo(writer);
-            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Mode);
         }
     }
 
@@ -1956,13 +1956,15 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public sealed class RunSmcMethodRequest : ILiteRequest
     {
+        public uint Mode { get; set; }
         public TonNodeBlockIdExt Id { get; set; }
         public LiteServerAccountId Account { get; set; }
         public long MethodId { get; set; }
         public byte[] @Params { get; set; } = Array.Empty<byte>();
 
-        public RunSmcMethodRequest(TonNodeBlockIdExt id, LiteServerAccountId account, long methodId, byte[] @params)
+        public RunSmcMethodRequest(uint mode, TonNodeBlockIdExt id, LiteServerAccountId account, long methodId, byte[] @params)
         {
+            Mode = mode;
             Id = id;
             Account = account;
             MethodId = methodId;
@@ -1972,10 +1974,7 @@ namespace Ton.Adnl.Protocol
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0x5CC65DD2); // liteServer.runSmcMethod
-
-            // Compute mode flags automatically
-            uint mode = 0;
-            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Mode);
             Id.WriteTo(writer);
             Account.WriteTo(writer);
             writer.WriteInt64(MethodId);
@@ -2093,12 +2092,14 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public sealed class LookupBlockRequest : ILiteRequest
     {
+        public uint Mode { get; set; }
         public TonNodeBlockId Id { get; set; }
         public long? Lt { get; set; }
         public int? Utime { get; set; }
 
-        public LookupBlockRequest(TonNodeBlockId id, long? lt = null, int? utime = null)
+        public LookupBlockRequest(uint mode, TonNodeBlockId id, long? lt = null, int? utime = null)
         {
+            Mode = mode;
             Id = id;
             Lt = lt;
             Utime = utime;
@@ -2107,19 +2108,13 @@ namespace Ton.Adnl.Protocol
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0xFAC8F71E); // liteServer.lookupBlock
-
-            // Compute mode flags automatically
-            // Bit 0 is set by default for basic lookup (by seqno)
-            uint mode = 1;
-            if (Lt.HasValue) { mode |= (1u << 1); }
-            if (Utime.HasValue) { mode |= (1u << 2); }
-            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Mode);
             Id.WriteTo(writer);
-            if ((mode & (1u << 1)) != 0)
+            if ((Mode & (1u << 1)) != 0)
             {
                 writer.WriteInt64(Lt.Value);
             }
-            if ((mode & (1u << 2)) != 0)
+            if ((Mode & (1u << 2)) != 0)
             {
                 writer.WriteInt32(Utime.Value);
             }
@@ -2132,13 +2127,15 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public sealed class LookupBlockWithProofRequest : ILiteRequest
     {
+        public uint Mode { get; set; }
         public TonNodeBlockId Id { get; set; }
         public TonNodeBlockIdExt McBlockId { get; set; }
         public long? Lt { get; set; }
         public int? Utime { get; set; }
 
-        public LookupBlockWithProofRequest(TonNodeBlockId id, TonNodeBlockIdExt mcBlockId, long? lt = null, int? utime = null)
+        public LookupBlockWithProofRequest(uint mode, TonNodeBlockId id, TonNodeBlockIdExt mcBlockId, long? lt = null, int? utime = null)
         {
+            Mode = mode;
             Id = id;
             McBlockId = mcBlockId;
             Lt = lt;
@@ -2148,20 +2145,14 @@ namespace Ton.Adnl.Protocol
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0x9C045FF8); // liteServer.lookupBlockWithProof
-
-            // Compute mode flags automatically
-            // Bit 0 is set by default for basic lookup (by seqno)
-            uint mode = 1;
-            if (Lt.HasValue) { mode |= (1u << 1); }
-            if (Utime.HasValue) { mode |= (1u << 2); }
-            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Mode);
             Id.WriteTo(writer);
             McBlockId.WriteTo(writer);
-            if ((mode & (1u << 1)) != 0)
+            if ((Mode & (1u << 1)) != 0)
             {
                 writer.WriteInt64(Lt.Value);
             }
-            if ((mode & (1u << 2)) != 0)
+            if ((Mode & (1u << 2)) != 0)
             {
                 writer.WriteInt32(Utime.Value);
             }
@@ -2175,14 +2166,16 @@ namespace Ton.Adnl.Protocol
     public sealed class ListBlockTransactionsRequest : ILiteRequest
     {
         public TonNodeBlockIdExt Id { get; set; }
+        public uint Mode { get; set; }
         public uint Count { get; set; }
         public LiteServerTransactionId3 After { get; set; }
         public bool? ReverseOrder { get; set; }
         public bool? WantProof { get; set; }
 
-        public ListBlockTransactionsRequest(TonNodeBlockIdExt id, uint count, LiteServerTransactionId3 after = null, bool? reverseOrder = null, bool? wantProof = null)
+        public ListBlockTransactionsRequest(TonNodeBlockIdExt id, uint mode, uint count, LiteServerTransactionId3 after = null, bool? reverseOrder = null, bool? wantProof = null)
         {
             Id = id;
+            Mode = mode;
             Count = count;
             After = after;
             ReverseOrder = reverseOrder;
@@ -2192,25 +2185,18 @@ namespace Ton.Adnl.Protocol
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0xADFCC7DA); // liteServer.listBlockTransactions
-
-            // Compute mode flags automatically
-            // Bits 0-2 must be set for listBlockTransactions
-            uint mode = 7;
-            if (After != null) { mode |= (1u << 7); }
-            if (ReverseOrder.HasValue) { mode |= (1u << 6); }
-            if (WantProof.HasValue) { mode |= (1u << 5); }
             Id.WriteTo(writer);
-            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Mode);
             writer.WriteUInt32(Count);
-            if ((mode & (1u << 7)) != 0)
+            if ((Mode & (1u << 7)) != 0)
             {
                 After.WriteTo(writer);
             }
-            if ((mode & (1u << 6)) != 0)
+            if ((Mode & (1u << 6)) != 0)
             {
                 writer.WriteBool(ReverseOrder.Value);
             }
-            if ((mode & (1u << 5)) != 0)
+            if ((Mode & (1u << 5)) != 0)
             {
                 writer.WriteBool(WantProof.Value);
             }
@@ -2224,14 +2210,16 @@ namespace Ton.Adnl.Protocol
     public sealed class ListBlockTransactionsExtRequest : ILiteRequest
     {
         public TonNodeBlockIdExt Id { get; set; }
+        public uint Mode { get; set; }
         public uint Count { get; set; }
         public LiteServerTransactionId3 After { get; set; }
         public bool? ReverseOrder { get; set; }
         public bool? WantProof { get; set; }
 
-        public ListBlockTransactionsExtRequest(TonNodeBlockIdExt id, uint count, LiteServerTransactionId3 after = null, bool? reverseOrder = null, bool? wantProof = null)
+        public ListBlockTransactionsExtRequest(TonNodeBlockIdExt id, uint mode, uint count, LiteServerTransactionId3 after = null, bool? reverseOrder = null, bool? wantProof = null)
         {
             Id = id;
+            Mode = mode;
             Count = count;
             After = after;
             ReverseOrder = reverseOrder;
@@ -2241,24 +2229,18 @@ namespace Ton.Adnl.Protocol
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0x0079DD5C); // liteServer.listBlockTransactionsExt
-
-            // Compute mode flags automatically
-            uint mode = 0;
-            if (After != null) { mode |= (1u << 7); }
-            if (ReverseOrder.HasValue) { mode |= (1u << 6); }
-            if (WantProof.HasValue) { mode |= (1u << 5); }
             Id.WriteTo(writer);
-            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Mode);
             writer.WriteUInt32(Count);
-            if ((mode & (1u << 7)) != 0)
+            if ((Mode & (1u << 7)) != 0)
             {
                 After.WriteTo(writer);
             }
-            if ((mode & (1u << 6)) != 0)
+            if ((Mode & (1u << 6)) != 0)
             {
                 writer.WriteBool(ReverseOrder.Value);
             }
-            if ((mode & (1u << 5)) != 0)
+            if ((Mode & (1u << 5)) != 0)
             {
                 writer.WriteBool(WantProof.Value);
             }
@@ -2271,11 +2253,13 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public sealed class GetBlockProofRequest : ILiteRequest
     {
+        public uint Mode { get; set; }
         public TonNodeBlockIdExt KnownBlock { get; set; }
         public TonNodeBlockIdExt TargetBlock { get; set; }
 
-        public GetBlockProofRequest(TonNodeBlockIdExt knownBlock, TonNodeBlockIdExt targetBlock = null)
+        public GetBlockProofRequest(uint mode, TonNodeBlockIdExt knownBlock, TonNodeBlockIdExt targetBlock = null)
         {
+            Mode = mode;
             KnownBlock = knownBlock;
             TargetBlock = targetBlock;
         }
@@ -2283,13 +2267,9 @@ namespace Ton.Adnl.Protocol
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0x8AEA9C44); // liteServer.getBlockProof
-
-            // Compute mode flags automatically
-            uint mode = 0;
-            if (TargetBlock != null) { mode |= (1u << 0); }
-            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Mode);
             KnownBlock.WriteTo(writer);
-            if ((mode & (1u << 0)) != 0)
+            if ((Mode & (1u << 0)) != 0)
             {
                 TargetBlock.WriteTo(writer);
             }
@@ -2302,20 +2282,19 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public sealed class GetConfigAllRequest : ILiteRequest
     {
+        public uint Mode { get; set; }
         public TonNodeBlockIdExt Id { get; set; }
 
-        public GetConfigAllRequest(TonNodeBlockIdExt id)
+        public GetConfigAllRequest(uint mode, TonNodeBlockIdExt id)
         {
+            Mode = mode;
             Id = id;
         }
 
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0x911B26B7); // liteServer.getConfigAll
-
-            // Compute mode flags automatically
-            uint mode = 0;
-            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Mode);
             Id.WriteTo(writer);
         }
     }
@@ -2326,11 +2305,13 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public sealed class GetConfigParamsRequest : ILiteRequest
     {
+        public uint Mode { get; set; }
         public TonNodeBlockIdExt Id { get; set; }
         public int[] ParamList { get; set; } = Array.Empty<int>();
 
-        public GetConfigParamsRequest(TonNodeBlockIdExt id, int[] paramList)
+        public GetConfigParamsRequest(uint mode, TonNodeBlockIdExt id, int[] paramList)
         {
+            Mode = mode;
             Id = id;
             ParamList = paramList;
         }
@@ -2338,10 +2319,7 @@ namespace Ton.Adnl.Protocol
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0x9EF88D63); // liteServer.getConfigParams
-
-            // Compute mode flags automatically
-            uint mode = 0;
-            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Mode);
             Id.WriteTo(writer);
             writer.WriteUInt32((uint)ParamList.Length);
                 foreach (var item in ParamList)
@@ -2357,13 +2335,15 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public sealed class GetValidatorStatsRequest : ILiteRequest
     {
+        public uint Mode { get; set; }
         public TonNodeBlockIdExt Id { get; set; }
         public int Limit { get; set; }
         public byte[] StartAfter { get; set; }
         public int? ModifiedAfter { get; set; }
 
-        public GetValidatorStatsRequest(TonNodeBlockIdExt id, int limit, byte[] startAfter = null, int? modifiedAfter = null)
+        public GetValidatorStatsRequest(uint mode, TonNodeBlockIdExt id, int limit, byte[] startAfter = null, int? modifiedAfter = null)
         {
+            Mode = mode;
             Id = id;
             Limit = limit;
             StartAfter = startAfter;
@@ -2373,19 +2353,14 @@ namespace Ton.Adnl.Protocol
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0xE7253699); // liteServer.getValidatorStats
-
-            // Compute mode flags automatically
-            uint mode = 0;
-            if (StartAfter != null && StartAfter.Length > 0) { mode |= (1u << 0); }
-            if (ModifiedAfter.HasValue) { mode |= (1u << 2); }
-            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Mode);
             Id.WriteTo(writer);
             writer.WriteInt32(Limit);
-            if ((mode & (1u << 0)) != 0)
+            if ((Mode & (1u << 0)) != 0)
             {
                 writer.WriteBuffer(StartAfter);
             }
-            if ((mode & (1u << 2)) != 0)
+            if ((Mode & (1u << 2)) != 0)
             {
                 writer.WriteInt32(ModifiedAfter.Value);
             }
@@ -2423,22 +2398,21 @@ namespace Ton.Adnl.Protocol
     public sealed class GetLibrariesWithProofRequest : ILiteRequest
     {
         public TonNodeBlockIdExt Id { get; set; }
+        public uint Mode { get; set; }
         public byte[][] LibraryList { get; set; } = Array.Empty<byte[]>();
 
-        public GetLibrariesWithProofRequest(TonNodeBlockIdExt id, byte[][] libraryList)
+        public GetLibrariesWithProofRequest(TonNodeBlockIdExt id, uint mode, byte[][] libraryList)
         {
             Id = id;
+            Mode = mode;
             LibraryList = libraryList;
         }
 
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0x8C026C31); // liteServer.getLibrariesWithProof
-
-            // Compute mode flags automatically
-            uint mode = 0;
             Id.WriteTo(writer);
-            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Mode);
             writer.WriteUInt32((uint)LibraryList.Length);
                 foreach (var item in LibraryList)
                 {
@@ -2473,11 +2447,13 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public sealed class GetOutMsgQueueSizesRequest : ILiteRequest
     {
+        public uint Mode { get; set; }
         public int? Wc { get; set; }
         public long? Shard { get; set; }
 
-        public GetOutMsgQueueSizesRequest(int? wc = null, long? shard = null)
+        public GetOutMsgQueueSizesRequest(uint mode, int? wc = null, long? shard = null)
         {
+            Mode = mode;
             Wc = wc;
             Shard = shard;
         }
@@ -2485,17 +2461,12 @@ namespace Ton.Adnl.Protocol
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0x7BC19C36); // liteServer.getOutMsgQueueSizes
-
-            // Compute mode flags automatically
-            uint mode = 0;
-            if (Wc.HasValue) { mode |= (1u << 0); }
-            if (Shard.HasValue) { mode |= (1u << 0); }
-            writer.WriteUInt32(mode);
-            if ((mode & (1u << 0)) != 0)
+            writer.WriteUInt32(Mode);
+            if ((Mode & (1u << 0)) != 0)
             {
                 writer.WriteInt32(Wc.Value);
             }
-            if ((mode & (1u << 0)) != 0)
+            if ((Mode & (1u << 0)) != 0)
             {
                 writer.WriteInt64(Shard.Value);
             }
@@ -2508,11 +2479,13 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public sealed class GetBlockOutMsgQueueSizeRequest : ILiteRequest
     {
+        public uint Mode { get; set; }
         public TonNodeBlockIdExt Id { get; set; }
         public bool? WantProof { get; set; }
 
-        public GetBlockOutMsgQueueSizeRequest(TonNodeBlockIdExt id, bool? wantProof = null)
+        public GetBlockOutMsgQueueSizeRequest(uint mode, TonNodeBlockIdExt id, bool? wantProof = null)
         {
+            Mode = mode;
             Id = id;
             WantProof = wantProof;
         }
@@ -2520,13 +2493,9 @@ namespace Ton.Adnl.Protocol
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0x8F6C7779); // liteServer.getBlockOutMsgQueueSize
-
-            // Compute mode flags automatically
-            uint mode = 0;
-            if (WantProof.HasValue) { mode |= (1u << 0); }
-            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Mode);
             Id.WriteTo(writer);
-            if ((mode & (1u << 0)) != 0)
+            if ((Mode & (1u << 0)) != 0)
             {
                 writer.WriteBool(WantProof.Value);
             }
@@ -2539,13 +2508,15 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public sealed class GetDispatchQueueInfoRequest : ILiteRequest
     {
+        public uint Mode { get; set; }
         public TonNodeBlockIdExt Id { get; set; }
         public byte[] AfterAddr { get; set; }
         public int MaxAccounts { get; set; }
         public bool? WantProof { get; set; }
 
-        public GetDispatchQueueInfoRequest(TonNodeBlockIdExt id, int maxAccounts, byte[] afterAddr = null, bool? wantProof = null)
+        public GetDispatchQueueInfoRequest(uint mode, TonNodeBlockIdExt id, int maxAccounts, byte[] afterAddr = null, bool? wantProof = null)
         {
+            Mode = mode;
             Id = id;
             MaxAccounts = maxAccounts;
             AfterAddr = afterAddr;
@@ -2555,19 +2526,14 @@ namespace Ton.Adnl.Protocol
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0x01E66BF3); // liteServer.getDispatchQueueInfo
-
-            // Compute mode flags automatically
-            uint mode = 0;
-            if (AfterAddr != null && AfterAddr.Length > 0) { mode |= (1u << 1); }
-            if (WantProof.HasValue) { mode |= (1u << 0); }
-            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Mode);
             Id.WriteTo(writer);
-            if ((mode & (1u << 1)) != 0)
+            if ((Mode & (1u << 1)) != 0)
             {
                 writer.WriteBuffer(AfterAddr);
             }
             writer.WriteInt32(MaxAccounts);
-            if ((mode & (1u << 0)) != 0)
+            if ((Mode & (1u << 0)) != 0)
             {
                 writer.WriteBool(WantProof.Value);
             }
@@ -2580,6 +2546,7 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public sealed class GetDispatchQueueMessagesRequest : ILiteRequest
     {
+        public uint Mode { get; set; }
         public TonNodeBlockIdExt Id { get; set; }
         public byte[] Addr { get; set; } = Array.Empty<byte>();
         public long AfterLt { get; set; }
@@ -2588,8 +2555,9 @@ namespace Ton.Adnl.Protocol
         public bool? OneAccount { get; set; }
         public bool? MessagesBoc { get; set; }
 
-        public GetDispatchQueueMessagesRequest(TonNodeBlockIdExt id, byte[] addr, long afterLt, int maxMessages, bool? wantProof = null, bool? oneAccount = null, bool? messagesBoc = null)
+        public GetDispatchQueueMessagesRequest(uint mode, TonNodeBlockIdExt id, byte[] addr, long afterLt, int maxMessages, bool? wantProof = null, bool? oneAccount = null, bool? messagesBoc = null)
         {
+            Mode = mode;
             Id = id;
             Addr = addr;
             AfterLt = afterLt;
@@ -2602,26 +2570,20 @@ namespace Ton.Adnl.Protocol
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0xBBFD6439); // liteServer.getDispatchQueueMessages
-
-            // Compute mode flags automatically
-            uint mode = 0;
-            if (WantProof.HasValue) { mode |= (1u << 0); }
-            if (OneAccount.HasValue) { mode |= (1u << 1); }
-            if (MessagesBoc.HasValue) { mode |= (1u << 2); }
-            writer.WriteUInt32(mode);
+            writer.WriteUInt32(Mode);
             Id.WriteTo(writer);
             writer.WriteBuffer(Addr);
             writer.WriteInt64(AfterLt);
             writer.WriteInt32(MaxMessages);
-            if ((mode & (1u << 0)) != 0)
+            if ((Mode & (1u << 0)) != 0)
             {
                 writer.WriteBool(WantProof.Value);
             }
-            if ((mode & (1u << 1)) != 0)
+            if ((Mode & (1u << 1)) != 0)
             {
                 writer.WriteBool(OneAccount.Value);
             }
-            if ((mode & (1u << 2)) != 0)
+            if ((Mode & (1u << 2)) != 0)
             {
                 writer.WriteBool(MessagesBoc.Value);
             }
@@ -2634,11 +2596,13 @@ namespace Ton.Adnl.Protocol
     /// </summary>
     public sealed class NonfinalGetValidatorGroupsRequest : ILiteRequest
     {
+        public uint Mode { get; set; }
         public int? Wc { get; set; }
         public long? Shard { get; set; }
 
-        public NonfinalGetValidatorGroupsRequest(int? wc = null, long? shard = null)
+        public NonfinalGetValidatorGroupsRequest(uint mode, int? wc = null, long? shard = null)
         {
+            Mode = mode;
             Wc = wc;
             Shard = shard;
         }
@@ -2646,17 +2610,12 @@ namespace Ton.Adnl.Protocol
         public void WriteTo(TLWriteBuffer writer)
         {
             writer.WriteUInt32(0xA59915E3); // liteServer.nonfinal.getValidatorGroups
-
-            // Compute mode flags automatically
-            uint mode = 0;
-            if (Wc.HasValue) { mode |= (1u << 0); }
-            if (Shard.HasValue) { mode |= (1u << 0); }
-            writer.WriteUInt32(mode);
-            if ((mode & (1u << 0)) != 0)
+            writer.WriteUInt32(Mode);
+            if ((Mode & (1u << 0)) != 0)
             {
                 writer.WriteInt32(Wc.Value);
             }
-            if ((mode & (1u << 0)) != 0)
+            if ((Mode & (1u << 0)) != 0)
             {
                 writer.WriteInt64(Shard.Value);
             }
