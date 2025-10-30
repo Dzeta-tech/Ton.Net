@@ -8,4 +8,5 @@
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=seqno/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=subbuffer/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=toncenter/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=utime/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=workchain/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

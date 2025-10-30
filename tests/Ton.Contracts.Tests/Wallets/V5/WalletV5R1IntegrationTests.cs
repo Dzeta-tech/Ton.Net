@@ -250,7 +250,8 @@ public class WalletV5R1IntegrationTests
         long initialSeqno = dataSlice.LoadUint(32);
         Assert.That(initialSeqno, Is.EqualTo(0UL));
 
-        await TestContext.Out.WriteLineAsync($"Initial state: signature_allowed={isSignatureAllowed}, seqno={initialSeqno}");
+        await TestContext.Out.WriteLineAsync(
+            $"Initial state: signature_allowed={isSignatureAllowed}, seqno={initialSeqno}");
     }
 
     [Test]

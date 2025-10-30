@@ -1,5 +1,3 @@
-using System;
-using NUnit.Framework;
 using Ton.Core.Boc;
 
 namespace Ton.Core.Tests;
@@ -13,8 +11,8 @@ public class CellExoticTests
         byte[] data = new byte[bytes];
         // Set exotic type = 1 (PrunedBranch) in the first 8 bits
         data[0] = 0x01;
-        BitString bits = new BitString(data, 0, bitsLength);
-        return new Cell(bits, Array.Empty<Cell>(), exotic: true);
+        BitString bits = new(data, 0, bitsLength);
+        return new Cell(bits, Array.Empty<Cell>(), true);
     }
 
     [Test]
@@ -53,5 +51,3 @@ public class CellExoticTests
         Assert.That(c.Bits.Length, Is.EqualTo(832));
     }
 }
-
-

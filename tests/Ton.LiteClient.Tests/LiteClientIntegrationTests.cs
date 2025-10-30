@@ -18,10 +18,6 @@ namespace Ton.LiteClient.Tests;
 [NonParallelizable]
 public class LiteClientIntegrationTests
 {
-    // TON mainnet global config URL
-    const string MainnetConfigUrl = "https://ton.org/global-config.json";
-    LiteClient client = null!;
-
     [SetUp]
     public async Task Setup()
     {
@@ -36,6 +32,10 @@ public class LiteClientIntegrationTests
     {
         client?.Dispose();
     }
+
+    // TON mainnet global config URL
+    const string MainnetConfigUrl = "https://ton.org/global-config.json";
+    LiteClient client = null!;
 
     [Test]
     public async Task GetTime_ShouldReturnCurrentTime()
@@ -134,7 +134,8 @@ public class LiteClientIntegrationTests
         {
             Assert.Multiple(() =>
             {
-                Assert.That(shard.Seqno, Is.GreaterThan(0u), $"Shard seqno should be positive for shard {shard.Shard:X16}");
+                Assert.That(shard.Seqno, Is.GreaterThan(0u),
+                    $"Shard seqno should be positive for shard {shard.Shard:X16}");
                 Assert.That(shard.RootHash, Is.Not.Null);
             });
             Assert.Multiple(() =>
@@ -263,15 +264,19 @@ public class LiteClientIntegrationTests
         if (accountState.LastTransaction != null)
         {
             await TestContext.Out.WriteLineAsync($"  Last TX LT: {accountState.LastTransaction.Lt}");
-            await TestContext.Out.WriteLineAsync($"  Last TX Hash: {Convert.ToHexString(accountState.LastTransaction.Hash)[..16]}...");
+            await TestContext.Out.WriteLineAsync(
+                $"  Last TX Hash: {Convert.ToHexString(accountState.LastTransaction.Hash)[..16]}...");
         }
 
-        if (accountState.Code != null) await TestContext.Out.WriteLineAsync($"  Has Code: Yes ({accountState.Code.Bits.Length} bits)");
+        if (accountState.Code != null)
+            await TestContext.Out.WriteLineAsync($"  Has Code: Yes ({accountState.Code.Bits.Length} bits)");
 
-        if (accountState.Data != null) await TestContext.Out.WriteLineAsync($"  Has Data: Yes ({accountState.Data.Bits.Length} bits)");
+        if (accountState.Data != null)
+            await TestContext.Out.WriteLineAsync($"  Has Data: Yes ({accountState.Data.Bits.Length} bits)");
 
         // Durov's wallet should have a balance
-        Assert.That(accountState.Balance, Is.GreaterThanOrEqualTo(BigInteger.Zero), "Durov's wallet should have a positive balance");
+        Assert.That(accountState.Balance, Is.GreaterThanOrEqualTo(BigInteger.Zero),
+            "Durov's wallet should have a positive balance");
     }
 
     [Test]
@@ -523,8 +528,6 @@ public class LiteClientIntegrationTests
         await TestContext.Out.WriteLineAsync($"  Time 3: {time3:yyyy-MM-dd HH:mm:ss} UTC");
     }
 
-    #region RunMethodAsync Tests
-
     [Test]
     public async Task RunMethod_GetSeqno_ShouldReturnNumber()
     {
@@ -544,7 +547,7 @@ public class LiteClientIntegrationTests
         await TestContext.Out.WriteLineAsync($"DEBUG: Exit code: {result.ExitCode}");
         await TestContext.Out.WriteLineAsync($"DEBUG: Stack remaining: {result.Stack.Remaining}");
         await TestContext.Out.WriteLineAsync($"DEBUG: Gas used: {result.GasUsed}");
-        
+
         // Assert
         Assert.That(result, Is.Not.Null);
         Assert.That(result.ExitCode, Is.EqualTo(0), $"Method should succeed but got exit code {result.ExitCode}");
@@ -610,10 +613,6 @@ public class LiteClientIntegrationTests
         await TestContext.Out.WriteLineAsync($"Non-existent method exit code: {result.ExitCode}");
     }
 
-    #endregion
-
-    #region GetConfigAsync Tests
-
     [Test]
     public async Task GetConfig_ShouldReturnValidConfig()
     {
@@ -649,10 +648,6 @@ public class LiteClientIntegrationTests
         await TestContext.Out.WriteLineAsync($"  StateProof cells: {stateProof.Length}");
         await TestContext.Out.WriteLineAsync($"  ConfigProof cells: {configProof.Length}");
     }
-
-    #endregion
-
-    #region Lookup Method Tests
 
     [Test]
     public async Task LookupBlockByUtime_ShouldFindBlock()
@@ -718,10 +713,6 @@ public class LiteClientIntegrationTests
         await TestContext.Out.WriteLineAsync($"  Seqno: {block.Seqno}");
     }
 
-    #endregion
-
-    #region GetMasterchainInfoExt Tests
-
     [Test]
     public async Task GetMasterchainInfoExt_ShouldReturnExtendedInfo()
     {
@@ -754,13 +745,10 @@ public class LiteClientIntegrationTests
         Assert.Multiple(() =>
         {
             Assert.That(infoExt.LastUtime, Is.LessThanOrEqualTo(currentTime), "LastUtime should not be in the future");
-            Assert.That(infoExt.LastUtime, Is.GreaterThan(currentTime - 3600), "LastUtime should be recent (within 1 hour)");
+            Assert.That(infoExt.LastUtime, Is.GreaterThan(currentTime - 3600),
+                "LastUtime should be recent (within 1 hour)");
         });
     }
-
-    #endregion
-
-    #region Error Handling Tests
 
     [Test]
     public async Task GetAccountState_NonExistentAccount_ShouldReturnUninitializedState()
@@ -815,10 +803,6 @@ public class LiteClientIntegrationTests
         await TestContext.Out.WriteLineAsync($"Non-existent account transactions: {transactions.Transactions.Count}");
     }
 
-    #endregion
-
-    #region Provider GetAsync Tests
-
     [Test]
     public async Task Provider_GetAsync_ShouldExecuteSeqno()
     {
@@ -849,17 +833,10 @@ public class LiteClientIntegrationTests
         IContractProvider provider = client.Provider(address);
 
         // Act & Assert
-        Assert.ThrowsAsync<ComputeError>(async () =>
-        {
-            await provider.GetAsync("invalid_method_xyz", []);
-        });
+        Assert.ThrowsAsync<ComputeError>(async () => { await provider.GetAsync("invalid_method_xyz", []); });
 
         await TestContext.Out.WriteLineAsync("Invalid method correctly threw ComputeError");
     }
-
-    #endregion
-
-    #region Pagination Tests
 
     [Test]
     public async Task ListBlockTransactions_WithPagination_ShouldRetrieveMultiplePages()
@@ -889,7 +866,7 @@ public class LiteClientIntegrationTests
             LiteServerTransactionId3 after = new()
             {
                 Account = lastTx.Account.Hash,
-                Lt = (long)lastTx.Lt
+                Lt = lastTx.Lt
             };
 
             // Act - Second page
@@ -950,12 +927,10 @@ public class LiteClientIntegrationTests
 
         // Verify transactions are in descending LT order
         for (int i = 0; i < transactions.Transactions.Count - 1; i++)
-        {
             Assert.That(
                 transactions.Transactions[i].Lt, Is.GreaterThanOrEqualTo(transactions.Transactions[i + 1].Lt),
                 "Transactions should be in descending LT order"
             );
-        }
     }
 
     [Test]
@@ -991,7 +966,8 @@ public class LiteClientIntegrationTests
             Assert.That(transactions, Is.Not.Empty, "Should have at least one transaction");
         });
 
-        await TestContext.Out.WriteLineAsync($"Provider GetTransactionsAsync returned {transactions.Length} transactions");
+        await TestContext.Out.WriteLineAsync(
+            $"Provider GetTransactionsAsync returned {transactions.Length} transactions");
 
         // Verify no duplicates
         HashSet<(BigInteger Lt, string Hash)> seen = [];
@@ -1004,6 +980,4 @@ public class LiteClientIntegrationTests
 
         await TestContext.Out.WriteLineAsync("  No duplicate transactions found");
     }
-
-    #endregion
 }

@@ -184,27 +184,14 @@ static async Task SendTransfer(
     Console.WriteLine("Creating transfer...");
 
     // Build comment body
-    var body = Builder.BeginCell()
-        .StoreUint(0, 32) // Text comment opcode
-        .StoreStringTail(comment)
-        .EndCell();
+    var body = MessageHelpers.Comment(comment);
 
-    // Create message
-    var message = new MessageRelaxed(
-        new CommonMessageInfoRelaxed.Internal(
-            IhrDisabled: true,
-            Bounce: true,
-            Bounced: false,
-            Src: null,
-            Dest: destAddress,
-            Value: new CurrencyCollection(amountNano),
-            IhrFee: 0,
-            ForwardFee: 0,
-            CreatedLt: 0,
-            CreatedAt: 0
-        ),
-        body,
-        null
+    // Create message (defaults: ihrDisabled=true, fees=0, created=0)
+    var message = MessageHelpers.Internal(
+        to: destAddress,
+        valueNano: amountNano,
+        body: body,
+        bounce: true
     );
 
     var transfer = wallet.CreateTransfer(
@@ -265,22 +252,12 @@ static async Task SendAllBalance(
         .StoreStringTail(comment)
         .EndCell();
 
-    // Create message - amount set to 0 because CarryAllRemainingIncomingValue will replace it
-    var message = new MessageRelaxed(
-        new CommonMessageInfoRelaxed.Internal(
-            IhrDisabled: true,
-            Bounce: true,
-            Bounced: false,
-            Src: null,
-            Dest: destAddress,
-            Value: new CurrencyCollection(0),
-            IhrFee: 0,
-            ForwardFee: 0,
-            CreatedLt: 0,
-            CreatedAt: 0
-        ),
-        body,
-        null
+    // Create message - amount set to 0 because SendRemainingBalance will replace it
+    var message = MessageHelpers.Internal(
+        to: destAddress,
+        valueNano: 0,
+        body: body,
+        bounce: true
     );
 
     // Use mode 128 (SendRemainingBalance) to send the contract's entire balance
@@ -317,21 +294,12 @@ static async Task DeployWallet(
     var amountNano = new BigInteger(0.01m * 1_000_000_000m);
 
     // Create message to self
-    var message = new MessageRelaxed(
-        new CommonMessageInfoRelaxed.Internal(
-            IhrDisabled: true,
-            Bounce: false,
-            Bounced: false,
-            Src: null,
-            Dest: wallet.Address,
-            Value: new CurrencyCollection(amountNano),
-            IhrFee: 0,
-            ForwardFee: 0,
-            CreatedLt: 0,
-            CreatedAt: 0
-        ),
-        Builder.BeginCell().StoreUint(0, 32).StoreStringTail("Deploy").EndCell(),
-        wallet.Init // Include StateInit to deploy
+    var message = MessageHelpers.Internal(
+        to: wallet.Address!,
+        valueNano: amountNano,
+        body: MessageHelpers.Comment("Deploy"),
+        bounce: false,
+        init: wallet.Init
     );
 
     var transfer = wallet.CreateTransfer(
