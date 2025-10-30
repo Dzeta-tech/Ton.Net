@@ -615,7 +615,6 @@ public class LiteClientIntegrationTests
     #region GetConfigAsync Tests
 
     [Test]
-    [Ignore("PrunedBranch cell validation issue - needs investigation")]
     public async Task GetConfig_ShouldReturnValidConfig()
     {
         // Arrange

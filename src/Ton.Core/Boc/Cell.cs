@@ -135,10 +135,11 @@ public class Cell
             case CellType.PrunedBranch:
                 // Two formats:
                 // 1. Special case (config proof): type(8) + hash(256) + depth(16) = 280 bits (no mask, level=1)
-                // 2. Standard: type(8) + mask(8) + level * (hash(256) + depth(16)) = 8 + 8 + level*272
-                if (Bits.Length != 280 && Bits.Length != 288) // For now, only support level 1
+                // 2. Standard: type(8) + mask(8) + level * (hash(256) + depth(16))
+                //    Levels 1-3 supported: 288, 560, 832 bits respectively
+                if (Bits.Length != 280 && Bits.Length != 288 && Bits.Length != 560 && Bits.Length != 832)
                     throw new ArgumentException(
-                        $"PrunedBranch cell must have exactly 280 or 288 bits, got {Bits.Length}");
+                        $"PrunedBranch cell must have 280, 288, 560, or 832 bits (levels 1-3), got {Bits.Length}");
                 if (Refs.Length != 0)
                     throw new ArgumentException($"PrunedBranch cell must have 0 refs, got {Refs.Length}");
                 break;
