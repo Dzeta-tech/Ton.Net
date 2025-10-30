@@ -4,7 +4,7 @@
     <ProjectReference Include="..\..\src\Ton.Core\Ton.Core.csproj" />
     <ProjectReference Include="..\..\src\Ton.Crypto\Ton.Crypto.csproj" />
     <ProjectReference Include="..\..\src\Ton.Contracts\Ton.Contracts.csproj" />
-    <ProjectReference Include="..\..\src\Ton.HttpClient\Ton.HttpClient.csproj" />
+    <ProjectReference Include="..\..\src\Ton.LiteClient\Ton.LiteClient.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -4,14 +4,14 @@ using Ton.Core.Addresses;
 using Ton.Core.Boc;
 using Ton.Core.Types;
 using Ton.Crypto.Mnemonic;
-using Ton.HttpClient;
+using Ton.LiteClient;
 using WalletPlayground.Contracts;
 
 const string MnemonicFile = "wallet.mnemonic";
-const string OrbsEndpoint = "https://ton.access.orbs.network/4411c0ff5Bd3F8B62C092Ab4D238bEE463E64411/1/mainnet/toncenter-api-v2/jsonRPC";
+const string MainnetConfigUrl = "https://ton.org/global-config.json";
 
 Console.WriteLine("═══════════════════════════════════════════════════");
-Console.WriteLine("   TON Wallet V5R1 Playground");
+Console.WriteLine("   TON Wallet V5R1 Playground (LiteClient)");
 Console.WriteLine("═══════════════════════════════════════════════════");
 Console.WriteLine();
 
@@ -40,12 +40,11 @@ Console.WriteLine($"📍 Wallet Address: {wallet.Address}");
 Console.WriteLine($"🔗 Explorer: https://tonviewer.com/{wallet.Address}");
 Console.WriteLine();
 
-// Connect to blockchain
-var client = new TonClient(new TonClientParameters
-{
-    Endpoint = OrbsEndpoint,
-    Timeout = 30000
-});
+// Connect to blockchain via LiteClient
+Console.WriteLine("🔌 Connecting to TON mainnet via LiteClient...");
+var client = await LiteClientFactory.CreateFromUrlAsync(MainnetConfigUrl);
+Console.WriteLine("✅ Connected to TON mainnet");
+Console.WriteLine();
 
 var opened = client.Open(wallet);
 

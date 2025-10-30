@@ -10,7 +10,7 @@
 
         <!-- NuGet Package Metadata -->
         <PackageId>Ton.HttpClient</PackageId>
-        <Version>0.2.2</Version>
+        <Version>0.2.3</Version>
         <Authors>Dzeta.Tech Team</Authors>
         <Company>Dzeta.Tech</Company>
         <Description>TON blockchain HTTP client library for .NET - Toncenter API v2/v4, wallet contracts (V1-V5), jettons, multisig. 1:1 API compatibility with @ton/ton JavaScript library.</Description>

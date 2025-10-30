@@ -1,9 +1,17 @@
+using System.Numerics;
 using Ton.Adnl.Protocol;
 using Ton.Core.Addresses;
+using Ton.Core.Boc;
+using Ton.Core.Contracts;
+using Ton.Core.Tuple;
+using Ton.Core.Types;
+using Ton.Core.Utils;
 using Ton.LiteClient.Engines;
 using Ton.LiteClient.Models;
 using Ton.LiteClient.Parsers;
 using LiteServerTransactionId3 = Ton.Adnl.Protocol.LiteServerTransactionId3;
+using AccountState = Ton.LiteClient.Models.AccountState;
+using Tuple = Ton.Core.Tuple.Tuple;
 
 namespace Ton.LiteClient;
 
@@ -270,5 +278,156 @@ public sealed class LiteClient : IDisposable
             cancellationToken);
 
         return ConfigInfo.FromAdnl(response);
+    }
+
+    /// <summary>
+    ///     Runs a smart contract get method
+    /// </summary>
+    /// <param name="blockId">Block to query at</param>
+    /// <param name="address">Contract address</param>
+    /// <param name="methodName">Method name</param>
+    /// <param name="args">Method arguments as tuple items</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Method execution result</returns>
+    public async Task<RunMethodResult> RunMethodAsync(
+        BlockId blockId,
+        Address address,
+        string methodName,
+        TupleItem[]? args = null,
+        CancellationToken cancellationToken = default)
+    {
+        long methodId = MethodId.Get(methodName);
+
+        byte[] paramsBytes = args is { Length: > 0 }
+            ? Tuple.SerializeTuple(args).ToBoc()
+            : [];
+
+        RunSmcMethodRequest request = new(
+            blockId.ToAdnl(),
+            new LiteServerAccountId { Workchain = address.Workchain, Id = address.Hash },
+            methodId,
+            paramsBytes
+        );
+
+        LiteServerRunMethodResult response = await Engine.QueryAsync(
+            request,
+            static r => LiteServerRunMethodResult.ReadFrom(r),
+            cancellationToken);
+
+        TupleItem[] result = response.Result.Length > 0
+            ? Tuple.ParseTuple(Cell.FromBoc(response.Result)[0])
+            : [];
+
+        return new RunMethodResult
+        {
+            ExitCode = response.ExitCode,
+            Stack = new TupleReader(result),
+            GasUsed = null, // Not provided by lite server
+            Block = BlockId.FromAdnl(response.Id),
+            ShardBlock = BlockId.FromAdnl(response.Shardblk)
+        };
+    }
+
+
+    /// <summary>
+    ///     Sends a message to the network
+    /// </summary>
+    /// <param name="message">Serialized message BOC</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Send status</returns>
+    public async Task<int> SendMessageAsync(
+        byte[] message,
+        CancellationToken cancellationToken = default)
+    {
+        SendMessageRequest request = new(message);
+
+        LiteServerSendMsgStatus response = await Engine.QueryAsync(
+            request,
+            static r => LiteServerSendMsgStatus.ReadFrom(r),
+            cancellationToken);
+
+        return response.Status;
+    }
+
+    /// <summary>
+    ///     Gets account transactions (single request)
+    /// </summary>
+    /// <param name="address">Account address</param>
+    /// <param name="count">Number of transactions to retrieve</param>
+    /// <param name="lt">Starting logical time</param>
+    /// <param name="hash">Starting transaction hash</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Account transactions with deserialized transaction objects</returns>
+    public async Task<AccountTransactions> GetAccountTransactionsAsync(
+        Address address,
+        uint count,
+        BigInteger lt,
+        byte[] hash,
+        CancellationToken cancellationToken = default)
+    {
+        GetTransactionsRequest request = new(
+            count,
+            new LiteServerAccountId
+            {
+                Workchain = address.Workchain,
+                Id = address.Hash
+            },
+            (long)lt,
+            hash
+        );
+
+        LiteServerTransactionList response = await Engine.QueryAsync(
+            request,
+            static r => LiteServerTransactionList.ReadFrom(r),
+            cancellationToken
+        );
+
+        return AccountTransactions.FromAdnl(response);
+    }
+
+    /// <summary>
+    ///     Opens a contract for interaction using this client
+    /// </summary>
+    /// <typeparam name="T">Contract type</typeparam>
+    /// <param name="contract">Contract instance</param>
+    /// <returns>Opened contract</returns>
+    public OpenedContract<T> Open<T>(T contract) where T : IContract
+    {
+        return new OpenedContract<T>(contract, Provider(contract.Address, contract.Init));
+    }
+
+    /// <summary>
+    ///     Creates a provider for interacting with a contract at a specific address
+    /// </summary>
+    /// <param name="address">Contract address</param>
+    /// <param name="init">Optional state init for deployment</param>
+    /// <returns>Contract provider</returns>
+    public IContractProvider Provider(Address address, StateInit? init = null)
+    {
+        return new LiteClientProvider(this, null, address, init);
+    }
+
+    /// <summary>
+    ///     Creates a provider for interacting with a contract at a specific address and block
+    /// </summary>
+    /// <param name="blockId">Block ID to query at</param>
+    /// <param name="address">Contract address</param>
+    /// <param name="init">Optional state init for deployment</param>
+    /// <returns>Contract provider</returns>
+    public IContractProvider ProviderAt(BlockId blockId, Address address, StateInit? init = null)
+    {
+        return new LiteClientProvider(this, blockId, address, init);
+    }
+
+    /// <summary>
+    ///     Opens a contract at a specific block for interaction
+    /// </summary>
+    /// <typeparam name="T">Contract type</typeparam>
+    /// <param name="blockId">Block ID to query at</param>
+    /// <param name="contract">Contract instance</param>
+    /// <returns>Opened contract</returns>
+    public OpenedContract<T> OpenAt<T>(BlockId blockId, T contract) where T : IContract
+    {
+        return new OpenedContract<T>(contract, ProviderAt(blockId, contract.Address, contract.Init));
     }
 }

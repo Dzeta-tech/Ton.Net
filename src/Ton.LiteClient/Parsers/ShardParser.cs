@@ -41,7 +41,7 @@ public static class ShardParser
         if (dict == null || dict.Count() == 0)
             return [];
 
-        List<BlockId> shards = new();
+        List<BlockId> shards = [];
 
         // Parse each workchain's shard tree
         foreach (KeyValuePair<DictKeyInt, Cell> kvp in dict)

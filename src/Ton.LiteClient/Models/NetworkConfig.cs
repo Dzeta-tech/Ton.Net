@@ -11,7 +11,7 @@ public sealed class NetworkConfig
     ///     List of lite servers available in the network
     /// </summary>
     [JsonPropertyName("liteservers")]
-    public List<LiteServerConfig> LiteServers { get; set; } = new();
+    public List<LiteServerConfig> LiteServers { get; set; } = [];
 
     /// <summary>
     ///     Validator configuration
@@ -94,12 +94,14 @@ public sealed class ValidatorConfig
     /// <summary>
     ///     Configuration type
     /// </summary>
-    [JsonPropertyName("@type")] public string Type { get; set; } = string.Empty;
+    [JsonPropertyName("@type")]
+    public string Type { get; set; } = string.Empty;
 
     /// <summary>
     ///     Zero state information
     /// </summary>
-    [JsonPropertyName("zero_state")] public ZeroState? ZeroState { get; set; }
+    [JsonPropertyName("zero_state")]
+    public ZeroState? ZeroState { get; set; }
 }
 
 /// <summary>
@@ -110,25 +112,30 @@ public sealed class ZeroState
     /// <summary>
     ///     Workchain ID
     /// </summary>
-    [JsonPropertyName("workchain")] public int Workchain { get; set; }
+    [JsonPropertyName("workchain")]
+    public int Workchain { get; set; }
 
     /// <summary>
     ///     Shard identifier
     /// </summary>
-    [JsonPropertyName("shard")] public long Shard { get; set; }
+    [JsonPropertyName("shard")]
+    public long Shard { get; set; }
 
     /// <summary>
     ///     Sequence number
     /// </summary>
-    [JsonPropertyName("seqno")] public int Seqno { get; set; }
+    [JsonPropertyName("seqno")]
+    public int Seqno { get; set; }
 
     /// <summary>
     ///     Root hash (hex string)
     /// </summary>
-    [JsonPropertyName("root_hash")] public string RootHash { get; set; } = string.Empty;
+    [JsonPropertyName("root_hash")]
+    public string RootHash { get; set; } = string.Empty;
 
     /// <summary>
     ///     File hash (hex string)
     /// </summary>
-    [JsonPropertyName("file_hash")] public string FileHash { get; set; } = string.Empty;
+    [JsonPropertyName("file_hash")]
+    public string FileHash { get; set; } = string.Empty;
 }

@@ -10,7 +10,7 @@
 
         <!-- NuGet Package Information -->
         <PackageId>Ton.LiteClient</PackageId>
-        <Version>0.2.2</Version>
+        <Version>0.2.3</Version>
         <Authors>Dzeta.Tech Team</Authors>
         <Company>Dzeta.Tech</Company>
         <Description>TON Blockchain Lite Client for .NET - High-level API for interacting with TON blockchain via ADNL protocol</Description>

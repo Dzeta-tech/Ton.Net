@@ -9,8 +9,8 @@ namespace Ton.LiteClient.Engines;
 /// </summary>
 public sealed class LiteRoundRobinEngine : ILiteEngine
 {
-    readonly List<ILiteEngine> allEngines = new();
-    readonly List<ILiteEngine> readyEngines = new();
+    readonly List<ILiteEngine> allEngines = [];
+    readonly List<ILiteEngine> readyEngines = [];
     readonly object stateLock = new();
     int counter;
     bool isClosed;

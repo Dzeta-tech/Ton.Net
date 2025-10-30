@@ -10,7 +10,7 @@
 
         <!-- NuGet Package Metadata -->
         <PackageId>Ton.Crypto</PackageId>
-        <Version>0.2.2</Version>
+        <Version>0.2.3</Version>
         <Authors>Dzeta.Tech Team</Authors>
         <Company>Dzeta.Tech</Company>
         <Description>Cryptography library for TON blockchain - Mnemonics (BIP39), Ed25519, SHA, HMAC, PBKDF2, and HD wallets. 1:1 API compatibility with @ton/crypto JavaScript library.</Description>

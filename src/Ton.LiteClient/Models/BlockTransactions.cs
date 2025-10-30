@@ -39,7 +39,7 @@ public sealed class BlockTransactions
     public static BlockTransactions FromAdnl(LiteServerBlockTransactions adnlResponse, uint requestedCount)
     {
         BlockId blockId = BlockId.FromAdnl(adnlResponse.Id);
-        
+
         List<BlockTransaction> transactions = adnlResponse.Ids
             .Select(id => BlockTransaction.FromAdnl(id, blockId.Workchain))
             .ToList();
@@ -52,6 +52,7 @@ public sealed class BlockTransactions
             Incomplete = adnlResponse.Incomplete
         };
     }
+
 
     /// <inheritdoc />
     public override string ToString()

@@ -8,7 +8,7 @@ public class AddressTests
     [Test]
     public void Test_ParseAddressesInVariousForms()
     {
-        (bool IsBounceable, bool IsTestOnly, Address Address) address1 =
+        (bool IsBounceable, bool IsTestOnly, Addresses.Address Address) address1 =
             Address.ParseFriendly("0QAs9VlT6S776tq3unJcP5Ogsj-ELLunLXuOb1EKcOQi4-QO");
         (bool IsBounceable, bool IsTestOnly, Address Address) address2 =
             Address.ParseFriendly("kQAs9VlT6S776tq3unJcP5Ogsj-ELLunLXuOb1EKcOQi47nL");

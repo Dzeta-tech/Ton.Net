@@ -1,7 +1,10 @@
 using Ton.Core.Addresses;
 using Ton.Core.Boc;
+using Ton.Core.Contracts;
+using Ton.Core.Types;
 using Ton.LiteClient.Models;
 using Xunit.Abstractions;
+using AccountState = Ton.LiteClient.Models.AccountState;
 
 namespace Ton.LiteClient.Tests;
 
@@ -229,6 +232,61 @@ public class LiteClientIntegrationTests(ITestOutputHelper output) : IAsyncLifeti
 
         // Durov's wallet should have a balance
         Assert.True(accountState.Balance > 0, "Durov's wallet should have a positive balance");
+    }
+
+    [Fact]
+    public async Task GetAccountTransactions_DurovWallet_ShouldReturnTransactions()
+    {
+        // Arrange - Durov's wallet
+        Address address = Address.Parse("UQDYzZmfsrGzhObKJUw4gzdeIxEai3jAFbiGKGwxvxHinf4K");
+        MasterchainInfo masterchainInfo = await client.GetMasterchainInfoAsync();
+        AccountState accountState = await client.GetAccountStateAsync(address, masterchainInfo.Last);
+
+        // Skip if no transactions
+        if (accountState.LastTransaction == null)
+        {
+            output.WriteLine("No transactions found for this account");
+            return;
+        }
+
+        // Act
+        AccountTransactions transactions = await client.GetAccountTransactionsAsync(
+            address,
+            10,
+            accountState.LastTransaction.Lt,
+            accountState.LastTransaction.Hash
+        );
+
+        // Assert
+        Assert.NotNull(transactions);
+        Assert.NotNull(transactions.Transactions);
+        Assert.True(transactions.Transactions.Count > 0, "Should have at least one transaction");
+
+        output.WriteLine($"Retrieved {transactions.Transactions.Count} transactions:");
+        foreach (Transaction tx in transactions.Transactions.Take(5))
+            output.WriteLine($"  LT: {tx.Lt}, Hash: {Convert.ToHexString(tx.Hash())[..16]}...");
+    }
+
+    [Fact]
+    public async Task ContractProvider_DurovWallet_ShouldWorkCorrectly()
+    {
+        // Arrange - Durov's wallet
+        Address address = Address.Parse("UQDYzZmfsrGzhObKJUw4gzdeIxEai3jAFbiGKGwxvxHinf4K");
+        IContractProvider provider = client.Provider(address);
+
+        // Act
+        ContractState state = await provider.GetStateAsync();
+
+        // Assert
+        Assert.NotNull(state);
+        Assert.True(state.Balance > 0, "Durov's wallet should have balance");
+
+        output.WriteLine("Contract State via Provider:");
+        output.WriteLine($"  Balance: {state.Balance} nanotons");
+        output.WriteLine($"  State Type: {state.State.GetType().Name}");
+        output.WriteLine($"  Is Active: {state.State is ContractState.AccountStateInfo.Active}");
+
+        if (state.Last != null) output.WriteLine($"  Last TX LT: {state.Last.Lt}");
     }
 
     [Fact]
