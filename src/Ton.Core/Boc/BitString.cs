@@ -189,11 +189,11 @@ public class BitString : IEquatable<BitString>
     public static BitString Parse(string str)
     {
         // Handle underscore suffix
-        bool hasUnderscore = str.EndsWith("_");
+        bool hasUnderscore = str.EndsWith('_');
         string hex = hasUnderscore ? str[..^1] : str;
 
         // Handle odd-length hex strings by padding with '0' (matching JS SDK behavior)
-        if (hex.Length % 2 != 0) hex += "0";
+        if (hex.Length % 2 != 0) hex += '0';
 
         // Convert hex to bytes
         byte[] bytes = Convert.FromHexString(hex);
