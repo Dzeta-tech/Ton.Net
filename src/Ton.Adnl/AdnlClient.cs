@@ -361,7 +361,8 @@ public sealed class AdnlClient : IDisposable
 
             encryptCipher?.Dispose();
             decryptCipher?.Dispose();
-            networkStream?.Dispose();
+            if (networkStream != null)
+                await networkStream.DisposeAsync();
             tcpClient?.Dispose();
 
             encryptCipher = null;

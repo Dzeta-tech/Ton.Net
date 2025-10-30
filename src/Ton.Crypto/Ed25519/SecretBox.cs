@@ -75,47 +75,40 @@ public static class SecretBox
         if (data == null || data.Length < TagSize)
             return null;
 
-        try
-        {
-            // Extract tag and ciphertext
-            byte[] tag = new byte[TagSize];
-            byte[] ciphertext = new byte[data.Length - TagSize];
-            Array.Copy(data, 0, tag, 0, TagSize);
-            Array.Copy(data, TagSize, ciphertext, 0, ciphertext.Length);
+        // Extract tag and ciphertext
+        byte[] tag = new byte[TagSize];
+        byte[] ciphertext = new byte[data.Length - TagSize];
+        Array.Copy(data, 0, tag, 0, TagSize);
+        Array.Copy(data, TagSize, ciphertext, 0, ciphertext.Length);
 
-            // XSalsa20-Poly1305: First use HSalsa20 to derive subkey
-            byte[] subkey = new byte[32];
-            HSalsa20(subkey, nonce, key);
+        // XSalsa20-Poly1305: First use HSalsa20 to derive subkey
+        byte[] subkey = new byte[32];
+        HSalsa20(subkey, nonce, key);
 
-            // Verify Poly1305 MAC
-            Poly1305 poly = new();
-            poly.Init(new KeyParameter(subkey));
-            poly.BlockUpdate(ciphertext, 0, ciphertext.Length);
+        // Verify Poly1305 MAC
+        Poly1305 poly = new();
+        poly.Init(new KeyParameter(subkey));
+        poly.BlockUpdate(ciphertext, 0, ciphertext.Length);
 
-            byte[] computedTag = new byte[TagSize];
-            poly.DoFinal(computedTag, 0);
+        byte[] computedTag = new byte[TagSize];
+        poly.DoFinal(computedTag, 0);
 
-            // Constant-time comparison
-            if (!CryptographicOperations.FixedTimeEquals(tag, computedTag))
-                return null;
-
-            // Use the last 8 bytes of nonce for Salsa20
-            byte[] salsa20Nonce = new byte[8];
-            Array.Copy(nonce, 16, salsa20Nonce, 0, 8);
-
-            // Decrypt with Salsa20
-            Salsa20Engine salsa = new();
-            salsa.Init(false, new ParametersWithIV(new KeyParameter(subkey), salsa20Nonce));
-
-            byte[] plaintext = new byte[ciphertext.Length];
-            salsa.ProcessBytes(ciphertext, 0, ciphertext.Length, plaintext, 0);
-
-            return plaintext;
-        }
-        catch
-        {
+        // Constant-time comparison
+        if (!CryptographicOperations.FixedTimeEquals(tag, computedTag))
             return null;
-        }
+
+        // Use the last 8 bytes of nonce for Salsa20
+        byte[] salsa20Nonce = new byte[8];
+        Array.Copy(nonce, 16, salsa20Nonce, 0, 8);
+
+        // Decrypt with Salsa20
+        Salsa20Engine salsa = new();
+        salsa.Init(false, new ParametersWithIV(new KeyParameter(subkey), salsa20Nonce));
+
+        byte[] plaintext = new byte[ciphertext.Length];
+        salsa.ProcessBytes(ciphertext, 0, ciphertext.Length, plaintext, 0);
+
+        return plaintext;
     }
 
     static void HSalsa20(byte[] output, byte[] nonce, byte[] key)

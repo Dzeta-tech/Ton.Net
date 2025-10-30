@@ -55,11 +55,11 @@ public class WalletV5R1IntegrationTests
             // Balance should be non-negative (might be zero if not deployed)
             Assert.That(balance, Is.GreaterThanOrEqualTo(BigInteger.Zero));
 
-            TestContext.WriteLine($"Wallet balance: {balance} nanotons");
+            await TestContext.Out.WriteLineAsync($"Wallet balance: {balance} nanotons");
         }
         catch (Exception ex)
         {
-            TestContext.WriteLine($"Note: {ex.Message}");
+            await TestContext.Out.WriteLineAsync($"Note: {ex.Message}");
             Assert.Inconclusive("Wallet may not be deployed or accessible");
         }
     }
@@ -81,11 +81,11 @@ public class WalletV5R1IntegrationTests
             // Undeployed wallet should have seqno 0
             Assert.That(seqno, Is.EqualTo(0));
 
-            TestContext.WriteLine($"Undeployed wallet seqno: {seqno}");
+            await TestContext.Out.WriteLineAsync($"Undeployed wallet seqno: {seqno}");
         }
         catch (Exception ex)
         {
-            TestContext.WriteLine($"Error: {ex.Message}");
+            await TestContext.Out.WriteLineAsync($"Error: {ex.Message}");
         }
     }
 
@@ -105,11 +105,11 @@ public class WalletV5R1IntegrationTests
             // Undeployed wallet should have null extensions
             Assert.That(extensions, Is.Null);
 
-            TestContext.WriteLine("Extensions: null (wallet not deployed)");
+            await TestContext.Out.WriteLineAsync("Extensions: null (wallet not deployed)");
         }
         catch (Exception ex)
         {
-            TestContext.WriteLine($"Error: {ex.Message}");
+            await TestContext.Out.WriteLineAsync($"Error: {ex.Message}");
         }
     }
 
@@ -151,7 +151,7 @@ public class WalletV5R1IntegrationTests
         byte[] boc = transfer.ToBoc();
         Assert.That(boc.Length, Is.GreaterThan(0));
 
-        TestContext.WriteLine($"Transfer cell created: {boc.Length} bytes BOC");
+        await TestContext.Out.WriteLineAsync($"Transfer cell created: {boc.Length} bytes BOC");
     }
 
     [Test]
@@ -179,7 +179,7 @@ public class WalletV5R1IntegrationTests
         byte[] boc = request.ToBoc();
         Assert.That(boc.Length, Is.GreaterThan(0));
 
-        TestContext.WriteLine($"Add extension request created: {boc.Length} bytes BOC");
+        await TestContext.Out.WriteLineAsync($"Add extension request created: {boc.Length} bytes BOC");
     }
 
     [Test]
@@ -214,7 +214,7 @@ public class WalletV5R1IntegrationTests
         long queryId = slice.LoadUint(64);
         Assert.That(queryId, Is.EqualTo(123456UL));
 
-        TestContext.WriteLine($"Extension auth request created with opcode: 0x{opcode:X8}");
+        await TestContext.Out.WriteLineAsync($"Extension auth request created with opcode: 0x{opcode:X8}");
     }
 
     [Test]
@@ -237,7 +237,7 @@ public class WalletV5R1IntegrationTests
         byte[] codeHash = wallet.Init.Code.Hash();
         Assert.That(codeHash, Has.Length.EqualTo(32));
 
-        TestContext.WriteLine($"Code hash: {Convert.ToHexString(codeHash)}");
+        await TestContext.Out.WriteLineAsync($"Code hash: {Convert.ToHexString(codeHash)}");
 
         // Verify data structure
         Slice dataSlice = wallet.Init.Data.BeginParse();
@@ -250,7 +250,7 @@ public class WalletV5R1IntegrationTests
         long initialSeqno = dataSlice.LoadUint(32);
         Assert.That(initialSeqno, Is.EqualTo(0UL));
 
-        TestContext.WriteLine($"Initial state: signature_allowed={isSignatureAllowed}, seqno={initialSeqno}");
+        await TestContext.Out.WriteLineAsync($"Initial state: signature_allowed={isSignatureAllowed}, seqno={initialSeqno}");
     }
 
     [Test]
@@ -267,8 +267,8 @@ public class WalletV5R1IntegrationTests
 
         Assert.That(wallet1.Address, Is.Not.EqualTo(wallet2.Address));
 
-        TestContext.WriteLine($"Wallet 1: {wallet1.Address}");
-        TestContext.WriteLine($"Wallet 2: {wallet2.Address}");
+        await TestContext.Out.WriteLineAsync($"Wallet 1: {wallet1.Address}");
+        await TestContext.Out.WriteLineAsync($"Wallet 2: {wallet2.Address}");
     }
 
     [Test]
@@ -285,7 +285,7 @@ public class WalletV5R1IntegrationTests
 
         Assert.That(wallet1.Address, Is.Not.EqualTo(wallet2.Address));
 
-        TestContext.WriteLine($"Subwallet 0: {wallet1.Address}");
-        TestContext.WriteLine($"Subwallet 1: {wallet2.Address}");
+        await TestContext.Out.WriteLineAsync($"Subwallet 0: {wallet1.Address}");
+        await TestContext.Out.WriteLineAsync($"Subwallet 1: {wallet2.Address}");
     }
 }
