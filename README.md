@@ -1,5 +1,7 @@
 # Ton.NET
 
+![Banner](assets/banner.png)
+
 A modern, comprehensive .NET SDK for the TON (The Open Network) blockchain. Built from scratch with clean architecture,
 targeting compatibility with the official [TON JavaScript SDK](https://github.com/ton-org/ton).
 
