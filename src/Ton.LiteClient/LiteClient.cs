@@ -196,9 +196,9 @@ public sealed class LiteClient : IDisposable
     }
 
     /// <summary>
-    ///     Gets all shard block IDs for a given block
+    ///     Gets all shard descriptions for a given block.
     /// </summary>
-    public async Task<BlockId[]> GetAllShardsInfoAsync(
+    public async Task<ShardDescr[]> GetAllShardsInfoAsync(
         BlockId blockId,
         CancellationToken cancellationToken = default)
     {
@@ -209,7 +209,7 @@ public sealed class LiteClient : IDisposable
             static r => LiteServerAllShardsInfo.ReadFrom(r),
             cancellationToken);
 
-        // Parse shard data from BOC and return as BlockId array
+        // Parse shard data from BOC and return as ShardDescr array
         return ShardParser.ParseShards(response.Data);
     }
 

@@ -213,15 +213,17 @@ Cell actualHeader = proofCell.UnwrapProof();  // Extract data from MerkleProof
 
 ### GetAllShardsInfoAsync
 
-Get all shard blocks for a masterchain block:
+Get all shard blocks for a masterchain block (with full shard description):
 
 ```csharp
-BlockId[] shards = await client.GetAllShardsInfoAsync(masterchainBlock);
+ShardDescr[] shards = await client.GetAllShardsInfoAsync(masterchainBlock);
 
 Console.WriteLine($"Found {shards.Length} shard blocks:");
-foreach (BlockId shard in shards)
+foreach (ShardDescr shard in shards)
 {
-    Console.WriteLine($"  Workchain: {shard.Workchain}, Shard: {shard.Shard}, Seqno: {shard.Seqno}");
+    Console.WriteLine(
+        $"  Workchain: {shard.Workchain}, Shard: {shard.Shard}, Seqno: {shard.Seqno}, " +
+        $"StartLt: {shard.StartLt}, EndLt: {shard.EndLt}, GenUtime: {shard.GenUtime}");
 }
 ```
 

@@ -119,18 +119,18 @@ public class LiteClientIntegrationTests
         MasterchainInfo masterchainInfo = await client.GetMasterchainInfoAsync();
 
         // Act
-        BlockId[] shards = await client.GetAllShardsInfoAsync(masterchainInfo.Last);
+        ShardDescr[] shards = await client.GetAllShardsInfoAsync(masterchainInfo.Last);
 
         // Assert
         Assert.That(shards, Is.Not.Null);
         Assert.That(shards, Is.Not.Empty, "Should have at least one shard");
 
         // Validate that we have workchain 0 shards
-        BlockId[] workchain0Shards = shards.Where(s => s.Workchain == 0).ToArray();
+        ShardDescr[] workchain0Shards = shards.Where(s => s.Workchain == 0).ToArray();
         Assert.That(workchain0Shards, Is.Not.Empty, "Should have at least one shard for workchain 0");
 
         // Validate each shard has proper data
-        foreach (BlockId shard in shards)
+        foreach (ShardDescr shard in shards)
         {
             Assert.Multiple(() =>
             {

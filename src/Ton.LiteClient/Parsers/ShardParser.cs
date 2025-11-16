@@ -1,5 +1,7 @@
+using System.Numerics;
 using Ton.Core.Boc;
 using Ton.Core.Dict;
+using Ton.Core.Types;
 using Ton.LiteClient.Models;
 
 namespace Ton.LiteClient.Parsers;
@@ -13,8 +15,8 @@ public static class ShardParser
     ///     Parses shard information from BOC-encoded data
     /// </summary>
     /// <param name="data">BOC-encoded shard data</param>
-    /// <returns>Array of shard block IDs</returns>
-    public static BlockId[] ParseShards(byte[] data)
+    /// <returns>Array of shard descriptions</returns>
+    public static ShardDescr[] ParseShards(byte[] data)
     {
         ArgumentNullException.ThrowIfNull(data);
 
@@ -41,7 +43,7 @@ public static class ShardParser
         if (dict == null || dict.Count() == 0)
             return [];
 
-        List<BlockId> shards = [];
+        List<ShardDescr> shards = [];
 
         // Parse each workchain's shard tree
         foreach (KeyValuePair<DictKeyInt, Cell> kvp in dict)
@@ -55,26 +57,8 @@ public static class ShardParser
             if (!isBranch)
             {
                 // bt_leaf - single shard for this workchain (contains full ShardDescr)
-                uint type = (uint)treeSlice.LoadUint(4);
-
-                if (type == 0xa || type == 0xb)
-                {
-                    // Read full ShardDescr from the leaf
-                    uint seqno = (uint)treeSlice.LoadUint(32);
-                    treeSlice.Skip(32); // reg_mc_seqno
-                    treeSlice.Skip(64); // start_lt
-                    treeSlice.Skip(64); // end_lt
-
-                    byte[] rootHash = treeSlice.LoadBits(256).ToBytes();
-                    byte[] fileHash = treeSlice.LoadBits(256).ToBytes();
-
-                    treeSlice.Skip(5); // flags
-                    treeSlice.Skip(3);
-                    treeSlice.Skip(32);
-                    long shardId = treeSlice.LoadInt(64);
-
-                    shards.Add(new BlockId(workchain, shardId, seqno, rootHash, fileHash));
-                }
+                ShardDescr descr = LoadShardDescr(treeSlice, workchain, 1L << 63);
+                shards.Add(descr);
             }
             else
             {
@@ -88,9 +72,10 @@ public static class ShardParser
     }
 
     /// <summary>
-    ///     Parses binary tree of shard descriptors iteratively using a stack
+    ///     Parses binary tree of shard descriptors iteratively using a stack.
+    ///     Correctly computes shard identifiers from the binary tree position.
     /// </summary>
-    static void ParseShardTreeIterative(Cell rootCell, int workchain, ref List<BlockId> shards)
+    static void ParseShardTreeIterative(Cell rootCell, int workchain, ref List<ShardDescr> shards)
     {
         // Stack of (slice, shard ID) pairs to process
         Stack<(Slice slice, long shard)> stack = new();
@@ -104,27 +89,8 @@ public static class ShardParser
 
             if (!isBranch) // Leaf node - contains full ShardDescr
             {
-                uint type = (uint)slice.LoadUint(4);
-
-                if (type == 0xa || type == 0xb)
-                {
-                    // Read full ShardDescr
-                    uint seqno = (uint)slice.LoadUint(32);
-                    slice.Skip(32); // reg_mc_seqno
-                    slice.Skip(64); // start_lt
-                    slice.Skip(64); // end_lt
-
-                    byte[] rootHash = slice.LoadBits(256).ToBytes();
-                    byte[] fileHash = slice.LoadBits(256).ToBytes();
-
-                    slice.Skip(5); // flags
-                    slice.Skip(3);
-                    slice.Skip(32);
-                    long shardId = slice.LoadInt(64);
-
-                    shards.Add(new BlockId(workchain, shardId, seqno, rootHash, fileHash));
-                }
-
+                ShardDescr descr = LoadShardDescr(slice, workchain, shard);
+                shards.Add(descr);
                 continue;
             }
 
@@ -144,5 +110,78 @@ public static class ShardParser
             Cell right = slice.LoadRef();
             stack.Push((right.BeginParse(), shard + delta));
         }
+    }
+
+    /// <summary>
+    ///     Loads a single ShardDescr from a leaf slice.
+    /// </summary>
+    static ShardDescr LoadShardDescr(Slice slice, int workchain, long shard)
+    {
+        uint magic = (uint)slice.LoadUint(4);
+        if (magic != 0xa && magic != 0xb)
+            throw new InvalidOperationException($"Not a ShardDescr (magic: 0x{magic:X})");
+
+        uint seqno = (uint)slice.LoadUint(32);
+        uint regMcSeqno = (uint)slice.LoadUint(32);
+        BigInteger startLt = slice.LoadUintBig(64);
+        BigInteger endLt = slice.LoadUintBig(64);
+
+        byte[] rootHash = slice.LoadBits(256).ToBytes();
+        byte[] fileHash = slice.LoadBits(256).ToBytes();
+
+        bool beforeSplit = slice.LoadBit();
+        bool beforeMerge = slice.LoadBit();
+        bool wantSplit = slice.LoadBit();
+        bool wantMerge = slice.LoadBit();
+        bool nxCcUpdated = slice.LoadBit();
+        byte flags = (byte)slice.LoadUint(3);
+        uint nextCatchainSeqno = (uint)slice.LoadUint(32);
+        BigInteger nextValidatorShard = slice.LoadUintBig(64);
+        uint minRefMcSeqno = (uint)slice.LoadUint(32);
+        uint genUtime = (uint)slice.LoadUint(32);
+
+        FutureSplitMerge splitMergeAt = FutureSplitMerge.Load(slice);
+
+        CurrencyCollection feesCollected;
+        CurrencyCollection fundsCreated;
+
+        if (magic == 0xb)
+        {
+            // Old layout: currencies inline
+            feesCollected = CurrencyCollection.Load(slice);
+            fundsCreated = CurrencyCollection.Load(slice);
+        }
+        else
+        {
+            // New layout: currencies are stored in a reference cell
+            Cell refCell = slice.LoadRef();
+            Slice refSlice = refCell.BeginParse();
+            feesCollected = CurrencyCollection.Load(refSlice);
+            fundsCreated = CurrencyCollection.Load(refSlice);
+        }
+
+        return new ShardDescr(
+            workchain,
+            shard,
+            seqno,
+            rootHash,
+            fileHash,
+            regMcSeqno,
+            startLt,
+            endLt,
+            beforeSplit,
+            beforeMerge,
+            wantSplit,
+            wantMerge,
+            nxCcUpdated,
+            flags,
+            nextCatchainSeqno,
+            nextValidatorShard,
+            minRefMcSeqno,
+            genUtime,
+            splitMergeAt,
+            feesCollected,
+            fundsCreated
+        );
     }
 }

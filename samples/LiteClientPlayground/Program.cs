@@ -37,7 +37,7 @@ try
 
     // 2. Get All Shards for this block
     Console.WriteLine("🔍 Getting all shards info...");
-    BlockId[] shards = await client.GetAllShardsInfoAsync(masterchainInfo.Last);
+    ShardDescr[] shards = await client.GetAllShardsInfoAsync(masterchainInfo.Last);
 
     Console.WriteLine($"Found {shards.Length} shard(s)");
     Console.WriteLine();
@@ -54,7 +54,7 @@ try
     else
     {
         // Find a workchain 0 shard
-        BlockId? workchainShard = shards.FirstOrDefault(s => s.Workchain == 0);
+        ShardDescr? workchainShard = shards.FirstOrDefault(s => s.Workchain == 0);
         if (workchainShard != null)
         {
             Console.WriteLine($"Using workchain 0 shard: {workchainShard.Shard:X16}, seqno:{workchainShard.Seqno}\n");

@@ -10,7 +10,7 @@
 
         <!-- NuGet Package Metadata -->
         <PackageId>Ton.Contracts</PackageId>
-        <Version>0.2.5</Version>
+        <Version>0.2.6</Version>
         <Authors>Dzeta.Tech Team</Authors>
         <Company>Dzeta.Tech</Company>
         <Description>TON smart contract implementations for .NET - Wallet contracts (V1-V5), Jettons, and NFTs. 1:1 API compatibility with @ton/ton JavaScript library.</Description>
