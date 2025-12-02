@@ -214,6 +214,43 @@ public sealed class LiteClient : IDisposable
     }
 
     /// <summary>
+    ///     Gets full block data for a given block.
+    /// </summary>
+    /// <param name="blockId">Block identifier</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Parsed Block structure</returns>
+    public async Task<Core.Types.Block> GetBlockDataAsync(
+        BlockId blockId,
+        CancellationToken cancellationToken = default)
+    {
+        GetBlockRequest request = new(blockId.ToAdnl());
+
+        LiteServerBlockData response = await Engine.QueryAsync(
+            request,
+            static r => LiteServerBlockData.ReadFrom(r),
+            cancellationToken);
+
+        // Parse block data from BOC
+        Cell[] rootCells = Cell.FromBoc(response.Data);
+        if (rootCells.Length == 0)
+            throw new InvalidOperationException("Empty block data");
+
+        Cell blockCell = rootCells[0];
+
+        // Verify root hash matches
+        byte[] cellHash = blockCell.Hash();
+        if (!cellHash.SequenceEqual(blockId.RootHash) && !cellHash.SequenceEqual(response.Id.RootHash))
+        {
+            throw new InvalidOperationException(
+                $"Block root hash mismatch: expected {Convert.ToHexString(blockId.RootHash)}, " +
+                $"got {Convert.ToHexString(cellHash)}");
+        }
+
+        // Parse block structure
+        return Core.Types.Block.Load(blockCell.BeginParse());
+    }
+
+    /// <summary>
     ///     Lists transactions in a specific block.
     /// </summary>
     /// <param name="blockId">The block identifier</param>

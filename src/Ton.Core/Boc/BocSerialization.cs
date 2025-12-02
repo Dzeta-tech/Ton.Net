@@ -92,23 +92,24 @@ public static class BocSerialization
     {
         // Parse BOC
         BocHeader boc = ParseBoc(src);
+        
+        // Use the actual cell data buffer length - totalCellSize from header might be incorrect
+        // The actual buffer size is what we have available
         BitReader reader = new(new BitString(boc.CellData, 0, boc.CellData.Length * 8));
 
         // Load cells
+        // Read exactly boc.Cells cells sequentially (matching TypeScript implementation)
+        // The index table is for fast lookup but we read sequentially
         List<CellData> cells = [];
         for (int i = 0; i < boc.Cells; i++)
         {
             CellData cll = ReadCell(reader, boc.Size);
             cells.Add(cll);
-
-            // Debug: Check if any reference index is out of bounds
-            foreach (int refIdx in cll.Refs)
-                if (refIdx < 0 || refIdx >= boc.Cells)
-                    throw new InvalidOperationException(
-                        $"Cell {i} has invalid reference index {refIdx} (total cells: {boc.Cells}, sizeBytes: {boc.Size})");
         }
 
         // Build cells (bottom-up)
+        // When there's an index table, cells are stored in serialization order
+        // References are cell indices, but we need to handle them correctly
         for (int i = cells.Count - 1; i >= 0; i--)
         {
             if (cells[i].Result != null)
@@ -117,16 +118,24 @@ public static class BocSerialization
             List<Cell> refs = [];
             foreach (int r in cells[i].Refs)
             {
+                // Validate reference index
                 if (r < 0 || r >= cells.Count)
+                {
+                    // If there's an index table, references might be stored differently
+                    // But according to BOC spec, references should always be cell indices
+                    // This error suggests corrupted data or wrong parsing
                     throw new InvalidOperationException(
-                        $"Invalid BOC file: cell {i} references non-existent cell {r} (total cells: {cells.Count})");
+                        $"Invalid BOC file: cell {i} references non-existent cell {r} (total cells: {cells.Count}, " +
+                        $"sizeBytes: {boc.Size}, hasIndex: {boc.Index != null})");
+                }
+                
                 if (cells[r].Result == null)
                     throw new InvalidOperationException(
                         $"Invalid BOC file: cell {i} references cell {r} which hasn't been built yet");
                 refs.Add(cells[r].Result!);
             }
 
-            cells[i].Result = new Cell(cells[i].Bits, refs.ToArray(), cells[i].Exotic);
+            cells[i].Result = new Cell(cells[i].Bits, refs.ToArray(), cells[i].Exotic, cells[i].LevelMask);
         }
 
         // Load roots
@@ -352,14 +361,28 @@ public static class BocSerialization
         int d1 = (int)reader.LoadUint(8);
         int refsCount = d1 % 8;
         bool exotic = (d1 & 8) != 0;
+        int levelMask = d1 >> 5;
+        bool hasHashes = (d1 & 16) != 0; // Bit 4 indicates hashes are present
 
         // D2
         int d2 = (int)reader.LoadUint(8);
         int dataBytesize = (int)Math.Ceiling(d2 / 2.0);
         bool paddingAdded = d2 % 2 != 0;
 
-        // In standard BOC format without cache bits, cells don't include hashes/depths
-        // They're only included if has_cache_bits flag is set in the BOC header
+        // If hasHashes is set, skip hash and depth data before reading cell bits
+        // This matches the TypeScript implementation
+        if (hasHashes)
+        {
+            int hashBytes = 32;
+            int depthBytes = 2;
+            int hashesCount = GetHashesCount(levelMask);
+            int hashesSize = hashesCount * hashBytes;
+            int depthSize = hashesCount * depthBytes;
+            
+            // Skip hash and depth data
+            reader.Skip(hashesSize * 8);
+            reader.Skip(depthSize * 8);
+        }
 
         // Bits
         BitString bits = BitString.Empty;
@@ -373,7 +396,7 @@ public static class BocSerialization
         for (int i = 0; i < refsCount; i++)
             refs.Add((int)reader.LoadUint(sizeBytes * 8));
 
-        return new CellData(bits, refs.ToArray(), exotic);
+        return new CellData(bits, refs.ToArray(), exotic, levelMask);
     }
 
     static int GetHashesCount(int levelMask)
@@ -406,11 +429,12 @@ public static class BocSerialization
         byte[] CellData,
         int[] Root);
 
-    class CellData(BitString bits, int[] refs, bool exotic)
+    class CellData(BitString bits, int[] refs, bool exotic, int levelMask)
     {
         public BitString Bits { get; } = bits;
         public int[] Refs { get; } = refs;
         public bool Exotic { get; } = exotic;
+        public int LevelMask { get; } = levelMask;
         public Cell? Result { get; set; }
     }
 

@@ -4,7 +4,9 @@ using Ton.Core.Addresses;
 using Ton.Core.Boc;
 using Ton.Core.Contracts;
 using Ton.Core.Types;
+using Ton.Core.Utils;
 using Ton.LiteClient.Models;
+using Ton.LiteClient.Utils;
 using AccountState = Ton.LiteClient.Models.AccountState;
 
 namespace Ton.LiteClient.Tests;
@@ -230,6 +232,129 @@ public class LiteClientIntegrationTests
             Cell unwrapped = proofCell.UnwrapProof();
             Assert.That(unwrapped, Is.Not.Null);
             await TestContext.Out.WriteLineAsync($"  Unwrapped Cell Type: {unwrapped.Type}");
+        }
+    }
+
+    [Test]
+    public async Task GetBlockData_ShouldReturnValidBlock()
+    {
+        // Arrange
+        MasterchainInfo masterchainInfo = await client.GetMasterchainInfoAsync();
+        BlockId blockId = masterchainInfo.Last;
+
+        // Act
+        Core.Types.Block block = await client.GetBlockDataAsync(blockId);
+
+        // Assert
+        Assert.That(block, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(block.BlockInfo, Is.Not.Null);
+            Assert.That(block.ValueFlow, Is.Not.Null);
+            Assert.That(block.StateUpdate, Is.Not.Null);
+            Assert.That(block.Extra, Is.Not.Null);
+        });
+
+        await TestContext.Out.WriteLineAsync($"Block Data for seqno {blockId.Seqno}:");
+        await TestContext.Out.WriteLineAsync($"  Global ID: {block.GlobalId}");
+        await TestContext.Out.WriteLineAsync($"  Block Info SeqNo: {block.BlockInfo.SeqNo}");
+        await TestContext.Out.WriteLineAsync($"  Block Info Workchain: {block.BlockInfo.Shard.WorkchainId}");
+        await TestContext.Out.WriteLineAsync($"  Block Info Shard Prefix Bits: {block.BlockInfo.Shard.ShardPrefixBits}");
+        await TestContext.Out.WriteLineAsync($"  Block Info Version: {block.BlockInfo.Version}");
+        await TestContext.Out.WriteLineAsync($"  Block Info Key Block: {block.BlockInfo.KeyBlock}");
+        await TestContext.Out.WriteLineAsync($"  Block Info After Merge: {block.BlockInfo.AfterMerge}");
+        await TestContext.Out.WriteLineAsync($"  Block Info After Split: {block.BlockInfo.AfterSplit}");
+        await TestContext.Out.WriteLineAsync($"  Block Info Start LT: {block.BlockInfo.StartLt}");
+        await TestContext.Out.WriteLineAsync($"  Block Info End LT: {block.BlockInfo.EndLt}");
+        await TestContext.Out.WriteLineAsync($"  Block Info Gen Utime: {block.BlockInfo.GenUtime}");
+
+        // Verify block info matches block ID
+        Assert.That(block.BlockInfo.SeqNo, Is.EqualTo(blockId.Seqno));
+    }
+
+    [Test]
+    public async Task GetBlockData_WithShardBlock_ShouldReturnValidBlock()
+    {
+        // Arrange - Get a workchain 0 shard block
+        MasterchainInfo masterchainInfo = await client.GetMasterchainInfoAsync();
+        ShardDescr[] shards = await client.GetAllShardsInfoAsync(masterchainInfo.Last);
+        ShardDescr? workchainShard = shards.FirstOrDefault(s => s.Workchain == 0);
+
+        if (workchainShard == null)
+        {
+            Assert.Inconclusive("No workchain 0 shards available for testing");
+            return;
+        }
+
+        // Act
+        Core.Types.Block block = await client.GetBlockDataAsync(workchainShard);
+
+        // Assert
+        Assert.That(block, Is.Not.Null);
+        Assert.That(block.BlockInfo, Is.Not.Null);
+        Assert.That(block.BlockInfo.SeqNo, Is.EqualTo(workchainShard.Seqno));
+        Assert.That(block.BlockInfo.Shard.WorkchainId, Is.EqualTo(workchainShard.Workchain));
+
+        await TestContext.Out.WriteLineAsync($"Shard Block Data:");
+        await TestContext.Out.WriteLineAsync($"  Workchain: {block.BlockInfo.Shard.WorkchainId}");
+        await TestContext.Out.WriteLineAsync($"  SeqNo: {block.BlockInfo.SeqNo}");
+        await TestContext.Out.WriteLineAsync($"  Not Master: {block.BlockInfo.NotMaster}");
+    }
+
+    [Test]
+    public async Task GetParentBlocks_ShouldExtractParentBlockIds()
+    {
+        // Arrange
+        MasterchainInfo masterchainInfo = await client.GetMasterchainInfoAsync();
+        BlockId blockId = masterchainInfo.Last;
+
+        // Get block data
+        Core.Types.Block block = await client.GetBlockDataAsync(blockId);
+
+        // Act
+        BlockId[] parents = BlockUtils.GetParentBlocks(block.BlockInfo);
+
+        // Assert
+        Assert.That(parents, Is.Not.Null);
+        Assert.That(parents, Is.Not.Empty, "Should have at least one parent block");
+
+        await TestContext.Out.WriteLineAsync($"Parent blocks for block {blockId.Seqno}:");
+        for (int i = 0; i < parents.Length; i++)
+        {
+            BlockId parent = parents[i];
+            await TestContext.Out.WriteLineAsync($"  Parent {i + 1}:");
+            await TestContext.Out.WriteLineAsync($"    Workchain: {parent.Workchain}");
+            await TestContext.Out.WriteLineAsync($"    Shard: {parent.Shard:X16}");
+            await TestContext.Out.WriteLineAsync($"    SeqNo: {parent.Seqno}");
+            await TestContext.Out.WriteLineAsync($"    Root Hash: {parent.RootHashHex.Substring(0, 16)}...");
+            await TestContext.Out.WriteLineAsync($"    File Hash: {parent.FileHashHex.Substring(0, 16)}...");
+
+            // Validate parent block structure
+            Assert.Multiple(() =>
+            {
+                Assert.That(parent.RootHash, Has.Length.EqualTo(32));
+                Assert.That(parent.FileHash, Has.Length.EqualTo(32));
+                Assert.That(parent.Seqno, Is.GreaterThan(0u));
+            });
+        }
+
+        // If after merge, should have 2 parents
+        if (block.BlockInfo.AfterMerge)
+        {
+            Assert.That(parents, Has.Length.EqualTo(2), "After merge should have 2 parent blocks");
+        }
+        else if (block.BlockInfo.AfterSplit)
+        {
+            Assert.That(parents, Has.Length.EqualTo(1), "After split should have 1 parent block");
+            // Parent shard should be the parent of current shard
+            (int workchain, ulong shard) = ShardUtils.ConvertShardIdentToShard(block.BlockInfo.Shard);
+            ulong expectedParentShard = ShardUtils.ShardParent(shard);
+            Assert.That(parents[0].Shard, Is.EqualTo(unchecked((long)expectedParentShard)),
+                "Parent shard should be the parent of current shard after split");
+        }
+        else
+        {
+            Assert.That(parents, Has.Length.EqualTo(1), "Normal block should have 1 parent block");
         }
     }
 
@@ -470,11 +595,11 @@ public class LiteClientIntegrationTests
 
         // Step 6: Get all shards
         await TestContext.Out.WriteLineAsync("Step 6: Getting all shards...");
-        BlockId[] shards = await client.GetAllShardsInfoAsync(masterchainInfo.Last);
+        ShardDescr[] shards = await client.GetAllShardsInfoAsync(masterchainInfo.Last);
         Assert.That(shards, Is.Not.Empty);
         await TestContext.Out.WriteLineAsync($"  Found {shards.Length} shard(s)");
 
-        BlockId[] wc0Shards = shards.Where(s => s.Workchain == 0).ToArray();
+        ShardDescr[] wc0Shards = shards.Where(s => s.Workchain == 0).ToArray();
         Assert.That(wc0Shards, Is.Not.Empty, "Should have workchain 0 shards");
         await TestContext.Out.WriteLineAsync($"  Workchain 0 shards: {wc0Shards.Length}\n");
 

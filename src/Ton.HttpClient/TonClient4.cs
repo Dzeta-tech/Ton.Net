@@ -50,7 +50,7 @@ public class TonClient4(TonClient4Parameters parameters) : IDisposable
         HttpResponseMessage response = await httpClient.GetAsync($"{endpoint}/block/{seqno}");
         response.EnsureSuccessStatusCode();
 
-        Block? block = await response.Content.ReadFromJsonAsync<Block>();
+        Api.Models.Block? block = await response.Content.ReadFromJsonAsync<Api.Models.Block>();
         if (block == null)
             throw new InvalidOperationException("Failed to deserialize block response");
 
@@ -70,7 +70,7 @@ public class TonClient4(TonClient4Parameters parameters) : IDisposable
         HttpResponseMessage response = await httpClient.GetAsync($"{endpoint}/block/utime/{timestamp}");
         response.EnsureSuccessStatusCode();
 
-        Block? block = await response.Content.ReadFromJsonAsync<Block>();
+        Api.Models.Block? block = await response.Content.ReadFromJsonAsync<Api.Models.Block>();
         if (block == null)
             throw new InvalidOperationException("Failed to deserialize block response");
 

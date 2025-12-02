@@ -23,7 +23,8 @@ public class Cell
     /// <param name="bits">Bit string data.</param>
     /// <param name="refs">Cell references.</param>
     /// <param name="exotic">Whether this is an exotic cell.</param>
-    public Cell(BitString? bits = null, Cell[]? refs = null, bool exotic = false)
+    /// <param name="levelMask">Optional level mask (for BOC deserialization). If null, calculated from refs.</param>
+    public Cell(BitString? bits = null, Cell[]? refs = null, bool exotic = false, int? levelMask = null)
     {
         // Resolve bits
         Bits = bits ?? BitString.Empty;
@@ -42,6 +43,7 @@ public class Cell
             Type = typeValue switch
             {
                 1 => CellType.PrunedBranch,
+                2 => CellType.Library,
                 3 => CellType.MerkleProof,
                 4 => CellType.MerkleUpdate,
                 _ => throw new ArgumentException($"Unknown exotic cell type: {typeValue}")
@@ -60,10 +62,18 @@ public class Cell
             if (Bits.Length > 1023) throw new ArgumentException($"Bits overflow: {Bits.Length} > 1023");
         }
 
-        // Calculate mask
-        int mask = 0;
-        foreach (Cell r in Refs) mask |= r.Mask.Value;
-        Mask = new LevelMask(mask);
+        // Use provided level mask (from BOC) or calculate from refs
+        if (levelMask.HasValue)
+        {
+            Mask = new LevelMask(levelMask.Value);
+        }
+        else
+        {
+            // Calculate mask from refs (standard behavior)
+            int mask = 0;
+            foreach (Cell r in Refs) mask |= r.Mask.Value;
+            Mask = new LevelMask(mask);
+        }
 
         // Calculate hashes and depths
         (hashes, depths) = CalculateHashesAndDepths();
@@ -275,58 +285,181 @@ public class Cell
 
     (byte[][], int[]) CalculateHashesAndDepths()
     {
-        int hashCount = Mask.HashCount;
-        byte[][] hashes = new byte[hashCount][];
-        int[] depths = new int[hashCount];
+        // Matching TypeScript wonderCalculator implementation
+        int totalHashCount = Mask.HashCount;
+        
+        // Raw hashes and depths calculated during iteration
+        byte[][] rawHashes = new byte[totalHashCount][];
+        int[] rawDepths = new int[totalHashCount];
 
-        for (int hashI = 0; hashI < hashCount; hashI++)
+        // For PrunedBranch, extract pruned data from cell bits
+        (byte[][], int[])? prunedData = null;
+        if (Type == CellType.PrunedBranch)
         {
-            // Calculate depth
-            int currentDepth = 0;
-            foreach (Cell r in Refs)
+            prunedData = ExtractPrunedData();
+        }
+
+        int hashCount = Type == CellType.PrunedBranch ? 1 : totalHashCount;
+        int hashIndexOffset = totalHashCount - hashCount;
+        int hashIndex = 0;
+        int level = Mask.Level;
+
+        // Iterate through all levels, but only calculate hashes for significant levels
+        for (int levelIndex = 0; levelIndex <= level; levelIndex++)
+        {
+            if (!Mask.IsSignificant(levelIndex))
+                continue;
+
+            // Skip if this level is before hashIndexOffset
+            if (hashIndex < hashIndexOffset)
             {
-                int refDepth = r.Depth(hashI);
-                if (refDepth > currentDepth) currentDepth = refDepth;
+                hashIndex++;
+                continue;
             }
 
-            if (Refs.Length > 0) currentDepth++;
-            depths[hashI] = currentDepth;
+            // Get descriptor with applied level mask
+            LevelMask appliedMask = Mask.Apply(levelIndex);
+            byte[] descriptor = GetDescriptor(appliedMask);
 
-            // Calculate hash
-            byte[] descriptor = GetDescriptor();
             using SHA256 sha = SHA256.Create();
             sha.TransformBlock(descriptor, 0, descriptor.Length, null, 0);
 
-            // Add data
-            byte[] bitsData = GetBitsData();
-            sha.TransformBlock(bitsData, 0, bitsData.Length, null, 0);
-
-            // Add depths
-            foreach (Cell r in Refs)
+            // Only write bits data for the first hash (hashIndex == hashIndexOffset)
+            // For higher level hashes, write the previous hash instead
+            if (hashIndex == hashIndexOffset)
             {
-                int depth = r.Depth(hashI);
-                byte[] depthBytes = [(byte)(depth >> 8), (byte)(depth & 0xFF)];
-                sha.TransformBlock(depthBytes, 0, 2, null, 0);
+                // First hash: write bits data
+                byte[] bitsData = GetBitsData();
+                sha.TransformBlock(bitsData, 0, bitsData.Length, null, 0);
+            }
+            else
+            {
+                // Higher level hash: write previous hash
+                int prevHashOff = hashIndex - hashIndexOffset - 1;
+                if (rawHashes[prevHashOff] == null)
+                    throw new InvalidOperationException($"Previous hash at offset {prevHashOff} not calculated yet");
+                sha.TransformBlock(rawHashes[prevHashOff], 0, 32, null, 0);
             }
 
-            // Add hashes
+            // Add depths and hashes from refs
+            // Use levelIndex for ordinary cells, levelIndex+1 for MerkleProof/MerkleUpdate
+            int refLevel = (Type == CellType.MerkleProof || Type == CellType.MerkleUpdate) 
+                ? levelIndex + 1 
+                : levelIndex;
+
+            int currentDepth = 0;
             foreach (Cell r in Refs)
             {
-                byte[] hash = r.Hash(hashI);
+                int childDepth = r.Depth(refLevel);
+                byte[] depthBytes = [(byte)(childDepth >> 8), (byte)(childDepth & 0xFF)];
+                sha.TransformBlock(depthBytes, 0, 2, null, 0);
+                if (childDepth > currentDepth) currentDepth = childDepth;
+            }
+
+            if (Refs.Length > 0) currentDepth++;
+
+            foreach (Cell r in Refs)
+            {
+                byte[] hash = r.Hash(refLevel);
                 sha.TransformBlock(hash, 0, hash.Length, null, 0);
             }
 
             sha.TransformFinalBlock([], 0, 0);
-            hashes[hashI] = sha.Hash!;
+            int hashOff = hashIndex - hashIndexOffset;
+            rawHashes[hashOff] = sha.Hash!;
+            rawDepths[hashOff] = currentDepth;
+
+            hashIndex++;
+        }
+
+        // Resolve hashes to 4 levels (0-3) like TypeScript does
+        byte[][] resolvedHashes = new byte[4][];
+        int[] resolvedDepths = new int[4];
+
+        if (prunedData != null)
+        {
+            // For PrunedBranch cells, use hashes from cell data for lower levels
+            (byte[][] prunedHashes, int[] prunedDepths) = prunedData.Value;
+            for (int i = 0; i < 4; i++)
+            {
+                int appliedHashIndex = Mask.Apply(i).HashIndex;
+                int thisHashIndex = Mask.HashIndex;
+                if (appliedHashIndex != thisHashIndex)
+                {
+                    // Use pruned data for this level
+                    resolvedHashes[i] = prunedHashes[appliedHashIndex];
+                    resolvedDepths[i] = prunedDepths[appliedHashIndex];
+                }
+                else
+                {
+                    // Use calculated hash
+                    resolvedHashes[i] = rawHashes[0];
+                    resolvedDepths[i] = rawDepths[0];
+                }
+            }
+        }
+        else
+        {
+            // For non-pruned cells, resolve using mask.apply(i).hashIndex
+            for (int i = 0; i < 4; i++)
+            {
+                int appliedHashIndex = Mask.Apply(i).HashIndex;
+                resolvedHashes[i] = rawHashes[appliedHashIndex];
+                resolvedDepths[i] = rawDepths[appliedHashIndex];
+            }
+        }
+
+        return (resolvedHashes, resolvedDepths);
+    }
+
+    /// <summary>
+    ///     Extracts pruned hashes and depths from PrunedBranch cell data.
+    /// </summary>
+    (byte[][], int[]) ExtractPrunedData()
+    {
+        BitReader reader = new(Bits);
+        
+        // Skip type byte (already validated)
+        reader.Skip(8);
+
+        int level;
+        if (Bits.Length == 280)
+        {
+            // Special case for config proof - no mask byte, level is implicitly 1
+            level = 1;
+        }
+        else
+        {
+            // Read mask byte to get level
+            int maskByte = (int)reader.LoadUint(8);
+            LevelMask mask = new(maskByte);
+            level = mask.Level;
+        }
+
+        // Read hashes (32 bytes each) for each level
+        byte[][] hashes = new byte[level][];
+        for (int i = 0; i < level; i++)
+        {
+            hashes[i] = reader.LoadBuffer(32);
+        }
+
+        // Read depths (2 bytes each) for each level
+        int[] depths = new int[level];
+        for (int i = 0; i < level; i++)
+        {
+            depths[i] = (int)reader.LoadUint(16);
         }
 
         return (hashes, depths);
     }
 
-    byte[] GetDescriptor()
+    byte[] GetDescriptor(LevelMask? levelMask = null)
     {
-        // d1 = refs_cnt + 8*is_exotic + 32*level
-        int d1 = Refs.Length + (IsExotic ? 8 : 0) + (Mask.Value << 5);
+        // Use provided level mask or default to cell's mask
+        LevelMask mask = levelMask ?? Mask;
+        
+        // d1 = refs_cnt + 8*is_exotic + 32*level (matching Go: descriptors(lvl LevelMask))
+        int d1 = Refs.Length + (IsExotic ? 8 : 0) + (mask.Value << 5);
 
         // d2 = ceil(bits/8) + floor(bits/8)
         // This encodes both the byte count and padding flag in one value
